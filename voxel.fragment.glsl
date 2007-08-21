@@ -33,10 +33,10 @@ lookup_palette(float idx)
 }
 
 vec4
-cast_ray()
+cast_ray_naive()
 {
     vec3 rayinv = vec3(1.0)/ray;
-    bvec3 raysign = bvec3(lessThan(ray, vec3(0.0)));
+    bvec3 raysign = lessThan(ray, vec3(0.0));
     vec3 bound = select(raysign, vec3(0.0), voxmap_size);
     vec3 p = p0;
     
@@ -56,6 +56,43 @@ cast_ray()
 }
 
 vec3
+bias(vec3 v)
+{
+    return v * vec3(0.5) + vec3(0.5);
+}
+
+vec4
+cast_ray()
+{
+    vec3 rayinv = vec3(1.0)/ray;
+    bvec3 raysign = lessThan(ray, vec3(0.0));
+    vec3 bound = select(raysign, vec3(0.0), voxmap_size),
+         p0f = ceil(p0)  - vec3(1.0),
+         p0c = floor(p0) + vec3(1.0),
+         p1  = select(raysign, p0f, p0c),
+         tv  = (p1 - p0) * rayinv;
+    float t = 0.0,
+          maxt = minelt((bound - p0) * rayinv);
+    if(minelt(tv) == 0.0)
+        return vec4(1, 0, 1, 1);
+        
+    vec3 absrayinv = abs(rayinv);
+        
+    do {
+        vec3 pt = p0 + ray*(t+tbias);
+        float index = sample_voxmap(pt);
+        if(index != 0.0)
+            return vec4(pt, index);
+        
+        t = minelt(tv);
+        //tv += absrayinv * vec3(equal(tv, vec3(t)));
+        tv += absrayinv * step(-t, -tv);
+    } while(t < maxt);
+    
+    discard;
+}
+
+vec3
 highlight_out_of_bounds(vec3 p)
 {
     return any(lessThan(p, vec3(0))) || any(greaterThan(p, voxmap_size))
@@ -66,10 +103,11 @@ highlight_out_of_bounds(vec3 p)
 void
 main()
 {
-    vec4 p = cast_ray();
+    vec4 p = cast_ray_naive();
     
-    //gl_FragColor = vec4(highlight_out_of_bounds(p.xyz) * voxmap_size_inv, 1);
     gl_FragColor = lookup_palette(p.w);
+    //gl_FragColor = vec4(p.xyz, 1);
+    //gl_FragColor = vec4(equal(vec4(0.5, 0.6, 0.7, 1.0), vec4(0.5, 0.0, 0.0, 1.0)));
     //gl_FragColor = vec4(all(bvec3(true, true, true)));
         
     //vec4 ptrans = gl_ModelViewProjectionMatrix * vec4(p.xyz - p0, 1);

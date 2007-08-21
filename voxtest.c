@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <GL/glew.h>
+#include <sys/time.h>
 
 static const char g_palette[] = {
     0x00, 0x00, 0x00, 0x00,   0xFF, 0xFF, 0xFF, 0xFF,   0xFF, 0x00, 0x00, 0xFF,   0x00, 0xFF, 0x00, 0xFF,   // 0
@@ -396,7 +397,6 @@ draw(float eye[], float yaw, float pitch)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(-4.0, -4.0, -4.0);
-    glRotatef(45.0, 0.0, 1.0, 0.0);
     
     glActiveTextureARB(GL_TEXTURE0_ARB);
     glBindTexture(GL_TEXTURE_3D, g_state.voxmap_texture);
@@ -447,6 +447,27 @@ draw(float eye[], float yaw, float pitch)
     SDL_GL_SwapBuffers();
 }
 
+static double
+timeofday()
+{
+    struct timeval tm;
+    gettimeofday(&tm, NULL);
+    
+    return (double)tm.tv_sec + (double)tm.tv_usec/1000000.0;
+}
+
+static void
+benchmark(float eye[], float yaw, float pitch)
+{
+    double start = timeofday();
+    for(int i = 0; i < 20; ++i) {
+        draw(eye, yaw, pitch);
+        putchar('.'); fflush(stdout);
+    }
+    double bench = timeofday() - start;
+    printf("\r%f seconds to draw 20 frames (%f fps)\n", bench, 20.0/bench);
+}
+
 static void
 main_loop()
 {
@@ -495,6 +516,10 @@ main_loop()
                 return;
             case SDLK_r:
                 remake_voxel_program();
+                printf("Remade voxel program\n");
+                break;
+            case SDLK_b:
+                benchmark(eye, yaw, pitch);
                 break;
             }
         }
