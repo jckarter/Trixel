@@ -4,14 +4,12 @@ uniform sampler3D voxmap;
 uniform sampler1D palette;
 uniform vec3 voxmap_size, voxmap_size_inv;
 
-const float tbias = 0.000001;
+const float tbias = 0.00001;
 
 vec3
-select(bvec3 sel, vec3 truevals, vec3 falsevals)
+select(vec3 sel, vec3 zerovals, vec3 onevals)
 {
-    return vec3((sel.x ? truevals.x : falsevals.x),
-                (sel.y ? truevals.y : falsevals.y),
-                (sel.z ? truevals.z : falsevals.z));
+    return zerovals * (vec3(1)-sel) + onevals * sel;
 }
 
 float
@@ -36,8 +34,8 @@ vec4
 cast_ray_naive()
 {
     vec3 rayinv = vec3(1.0)/ray;
-    bvec3 raysign = lessThan(ray, vec3(0.0));
-    vec3 bound = select(raysign, vec3(0.0), voxmap_size);
+    vec3 raysign = step(0.0, ray);
+    vec3 bound = raysign * voxmap_size;
     vec3 p = p0;
     
     do {
@@ -45,67 +43,49 @@ cast_ray_naive()
         if(index != 0.0)
             return vec4(p, index);
         
-        vec3 pf = ceil(p)  - vec3(1.0);
-        vec3 pc = floor(p) + vec3(1.0);
-        vec3 pn = select(raysign, pf, pc);
+        //vec3 pf = ceil(p)  - vec3(1.0);
+        //vec3 pc = floor(p) + vec3(1.0);
+        //vec3 pn = select(raysign, pf, pc);
+        vec3 pn = raysign + floor(p);
         float t = minelt((pn - p) * rayinv);
         p += (t + tbias) * ray;
-    } while(all(bvec4(equal(greaterThan(p, bound), raysign), true)));
+    } while(all(bvec4(equal(step(p, bound), raysign), true)));
+    //} while(step(p, bound) == raysign); // doesn't work!?!
     
     discard;
 }
 
-vec3
-bias(vec3 v)
-{
-    return v * vec3(0.5) + vec3(0.5);
-}
-
-vec4
+float
 cast_ray()
 {
     vec3 rayinv = vec3(1.0)/ray;
-    bvec3 raysign = lessThan(ray, vec3(0.0));
-    vec3 bound = select(raysign, vec3(0.0), voxmap_size),
-         p0f = ceil(p0)  - vec3(1.0),
-         p0c = floor(p0) + vec3(1.0),
-         p1  = select(raysign, p0f, p0c),
-         tv  = (p1 - p0) * rayinv;
-    float t = 0.0,
+    vec3 raysign = step(0.0, ray);
+    vec3 bound = raysign * voxmap_size,
+         tv  = (raysign - fract(p0)) * rayinv + vec3(tbias);
+    float t = tbias,
           maxt = minelt((bound - p0) * rayinv);
-    if(minelt(tv) == 0.0)
-        return vec4(1, 0, 1, 1);
         
     vec3 absrayinv = abs(rayinv);
+    vec3 p0scaled = p0 * voxmap_size_inv,
+         rayscaled = ray * voxmap_size_inv;
         
     do {
-        vec3 pt = p0 + ray*(t+tbias);
-        float index = sample_voxmap(pt);
+        vec3 pt = p0scaled + rayscaled*t;
+        float index = texture3D(voxmap, pt).r;
         if(index != 0.0)
-            return vec4(pt, index);
+            return index;
         
-        t = minelt(tv);
-        //tv += absrayinv * vec3(equal(tv, vec3(t)));
         tv += absrayinv * step(-t, -tv);
+        t = minelt(tv);
     } while(t < maxt);
     
     discard;
 }
 
-vec3
-highlight_out_of_bounds(vec3 p)
-{
-    return any(lessThan(p, vec3(0))) || any(greaterThan(p, voxmap_size))
-        ? vec3(0)
-        : p;
-}
-
 void
 main()
 {
-    vec4 p = cast_ray_naive();
-    
-    gl_FragColor = lookup_palette(p.w);
+    gl_FragColor = lookup_palette(cast_ray());
     //gl_FragColor = vec4(p.xyz, 1);
     //gl_FragColor = vec4(equal(vec4(0.5, 0.6, 0.7, 1.0), vec4(0.5, 0.0, 0.0, 1.0)));
     //gl_FragColor = vec4(all(bvec3(true, true, true)));

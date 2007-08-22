@@ -521,7 +521,13 @@ main_loop()
             case SDLK_b:
                 benchmark(eye, yaw, pitch);
                 break;
+            case SDLK_SPACE:
+                eye[0] = 0.0; eye[1] = 0.0; eye[2] = 128.0;
+                yaw = 0.0;
+                pitch = 0.0;
+                break;
             }
+            break;
         }
         draw(eye, yaw, pitch);
     }
