@@ -14,13 +14,11 @@
 			<key>CFBundleTypeIconFile</key>
 			<string>BrickDocument.icns</string>
 			<key>CFBundleTypeName</key>
-			<string>DocumentType</string>
-			<key>CFBundleTypeOSTypes</key>
-			<array>
-				<string>????</string>
-			</array>
+			<string>MasonDocument</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<false/>
 			<key>NSDocumentClass</key>
 			<string>MasonDocument</string>
 		</dict>

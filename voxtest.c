@@ -162,7 +162,7 @@ static struct state {
     GLhandleARB voxel_program, voxel_vertex_shader, voxel_fragment_shader;
     GLuint palette_texture, voxmap_texture;
     
-    GLint eye_uniform, voxmap_uniform, palette_uniform, voxmap_size_uniform, voxmap_size_inv_uniform;
+    GLint voxmap_uniform, palette_uniform, voxmap_size_uniform, voxmap_size_inv_uniform;
 } g_state;
 
 static SDL_Surface *
@@ -348,7 +348,6 @@ make_voxel_program(char * * out_error_message)
     if(!g_state.voxel_program)
         goto error_after_fragment_shader;
     
-    g_state.eye_uniform = glGetUniformLocationARB(g_state.voxel_program, "eye");
     g_state.voxmap_uniform = glGetUniformLocationARB(g_state.voxel_program, "voxmap");
     g_state.palette_uniform = glGetUniformLocationARB(g_state.voxel_program, "palette");
     g_state.voxmap_size_uniform = glGetUniformLocationARB(g_state.voxel_program, "voxmap_size");
@@ -388,15 +387,15 @@ draw(float eye[], float yaw, float pitch)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    //view
     glRotatef(pitch, -1.0, 0.0, 0.0);
     glRotatef(yaw, 0.0, 1.0, 0.0);
     glTranslatef(-eye[0], -eye[1], -eye[2]);
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    //model
     glTranslatef(-4.0, -4.0, -4.0);
+    //glRotatef(45.0, 0.0, 1.0, 0.0);
     
     glActiveTextureARB(GL_TEXTURE0_ARB);
     glBindTexture(GL_TEXTURE_3D, g_state.voxmap_texture);
@@ -404,7 +403,6 @@ draw(float eye[], float yaw, float pitch)
     glBindTexture(GL_TEXTURE_1D, g_state.palette_texture);
     
     glUseProgramObjectARB(g_state.voxel_program);
-    glUniform4fvARB(g_state.eye_uniform, 1, eye);
     glUniform3fARB(g_state.voxmap_size_uniform, 8.0, 8.0, 8.0);
     glUniform3fARB(g_state.voxmap_size_inv_uniform, 1.0/8.0, 1.0/8.0, 1.0/8.0);
     glUniform1iARB(g_state.voxmap_uniform, 0);
@@ -442,8 +440,6 @@ draw(float eye[], float yaw, float pitch)
     glVertex3f(8.0, 0.0, 8.0);
     glEnd();
     
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
     SDL_GL_SwapBuffers();
 }
 
