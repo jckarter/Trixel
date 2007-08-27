@@ -1,5 +1,5 @@
-CFLAGS += -std=c99 `sdl-config --cflags` -I/opt/local/include -g -O3
+CFLAGS += -std=c99 `sdl-config --cflags` -I/opt/local/include -g
 LDFLAGS += -L/opt/local/lib `sdl-config --libs` -framework OpenGL -framework Cocoa -lglew
 
-voxtest: voxtest.c
+voxtest: voxtest.o trixel.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
