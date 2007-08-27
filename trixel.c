@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 #include <math.h>
 #include <string.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -31,7 +32,7 @@ static unsigned char g_cube_elements[] = {
     5, 1, 0, 4
 };
 
-static int
+static void
 _gl_print_matrix(GLenum what)
 {
     GLdouble matrix[16];
@@ -48,7 +49,7 @@ _gl_print_matrix(GLenum what)
 }
 
 static GLhandleARB
-glsl_shader_from_string(GLenum kind, char const *source, char * * out_error_message)
+glsl_shader_from_string(GLenum kind, char const * source, char * * out_error_message)
 {
     GLhandleARB shader = glCreateShaderObjectARB(kind);
     glShaderSourceARB(shader, 1, &source, NULL);
@@ -274,7 +275,7 @@ trixel_finish(void)
 }
 
 trixel_brick *
-trixel_read_brick(void * data, size_t data_length, char * * out_error_message)
+trixel_read_brick(void * data, size_t data_length, bool prepare, char * * out_error_message)
 {
     uint8_t * byte_data = (uint8_t *)data;
 
@@ -340,6 +341,18 @@ trixel_read_brick(void * data, size_t data_length, char * * out_error_message)
     brick->voxmap_data = malloc(voxmap_length);
     memcpy(brick->voxmap_data, byte_data + voxmap_offset, voxmap_length);
 
+    if(prepare)
+        trixel_brick_prepare(brick);
+
+    return brick;
+
+error:
+    return NULL;
+}
+
+void
+trixel_brick_prepare(trixel_brick * brick)
+{
     glGenTextures(1, &brick->palette_texture);
     glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -356,26 +369,24 @@ trixel_read_brick(void * data, size_t data_length, char * * out_error_message)
 
     trixel_brick_update_textures(brick);
 
+    GLshort width2  = (GLshort)brick->dimensions[0] / 2,
+            height2 = (GLshort)brick->dimensions[1] / 2,
+            depth2  = (GLshort)brick->dimensions[2] / 2;
     GLshort vertices[] = {
-                    0,              0,             0,
-                    0, header->height,             0,
-        header->width, header->height,             0,
-        header->width,              0,             0,
-                    0,              0, header->depth,
-                    0, header->height, header->depth,
-        header->width, header->height, header->depth,
-        header->width,              0, header->depth
+        -width2, -height2, -depth2,
+        -width2,  height2, -depth2,
+         width2,  height2, -depth2,
+         width2, -height2, -depth2,
+        -width2, -height2,  depth2,
+        -width2,  height2,  depth2,
+         width2,  height2,  depth2,
+         width2, -height2,  depth2
     };
 
     glGenBuffersARB(1, &brick->vertex_buffer);
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, brick->vertex_buffer);
     glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(vertices), vertices, GL_STATIC_DRAW_ARB);
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-
-    return brick;
-
-error:
-    return NULL;
 }
 
 void
@@ -440,7 +451,7 @@ trixel_draw_brick(trixel_brick * brick)
 }
 
 trixel_brick *
-trixel_read_brick_from_filename(char const * filename, char * * out_error_message)
+trixel_read_brick_from_filename(char const * filename, bool prepare, char * * out_error_message)
 {
     char *data;
     size_t data_length;
@@ -450,7 +461,7 @@ trixel_read_brick_from_filename(char const * filename, char * * out_error_messag
         goto error;
     }
 
-    trixel_brick *brick = trixel_read_brick(data, data_length, out_error_message);
+    trixel_brick *brick = trixel_read_brick(data, data_length, prepare, out_error_message);
     free(data);
     return brick;
 

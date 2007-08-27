@@ -15,6 +15,10 @@
 		8D15AC320486D014006FF6A4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4B0FDCFA73011CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
 		D84AFD670C813D5E008A8770 /* BrickDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD660C813D5E008A8770 /* BrickDocument.icns */; };
+		D84AFD700C823856008A8770 /* trixel.c in Sources */ = {isa = PBXBuildFile; fileRef = D84AFD6E0C823856008A8770 /* trixel.c */; };
+		D84AFD750C82387D008A8770 /* voxel.fragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD730C82387D008A8770 /* voxel.fragment.glsl */; };
+		D84AFD760C82387D008A8770 /* voxel.vertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD740C82387D008A8770 /* voxel.vertex.glsl */; };
+		D84AFD9A0C826E12008A8770 /* default.brick in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD990C826E12008A8770 /* default.brick */; };
 		D8EDAF200C7E670E00D0DE3F /* surface.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1C0C7E670E00D0DE3F /* surface.png */; };
 		D8EDAF210C7E670E00D0DE3F /* xslice.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1D0C7E670E00D0DE3F /* xslice.png */; };
 		D8EDAF220C7E670E00D0DE3F /* yslice.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1E0C7E670E00D0DE3F /* yslice.png */; };
@@ -41,6 +45,11 @@
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* Mason.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mason.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D84AFD660C813D5E008A8770 /* BrickDocument.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = BrickDocument.icns; sourceTree = "<group>"; };
+		D84AFD6E0C823856008A8770 /* trixel.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = trixel.c; path = ../trixel.c; sourceTree = SOURCE_ROOT; };
+		D84AFD6F0C823856008A8770 /* trixel.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = trixel.h; path = ../trixel.h; sourceTree = SOURCE_ROOT; };
+		D84AFD730C82387D008A8770 /* voxel.fragment.glsl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = voxel.fragment.glsl; path = ../voxel.fragment.glsl; sourceTree = SOURCE_ROOT; };
+		D84AFD740C82387D008A8770 /* voxel.vertex.glsl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = voxel.vertex.glsl; path = ../voxel.vertex.glsl; sourceTree = SOURCE_ROOT; };
+		D84AFD990C826E12008A8770 /* default.brick */ = {isa = PBXFileReference; lastKnownFileType = file; path = default.brick; sourceTree = "<group>"; };
 		D8EDAF1C0C7E670E00D0DE3F /* surface.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = surface.png; sourceTree = "<group>"; };
 		D8EDAF1D0C7E670E00D0DE3F /* xslice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = xslice.png; sourceTree = "<group>"; };
 		D8EDAF1E0C7E670E00D0DE3F /* yslice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = yslice.png; sourceTree = "<group>"; };
@@ -120,6 +129,8 @@
 		2A37F4AFFDCFA73011CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				D84AFD6E0C823856008A8770 /* trixel.c */,
+				D84AFD6F0C823856008A8770 /* trixel.h */,
 				32DBCF750370BD2300C91783 /* Mason_Prefix.pch */,
 				2A37F4B0FDCFA73011CA2CEA /* main.m */,
 			);
@@ -129,6 +140,9 @@
 		2A37F4B8FDCFA73011CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D84AFD990C826E12008A8770 /* default.brick */,
+				D84AFD730C82387D008A8770 /* voxel.fragment.glsl */,
+				D84AFD740C82387D008A8770 /* voxel.vertex.glsl */,
 				D84AFD660C813D5E008A8770 /* BrickDocument.icns */,
 				D8EDAF3D0C7E94FB00D0DE3F /* Mason.icns */,
 				D8EDAF1C0C7E670E00D0DE3F /* surface.png */,
@@ -204,6 +218,9 @@
 				D8EDAF230C7E670F00D0DE3F /* zslice.png in Resources */,
 				D8EDAF3E0C7E94FB00D0DE3F /* Mason.icns in Resources */,
 				D84AFD670C813D5E008A8770 /* BrickDocument.icns in Resources */,
+				D84AFD750C82387D008A8770 /* voxel.fragment.glsl in Resources */,
+				D84AFD760C82387D008A8770 /* voxel.vertex.glsl in Resources */,
+				D84AFD9A0C826E12008A8770 /* default.brick in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,6 +234,7 @@
 				8D15AC310486D014006FF6A4 /* MasonDocument.m in Sources */,
 				8D15AC320486D014006FF6A4 /* main.m in Sources */,
 				D8EDAF3A0C7E8BAA00D0DE3F /* MasonBrickView.m in Sources */,
+				D84AFD700C823856008A8770 /* trixel.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

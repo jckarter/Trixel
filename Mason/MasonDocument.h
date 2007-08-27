@@ -1,11 +1,20 @@
 #import <Cocoa/Cocoa.h>
 
+#include "trixel.h"
+
 @class MasonBrickView;
 
 @interface MasonDocument : NSDocument
 {
     IBOutlet NSSegmentedControl *o_sliceAxisSelector;
+    
+    trixel_brick * m_brick;
 }
+
+- (trixel_brick *)brick;
+
+- (trixel_brick *)_read_default_brick;
+
 @end
 
 #define SLICE_AXIS_SURFACE 0

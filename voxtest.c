@@ -42,8 +42,6 @@ draw(float eye[], float yaw, float pitch)
     glRotatef(pitch, -1.0, 0.0, 0.0);
     glRotatef(yaw, 0.0, 1.0, 0.0);
     glTranslatef(-eye[0], -eye[1], -eye[2]);
-    //model
-    glTranslatef(-4.0, -4.0, -4.0);
 
     trixel_draw_brick(g_brick);
     
@@ -159,7 +157,7 @@ main(int argc, char * * argv)
     if(!set_video_mode(1024, 768, &error_message))
         goto error;
     
-    g_brick = trixel_read_brick_from_filename(argv[1], &error_message);
+    g_brick = trixel_read_brick_from_filename(argv[1], true, &error_message);
     if(!g_brick)
         goto error_after_init;
     

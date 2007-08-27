@@ -1,7 +1,12 @@
 {
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
-        {CLASS = MasonBrickView; LANGUAGE = ObjC; SUPERCLASS = NSOpenGLView; }, 
+        {
+            CLASS = MasonBrickView; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {"o_document" = MasonDocument; }; 
+            SUPERCLASS = NSOpenGLView; 
+        }, 
         {
             CLASS = MasonDocument; 
             LANGUAGE = ObjC; 

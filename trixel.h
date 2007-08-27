@@ -2,6 +2,7 @@
 #define _TRIXEL_H_
 
 #include <GL/glew.h>
+#include <stdbool.h>
 
 typedef struct tag_trixel_brick {
     float dimensions[3], dimensions_inv[3];
@@ -16,8 +17,9 @@ int trixel_update_shaders(char * * out_error_message);
 
 void trixel_finish(void);
 
-trixel_brick * trixel_read_brick(void * data, size_t data_length, char * * out_error_message);
+trixel_brick * trixel_read_brick(void * data, size_t data_length, bool prepare, char * * out_error_message);
 void trixel_free_brick(trixel_brick * brick);
+void trixel_brick_prepare(trixel_brick * brick);
 void trixel_brick_update_textures(trixel_brick * brick);
 void * trixel_write_brick(trixel_brick * brick, size_t * out_data_length);
 
@@ -28,6 +30,6 @@ char * trixel_resource_filename(char const * filename);
 
 char * contents_from_filename(char const * filename, size_t * out_length);
 
-trixel_brick * trixel_read_brick_from_filename(char const * filename, char * * out_error_message);
+trixel_brick * trixel_read_brick_from_filename(char const * filename, bool prepare, char * * out_error_message);
 
 #endif /* _TRIXEL_H_ */
