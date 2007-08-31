@@ -4,6 +4,9 @@
 #include <GL/glew.h>
 #include <stdbool.h>
 
+// Shader flags:
+#define TRIXEL_SAVE_COORDINATES "TRIXEL_SAVE_COORDINATES"
+
 typedef struct tag_trixel_brick {
     float dimensions[3], dimensions_inv[3];
     char * palette_data;
@@ -11,16 +14,16 @@ typedef struct tag_trixel_brick {
     GLuint palette_texture, voxmap_texture, vertex_buffer;
 } trixel_brick;
 
-int trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char * * out_error_message);
+int trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message);
 void trixel_reshape(int viewport_width, int viewport_height);
-int trixel_update_shaders(char * * out_error_message);
+int trixel_update_shaders(char const * shader_flags[], char * * out_error_message);
 
 void trixel_finish(void);
 
 trixel_brick * trixel_read_brick(void * data, size_t data_length, bool prepare, char * * out_error_message);
 void trixel_free_brick(trixel_brick * brick);
-void trixel_brick_prepare(trixel_brick * brick);
-void trixel_brick_update_textures(trixel_brick * brick);
+void trixel_prepare_brick(trixel_brick * brick);
+void trixel_update_brick_textures(trixel_brick * brick);
 void * trixel_write_brick(trixel_brick * brick, size_t * out_data_length);
 
 void trixel_draw_from_brick(trixel_brick * brick);

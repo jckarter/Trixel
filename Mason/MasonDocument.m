@@ -30,6 +30,14 @@ nserror_from_trixel_error(char *cstring)
 
 @implementation MasonDocument
 
++ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
+{
+    if([key isEqualToString:@"brickSizeString"])
+        return NO;
+    else
+        return [super automaticallyNotifiesObserversForKey:key];
+}
+
 - (id)init
 {
     self = [super init];
@@ -54,7 +62,7 @@ nserror_from_trixel_error(char *cstring)
 - (void)windowControllerDidLoadNib:(NSWindowController *)aController
 {
     [super windowControllerDidLoadNib:aController];
-    
+        
     for(int i = 0; i < [o_sliceAxisSelector segmentCount]; ++i)
         [o_sliceAxisSelector setLabel:nil forSegment:i];
     [o_sliceAxisSelector selectSegmentWithTag:SLICE_AXIS_SURFACE];
@@ -76,16 +84,27 @@ nserror_from_trixel_error(char *cstring)
         return NO;
     }
     
-    if(m_brick)
-        trixel_free_brick(m_brick);
-    m_brick = new_brick;
-    
+    [self _replace_brick:new_brick];
     return YES;
 }
 
 - (trixel_brick *)brick
 {
     return m_brick;
+}
+
+- (NSString *)brickSizeString
+{
+    return [NSString stringWithFormat:@"%ux%ux%u",
+        (unsigned)m_brick->dimensions[0],
+        (unsigned)m_brick->dimensions[1],
+        (unsigned)m_brick->dimensions[2]
+    ];
+}
+
+- (MasonBrickView *)brickView
+{
+    return o_brickView;
 }
 
 - (trixel_brick *)_read_default_brick
@@ -95,8 +114,16 @@ nserror_from_trixel_error(char *cstring)
         [[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"default.brick"] UTF8String],
         false, &error_message
     );
-    
     return m_brick;
+}
+
+- (void)_replace_brick:(trixel_brick *)new_brick
+{
+    [self willChangeValueForKey:@"brickSizeString"];
+    if(m_brick)
+        trixel_free_brick(m_brick);
+    m_brick = new_brick;
+    [self didChangeValueForKey:@"brickSizeString"];        
 }
 
 @end

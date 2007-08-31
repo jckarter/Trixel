@@ -48,12 +48,48 @@ _gl_print_matrix(GLenum what)
     );
 }
 
-static GLhandleARB
-glsl_shader_from_string(GLenum kind, char const * source, char * * out_error_message)
+static char * *
+_make_shader_flag_sources(char const * flags[], char const * source, size_t *out_num_sources)
 {
+    if(!flags) {
+        char * * flag_sources = malloc(sizeof(char *));
+        *flag_sources = strdup(source);
+        *out_num_sources = 1;
+        return flag_sources;
+    }
+    
+    size_t num_flags = 0;
+    char const * * fp = flags;
+    while(*fp++)
+        ++num_flags;
+    
+    char * * flag_sources = malloc((num_flags + 1) * sizeof(char*));
+    for(size_t i = 0; i < num_flags; ++i)
+        asprintf(&flag_sources[i], "#define %s 1\n", flags[i]);
+    
+    flag_sources[num_flags] = strdup(source);
+    *out_num_sources = num_flags + 1;
+    return flag_sources;
+}
+
+static void
+_free_shader_flag_sources(char * flags[], size_t num_sources)
+{
+    for(size_t i = 0; i < num_sources; ++i)
+        free(flags[i]);
+    free(flags);
+}
+
+static GLhandleARB
+glsl_shader_from_string(GLenum kind, char const * shader_flags[], char const * source, char * * out_error_message)
+{
+    size_t num_sources;
+    char * * shader_flag_sources = _make_shader_flag_sources(shader_flags, source, &num_sources);
     GLhandleARB shader = glCreateShaderObjectARB(kind);
-    glShaderSourceARB(shader, 1, &source, NULL);
+    glShaderSourceARB(shader, num_sources, (const GLcharARB**)shader_flag_sources, NULL);
     glCompileShaderARB(shader);
+    
+    _free_shader_flag_sources(shader_flag_sources, num_sources);
 
     GLint status;
     glGetObjectParameterivARB(shader, GL_OBJECT_COMPILE_STATUS_ARB, &status);
@@ -148,7 +184,7 @@ unmake_voxel_program(void)
 }
 
 int
-trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char * * out_error_message)
+trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message)
 {
     memset(&g_state, 0, sizeof(g_state));
 
@@ -161,8 +197,11 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
     if(!GLEW_ARB_multitexture
         || !GLEW_ARB_shader_objects
         || !GLEW_ARB_shading_language_100
-        || !GLEW_ARB_vertex_buffer_object) {
-        *out_error_message = strdup("Your OpenGL implementation doesn't support GLSL shaders.");
+        || !GLEW_ARB_vertex_buffer_object
+        || !GLEW_ARB_draw_buffers
+        || !GLEW_EXT_framebuffer_object
+        || !GLEW_ARB_texture_float) {
+        *out_error_message = strdup("Your OpenGL implementation doesn't support GLSL shaders, multi draw buffers, and/or offscreen framebuffers.");
         goto error;
     }
 
@@ -187,7 +226,7 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
     glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(g_cube_elements), g_cube_elements, GL_STATIC_DRAW_ARB);
     glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 
-    if(!trixel_update_shaders(out_error_message))
+    if(!trixel_update_shaders(shader_flags, out_error_message))
         goto error_after_save_resource_path;
 
     return 1;
@@ -218,7 +257,7 @@ trixel_reshape(int viewport_width, int viewport_height)
 }
 
 int
-trixel_update_shaders(char * * out_error_message)
+trixel_update_shaders(char const *shader_flags[], char * * out_error_message)
 {
     char *vertex_source_path = trixel_resource_filename("voxel.vertex.glsl");
     char *fragment_source_path = trixel_resource_filename("voxel.fragment.glsl");
@@ -228,10 +267,10 @@ trixel_update_shaders(char * * out_error_message)
         *out_error_message = strdup("Failed to load shader source for the voxmap renderer.");
     }
 
-    GLhandleARB voxel_vertex_shader = glsl_shader_from_string(GL_VERTEX_SHADER_ARB, vertex_source, out_error_message);
+    GLhandleARB voxel_vertex_shader = glsl_shader_from_string(GL_VERTEX_SHADER_ARB, shader_flags, vertex_source, out_error_message);
     if(!voxel_vertex_shader)
         goto error;
-    GLhandleARB voxel_fragment_shader = glsl_shader_from_string(GL_FRAGMENT_SHADER_ARB, fragment_source, out_error_message);
+    GLhandleARB voxel_fragment_shader = glsl_shader_from_string(GL_FRAGMENT_SHADER_ARB, shader_flags, fragment_source, out_error_message);
     if(!voxel_fragment_shader)
         goto error_after_vertex_shader;
     GLhandleARB voxel_program = glsl_program_from_shaders(voxel_vertex_shader, voxel_fragment_shader, out_error_message);
@@ -342,7 +381,7 @@ trixel_read_brick(void * data, size_t data_length, bool prepare, char * * out_er
     memcpy(brick->voxmap_data, byte_data + voxmap_offset, voxmap_length);
 
     if(prepare)
-        trixel_brick_prepare(brick);
+        trixel_prepare_brick(brick);
 
     return brick;
 
@@ -351,7 +390,7 @@ error:
 }
 
 void
-trixel_brick_prepare(trixel_brick * brick)
+trixel_prepare_brick(trixel_brick * brick)
 {
     glGenTextures(1, &brick->palette_texture);
     glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
@@ -367,7 +406,7 @@ trixel_brick_prepare(trixel_brick * brick)
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
 
-    trixel_brick_update_textures(brick);
+    trixel_update_brick_textures(brick);
 
     GLshort width2  = (GLshort)brick->dimensions[0] / 2,
             height2 = (GLshort)brick->dimensions[1] / 2,
@@ -401,7 +440,7 @@ trixel_free_brick(trixel_brick * brick)
 }
 
 void
-trixel_brick_update_textures(trixel_brick * brick)
+trixel_update_brick_textures(trixel_brick * brick)
 {
     glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, brick->palette_data);

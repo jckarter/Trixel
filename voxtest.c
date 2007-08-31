@@ -20,7 +20,7 @@ set_video_mode(int width, int height, char * * out_error_message)
     if(!screen)
         goto error_from_sdl;
 
-    if(!trixel_init_opengl(".", width, height, out_error_message))
+    if(!trixel_init_opengl(".", width, height, NULL, out_error_message))
         goto error;
 
     return screen;
@@ -118,7 +118,7 @@ main_loop()
             case SDLK_r:
                 {
                     char * error;
-                    if(trixel_update_shaders(&error)) {
+                    if(trixel_update_shaders(NULL, &error)) {
                         printf("Remade voxel program\n");
                     } else {
                         printf("Error trying to remake voxel program:\n%s\n", error);

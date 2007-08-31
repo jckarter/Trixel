@@ -10,7 +10,11 @@
         {
             CLASS = MasonDocument; 
             LANGUAGE = ObjC; 
-            OUTLETS = {"o_sliceAxisSelector" = NSSegmentedControl; }; 
+            OUTLETS = {
+                "o_brickView" = MasonBrickView; 
+                "o_sliceAxisSelector" = NSSegmentedControl; 
+                "o_window" = NSWindow; 
+            }; 
             SUPERCLASS = NSDocument; 
         }, 
         {CLASS = NSSegmentedControl; LANGUAGE = ObjC; SUPERCLASS = NSControl; }
