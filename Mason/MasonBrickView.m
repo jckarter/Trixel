@@ -1,5 +1,8 @@
 #import "MasonBrickView.h"
 #import "MasonDocument.h"
+#import "MasonApplication.h"
+#import "MasonToolboxController.h"
+#import "MasonTool.h"
 #include <GL/glew.h>
 #include <math.h>
 
@@ -102,20 +105,14 @@ fbound(float x, float mn, float mx)
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_R, GL_CLAMP);
 
-    glGenTextures(1, &m_hover_texture);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_hover_texture);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_R, GL_CLAMP);
+    glGenRenderbuffersEXT(1, &m_hover_renderbuffer);
 
     glGenRenderbuffersEXT(1, &m_depth_renderbuffer);
     
     [self _reshape_framebuffer];
     
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, m_color_texture, 0);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, m_hover_texture, 0);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
 
     if(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
@@ -145,19 +142,25 @@ fbound(float x, float mn, float mx)
     [self setNeedsDisplay:YES];
 }
 
+- (void)yaw:(float)yoffset pitch:(float)poffset
+{
+    NSLog(@"%f %f", yoffset, poffset);
+    m_yaw = m_yaw + yoffset * MOUSE_ROTATE_FACTOR;
+    m_pitch = fbound(m_pitch + poffset * MOUSE_ROTATE_FACTOR, -90.0, 90.0);
+}
+
 - (void)_reshape_framebuffer
 {
     NSRect frame = [self bounds];
     
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_color_texture);
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA32F_ARB, NSWidth(frame), NSHeight(frame), 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame), 0, GL_RGBA, GL_FLOAT, NULL);
 
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_hover_texture);
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA32F_ARB, NSWidth(frame), NSHeight(frame), 0, GL_RGBA, GL_FLOAT, NULL);
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame));
 
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, NSWidth(frame), NSHeight(frame));
-
 }
 
 - (void)drawRect:(NSRect)r
@@ -165,7 +168,7 @@ fbound(float x, float mn, float mx)
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
     
     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
-    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
@@ -213,8 +216,10 @@ fbound(float x, float mn, float mx)
 
 - (void)mouseDragged:(NSEvent *)event
 {
-    m_yaw = m_yaw + [event deltaX] * MOUSE_ROTATE_FACTOR;
-    m_pitch = fbound(m_pitch + [event deltaY] * MOUSE_ROTATE_FACTOR, -90.0, 90.0);
+    [[[NSApp toolboxController] currentTool]
+        handleMouseDraggedFrom:[self convertPoint:[event locationInWindow] fromView:nil]
+        delta:NSMakePoint([event deltaX], [event deltaY])
+        forDocument:o_document];
     
     [self mouseMoved:event];
     [self setNeedsDisplay:YES];
@@ -229,7 +234,6 @@ fbound(float x, float mn, float mx)
 
 - (void)mouseEntered:(NSEvent *)event
 {
-    NSLog(@"mouseentered");
     [self willChangeValueForKey:@"hoverPoint"];
     m_hovering = YES;
     [self didChangeValueForKey:@"hoverPoint"];
@@ -239,6 +243,7 @@ fbound(float x, float mn, float mx)
 {
     if(!m_hovering)
         return;
+
     [self willChangeValueForKey:@"hoverPoint"];
     m_hoverPixel = [self convertPoint:[event locationInWindow] fromView:nil];
     [self didChangeValueForKey:@"hoverPoint"];
@@ -246,7 +251,6 @@ fbound(float x, float mn, float mx)
 
 - (void)mouseExited:(NSEvent *)event
 {
-    NSLog(@"mouseexited");
     [self willChangeValueForKey:@"hoverPoint"];
     m_hovering = NO;
     [self didChangeValueForKey:@"hoverPoint"];
@@ -284,7 +288,7 @@ fbound(float x, float mn, float mx)
 {
     struct point3 hoverPoint = [self hoverPoint];
     if(hoverPoint.x != -1.0)
-        return [NSString stringWithFormat:@"(%.3f, %.3f, %.3f)", hoverPoint.x, hoverPoint.y, hoverPoint.z];
+        return [NSString stringWithFormat:@"(%.0f, %.0f, %.0f)", hoverPoint.x, hoverPoint.y, hoverPoint.z];
     else
         return @"";
 }

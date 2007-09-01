@@ -16,11 +16,13 @@ struct point3 {
     NSPoint m_hoverPixel;
     float m_yaw, m_pitch, m_distance;
     
-    GLuint m_framebuffer, m_hover_texture, m_depth_renderbuffer, m_color_texture;
+    GLuint m_framebuffer, m_hover_renderbuffer, m_depth_renderbuffer, m_color_texture;
 }
 
 - (struct point3)hoverPoint;
 - (NSString *)hoverPointString;
+
+- (void)yaw:(float)offset pitch:(float)offset;
 
 //private
 

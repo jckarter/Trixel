@@ -14,6 +14,11 @@
 		8D15AC310486D014006FF6A4 /* MasonDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4ACFDCFA73011CA2CEA /* MasonDocument.m */; settings = {ATTRIBUTES = (); }; };
 		8D15AC320486D014006FF6A4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4B0FDCFA73011CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
+		D800AE4B0C88DBB700A38A34 /* MasonRotateTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D800AE4A0C88DBB700A38A34 /* MasonRotateTool.m */; };
+		D800AE5E0C8905B100A38A34 /* MasonDrawTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D800AE590C8905B100A38A34 /* MasonDrawTool.m */; };
+		D800AE5F0C8905B100A38A34 /* MasonEraseTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D800AE5B0C8905B100A38A34 /* MasonEraseTool.m */; };
+		D800AE600C8905B100A38A34 /* MasonTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D800AE5D0C8905B100A38A34 /* MasonTool.m */; };
+		D800AE630C8905C400A38A34 /* MasonApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = D800AE620C8905C400A38A34 /* MasonApplication.m */; };
 		D84AFD670C813D5E008A8770 /* BrickDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD660C813D5E008A8770 /* BrickDocument.icns */; };
 		D84AFD700C823856008A8770 /* trixel.c in Sources */ = {isa = PBXBuildFile; fileRef = D84AFD6E0C823856008A8770 /* trixel.c */; };
 		D84AFD750C82387D008A8770 /* voxel.fragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD730C82387D008A8770 /* voxel.fragment.glsl */; };
@@ -27,6 +32,10 @@
 		D8EDAF3E0C7E94FB00D0DE3F /* Mason.icns in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF3D0C7E94FB00D0DE3F /* Mason.icns */; };
 		D8EDAF6E0C7FE30A00D0DE3F /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8EDAF6D0C7FE30A00D0DE3F /* OpenGL.framework */; };
 		D8EDAF720C7FE32900D0DE3F /* libGLEW.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D8EDAF710C7FE32900D0DE3F /* libGLEW.dylib */; };
+		D8EF23CD0C88CA1A00457237 /* draw.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EF23CA0C88CA1A00457237 /* draw.png */; };
+		D8EF23CE0C88CA1A00457237 /* erase.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EF23CB0C88CA1A00457237 /* erase.png */; };
+		D8EF23CF0C88CA1A00457237 /* hand.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EF23CC0C88CA1A00457237 /* hand.png */; };
+		D8EF23D20C88D3A200457237 /* MasonToolboxController.m in Sources */ = {isa = PBXBuildFile; fileRef = D8EF23D10C88D3A200457237 /* MasonToolboxController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +53,16 @@
 		32DBCF750370BD2300C91783 /* Mason_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mason_Prefix.pch; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* Mason.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mason.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D800AE490C88DBB700A38A34 /* MasonRotateTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonRotateTool.h; sourceTree = "<group>"; };
+		D800AE4A0C88DBB700A38A34 /* MasonRotateTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonRotateTool.m; sourceTree = "<group>"; };
+		D800AE580C8905B100A38A34 /* MasonDrawTool.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MasonDrawTool.h; sourceTree = "<group>"; };
+		D800AE590C8905B100A38A34 /* MasonDrawTool.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MasonDrawTool.m; sourceTree = "<group>"; };
+		D800AE5A0C8905B100A38A34 /* MasonEraseTool.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MasonEraseTool.h; sourceTree = "<group>"; };
+		D800AE5B0C8905B100A38A34 /* MasonEraseTool.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MasonEraseTool.m; sourceTree = "<group>"; };
+		D800AE5C0C8905B100A38A34 /* MasonTool.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MasonTool.h; sourceTree = "<group>"; };
+		D800AE5D0C8905B100A38A34 /* MasonTool.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MasonTool.m; sourceTree = "<group>"; };
+		D800AE610C8905C400A38A34 /* MasonApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonApplication.h; sourceTree = "<group>"; };
+		D800AE620C8905C400A38A34 /* MasonApplication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonApplication.m; sourceTree = "<group>"; };
 		D84AFD660C813D5E008A8770 /* BrickDocument.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = BrickDocument.icns; sourceTree = "<group>"; };
 		D84AFD6E0C823856008A8770 /* trixel.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = trixel.c; path = ../trixel.c; sourceTree = SOURCE_ROOT; };
 		D84AFD6F0C823856008A8770 /* trixel.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = trixel.h; path = ../trixel.h; sourceTree = SOURCE_ROOT; };
@@ -59,6 +78,11 @@
 		D8EDAF3D0C7E94FB00D0DE3F /* Mason.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Mason.icns; sourceTree = "<group>"; };
 		D8EDAF6D0C7FE30A00D0DE3F /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		D8EDAF710C7FE32900D0DE3F /* libGLEW.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libGLEW.dylib; path = /opt/local/lib/libGLEW.dylib; sourceTree = "<absolute>"; };
+		D8EF23CA0C88CA1A00457237 /* draw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = draw.png; sourceTree = "<group>"; };
+		D8EF23CB0C88CA1A00457237 /* erase.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = erase.png; sourceTree = "<group>"; };
+		D8EF23CC0C88CA1A00457237 /* hand.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = hand.png; sourceTree = "<group>"; };
+		D8EF23D00C88D3A200457237 /* MasonToolboxController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MasonToolboxController.h; sourceTree = "<group>"; };
+		D8EF23D10C88D3A200457237 /* MasonToolboxController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MasonToolboxController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,10 +142,22 @@
 		2A37F4ABFDCFA73011CA2CEA /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				D800AE580C8905B100A38A34 /* MasonDrawTool.h */,
+				D800AE590C8905B100A38A34 /* MasonDrawTool.m */,
+				D800AE5A0C8905B100A38A34 /* MasonEraseTool.h */,
+				D800AE5B0C8905B100A38A34 /* MasonEraseTool.m */,
+				D800AE5C0C8905B100A38A34 /* MasonTool.h */,
+				D800AE5D0C8905B100A38A34 /* MasonTool.m */,
+				D8EF23D00C88D3A200457237 /* MasonToolboxController.h */,
+				D8EF23D10C88D3A200457237 /* MasonToolboxController.m */,
 				2A37F4AEFDCFA73011CA2CEA /* MasonDocument.h */,
 				2A37F4ACFDCFA73011CA2CEA /* MasonDocument.m */,
 				D8EDAF380C7E8BAA00D0DE3F /* MasonBrickView.h */,
 				D8EDAF390C7E8BAA00D0DE3F /* MasonBrickView.m */,
+				D800AE490C88DBB700A38A34 /* MasonRotateTool.h */,
+				D800AE4A0C88DBB700A38A34 /* MasonRotateTool.m */,
+				D800AE610C8905C400A38A34 /* MasonApplication.h */,
+				D800AE620C8905C400A38A34 /* MasonApplication.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -140,6 +176,9 @@
 		2A37F4B8FDCFA73011CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D8EF23CA0C88CA1A00457237 /* draw.png */,
+				D8EF23CB0C88CA1A00457237 /* erase.png */,
+				D8EF23CC0C88CA1A00457237 /* hand.png */,
 				D84AFD990C826E12008A8770 /* default.brick */,
 				D84AFD730C82387D008A8770 /* voxel.fragment.glsl */,
 				D84AFD740C82387D008A8770 /* voxel.vertex.glsl */,
@@ -221,6 +260,9 @@
 				D84AFD750C82387D008A8770 /* voxel.fragment.glsl in Resources */,
 				D84AFD760C82387D008A8770 /* voxel.vertex.glsl in Resources */,
 				D84AFD9A0C826E12008A8770 /* default.brick in Resources */,
+				D8EF23CD0C88CA1A00457237 /* draw.png in Resources */,
+				D8EF23CE0C88CA1A00457237 /* erase.png in Resources */,
+				D8EF23CF0C88CA1A00457237 /* hand.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -235,6 +277,12 @@
 				8D15AC320486D014006FF6A4 /* main.m in Sources */,
 				D8EDAF3A0C7E8BAA00D0DE3F /* MasonBrickView.m in Sources */,
 				D84AFD700C823856008A8770 /* trixel.c in Sources */,
+				D8EF23D20C88D3A200457237 /* MasonToolboxController.m in Sources */,
+				D800AE4B0C88DBB700A38A34 /* MasonRotateTool.m in Sources */,
+				D800AE5E0C8905B100A38A34 /* MasonDrawTool.m in Sources */,
+				D800AE5F0C8905B100A38A34 /* MasonEraseTool.m in Sources */,
+				D800AE600C8905B100A38A34 /* MasonTool.m in Sources */,
+				D800AE630C8905C400A38A34 /* MasonApplication.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
