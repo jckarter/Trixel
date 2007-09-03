@@ -14,7 +14,25 @@ minelt(vec3 v)
     return min(v.x, min(v.y, v.z));
 }
 
-vec4
+vec3 cast_pt;
+#ifdef TRIXEL_SAVE_COORDINATES
+vec3 cast_normal;
+#endif
+float cast_index;
+
+vec3
+unbias(vec3 v)
+{
+    return v * vec3(2) - vec3(1);
+}
+
+vec3
+bias(vec3 v)
+{
+    return (v + vec3(1)) / vec3(2);
+}
+
+void
 cast_ray()
 {
     vec3 rayinv = vec3(1.0)/ray;
@@ -27,10 +45,14 @@ cast_ray()
     vec3 absrayinv = abs(rayinv);
         
     do {
-        vec3 pt = p0scaled + rayscaled*t;
-        float index = texture3D(voxmap, pt).r;
-        if(index != 0.0)
-            return vec4(pt * voxmap_size, index);
+        cast_pt = p0scaled + rayscaled*t;
+        cast_index = texture3D(voxmap, cast_pt).r;
+        if(cast_index != 0.0) {
+#ifdef TRIXEL_SAVE_COORDINATES
+            cast_normal = -step(-t, -tv) * unbias(raysign);
+#endif
+            return;
+        }
         
         tv += absrayinv * step(-t, -tv);
         t = minelt(tv);
@@ -42,10 +64,11 @@ cast_ray()
 void
 main()
 {
-    vec4 pt = cast_ray();
-    gl_FragData[0] = texture1D(palette, pt.w);
+    cast_ray();
+    gl_FragData[0] = texture1D(palette, cast_index);
 
 #ifdef TRIXEL_SAVE_COORDINATES
-    gl_FragData[1] = vec4(floor(pt.xyz), 1);
+    gl_FragData[1] = vec4(cast_pt * voxmap_size, 1);
+    gl_FragData[2] = vec4(cast_normal, 1);
 #endif
 }

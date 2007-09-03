@@ -19,6 +19,7 @@
 		D800AE5F0C8905B100A38A34 /* MasonEraseTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D800AE5B0C8905B100A38A34 /* MasonEraseTool.m */; };
 		D800AE600C8905B100A38A34 /* MasonTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D800AE5D0C8905B100A38A34 /* MasonTool.m */; };
 		D800AE630C8905C400A38A34 /* MasonApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = D800AE620C8905C400A38A34 /* MasonApplication.m */; };
+		D80648160C8B7DB200B731DD /* MasonColorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D80648150C8B7DB200B731DD /* MasonColorCell.m */; };
 		D84AFD670C813D5E008A8770 /* BrickDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD660C813D5E008A8770 /* BrickDocument.icns */; };
 		D84AFD700C823856008A8770 /* trixel.c in Sources */ = {isa = PBXBuildFile; fileRef = D84AFD6E0C823856008A8770 /* trixel.c */; };
 		D84AFD750C82387D008A8770 /* voxel.fragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD730C82387D008A8770 /* voxel.fragment.glsl */; };
@@ -63,6 +64,8 @@
 		D800AE5D0C8905B100A38A34 /* MasonTool.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MasonTool.m; sourceTree = "<group>"; };
 		D800AE610C8905C400A38A34 /* MasonApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonApplication.h; sourceTree = "<group>"; };
 		D800AE620C8905C400A38A34 /* MasonApplication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonApplication.m; sourceTree = "<group>"; };
+		D80648140C8B7DB200B731DD /* MasonColorCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonColorCell.h; sourceTree = "<group>"; };
+		D80648150C8B7DB200B731DD /* MasonColorCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonColorCell.m; sourceTree = "<group>"; };
 		D84AFD660C813D5E008A8770 /* BrickDocument.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = BrickDocument.icns; sourceTree = "<group>"; };
 		D84AFD6E0C823856008A8770 /* trixel.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = trixel.c; path = ../trixel.c; sourceTree = SOURCE_ROOT; };
 		D84AFD6F0C823856008A8770 /* trixel.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = trixel.h; path = ../trixel.h; sourceTree = SOURCE_ROOT; };
@@ -158,6 +161,8 @@
 				D800AE4A0C88DBB700A38A34 /* MasonRotateTool.m */,
 				D800AE610C8905C400A38A34 /* MasonApplication.h */,
 				D800AE620C8905C400A38A34 /* MasonApplication.m */,
+				D80648140C8B7DB200B731DD /* MasonColorCell.h */,
+				D80648150C8B7DB200B731DD /* MasonColorCell.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -283,6 +288,7 @@
 				D800AE5F0C8905B100A38A34 /* MasonEraseTool.m in Sources */,
 				D800AE600C8905B100A38A34 /* MasonTool.m in Sources */,
 				D800AE630C8905C400A38A34 /* MasonApplication.m in Sources */,
+				D80648160C8B7DB200B731DD /* MasonColorCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -347,10 +353,7 @@
 		C05733C908A9546B00998B17 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = i386;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INFOPLIST_FILE = Info.plist;

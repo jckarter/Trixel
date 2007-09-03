@@ -6,7 +6,8 @@
 {
 }
 
-- (NSCursor *)cursor;
+- (NSCursor *)activeCursor;
+- (NSCursor *)inactiveCursor;
 
 - (void)handleMouseDraggedFrom:(NSPoint)from delta:(NSPoint)delta forDocument:(MasonDocument *)document;
 

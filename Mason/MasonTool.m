@@ -4,7 +4,12 @@
 
 @implementation MasonTool
 
-- (NSCursor *)cursor
+- (NSCursor *)activeCursor
+{
+    return [self inactiveCursor];
+}
+
+- (NSCursor *)inactiveCursor
 {
     return [NSCursor arrowCursor];
 }

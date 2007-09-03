@@ -13,8 +13,9 @@
 
 #define INITIAL_DISTANCE 32.0
 
-const GLenum g_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT };
-const size_t g_num_draw_buffers = 2;
+const size_t g_num_draw_buffers = 3;
+const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_COLOR_ATTACHMENT2_EXT };
+const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                  GL_NONE                  };
 
 float
 fbound(float x, float mn, float mx)
@@ -43,6 +44,11 @@ fbound(float x, float mn, float mx)
     return YES;
 }
 
+- (BOOL)acceptsFirstMouse:(NSEvent *)event
+{
+    return YES;
+}
+
 - (BOOL)acceptsFirstResponder
 {
     return YES;
@@ -59,6 +65,7 @@ fbound(float x, float mn, float mx)
     m_yaw = m_pitch = 0.0;
     m_distance = INITIAL_DISTANCE;
     m_hovering = NO;
+    m_toolActive = NO;
     
     NSOpenGLPixelFormat * pf = [[NSOpenGLPixelFormat alloc] initWithAttributes:pfa];
     if(!pf) {
@@ -69,6 +76,46 @@ fbound(float x, float mn, float mx)
     
     [[self window] setAcceptsMouseMovedEvents:YES];
     m_trackingRect = [self addTrackingRect:[self bounds] owner:self userData:nil assumeInside:YES];
+    
+    [[NSApp toolboxController] addObserver:self forKeyPath:@"currentTool" options:NSKeyValueObservingOptionNew context:NULL];
+    
+    [[self window] invalidateCursorRectsForView:self];
+}
+
+- (void)dealloc
+{
+    [[NSApp toolboxController] removeObserver:self forKeyPath:@"currentTool"];
+    
+    if(m_initialized) {
+        glDeleteFramebuffersEXT(1, &m_framebuffer);
+        glDeleteTextures(1, &m_color_texture);
+        glDeleteRenderbuffersEXT(1, &m_hover_renderbuffer);
+        glDeleteRenderbuffersEXT(1, &m_depth_renderbuffer);
+        glDeleteRenderbuffersEXT(1, &m_normal_renderbuffer);
+        
+        if([o_document brick])
+            trixel_unprepare_brick([o_document brick]);
+        
+        trixel_finish();
+    }
+    
+    [super dealloc];
+}
+
+- (void)observeValueForKeyPath:(NSString*)path ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if(object == [NSApp toolboxController] && [path isEqualToString:@"currentTool"]) {
+        [[self window] invalidateCursorRectsForView:self];
+    }
+    //[super observeValueForKeyPath:path ofObject:object change:change context:context];
+}
+
+- (void)resetCursorRects
+{
+    if(m_toolActive)
+        [self addCursorRect:[self bounds] cursor:[[[NSApp toolboxController] currentTool] activeCursor]];
+    else
+        [self addCursorRect:[self bounds] cursor:[[[NSApp toolboxController] currentTool] inactiveCursor]];
 }
 
 - (void)prepareOpenGL
@@ -106,13 +153,14 @@ fbound(float x, float mn, float mx)
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_R, GL_CLAMP);
 
     glGenRenderbuffersEXT(1, &m_hover_renderbuffer);
-
     glGenRenderbuffersEXT(1, &m_depth_renderbuffer);
+    glGenRenderbuffersEXT(1, &m_normal_renderbuffer);
     
     [self _reshape_framebuffer];
     
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, m_color_texture, 0);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT2_EXT, GL_RENDERBUFFER_EXT, m_normal_renderbuffer);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
 
     if(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
@@ -133,6 +181,7 @@ fbound(float x, float mn, float mx)
     
     [self removeTrackingRect:m_trackingRect];
     m_trackingRect = [self addTrackingRect:frame owner:self userData:nil assumeInside:NO];
+    [[self window] invalidateCursorRectsForView:self];
     
     trixel_reshape(NSWidth(frame), NSHeight(frame));
     
@@ -144,7 +193,6 @@ fbound(float x, float mn, float mx)
 
 - (void)yaw:(float)yoffset pitch:(float)poffset
 {
-    NSLog(@"%f %f", yoffset, poffset);
     m_yaw = m_yaw + yoffset * MOUSE_ROTATE_FACTOR;
     m_pitch = fbound(m_pitch + poffset * MOUSE_ROTATE_FACTOR, -90.0, 90.0);
 }
@@ -159,23 +207,27 @@ fbound(float x, float mn, float mx)
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame));
 
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_normal_renderbuffer);
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame));
+
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, NSWidth(frame), NSHeight(frame));
 }
 
 - (void)drawRect:(NSRect)r
 {
+    const GLenum *draw_buffers = (m_toolActive ? g_tool_active_draw_buffers : g_tool_inactive_draw_buffers);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
     
-    glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+    glDrawBuffersARB(g_num_draw_buffers - 1, draw_buffers + 1);
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+    glDrawBuffer(draw_buffers[0]);
     glClearColor(0.2, 0.2, 0.2, 1.0);    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glDrawBuffersARB(g_num_draw_buffers, g_draw_buffers);
+    glDrawBuffersARB(g_num_draw_buffers, draw_buffers);
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -216,12 +268,34 @@ fbound(float x, float mn, float mx)
 
 - (void)mouseDragged:(NSEvent *)event
 {
+    [self mouseMoved:event];
+
     [[[NSApp toolboxController] currentTool]
         handleMouseDraggedFrom:[self convertPoint:[event locationInWindow] fromView:nil]
         delta:NSMakePoint([event deltaX], [event deltaY])
         forDocument:o_document];
     
+    [self setNeedsDisplay:YES];
+}
+
+- (void)mouseDown:(NSEvent *)event
+{
+    m_toolActive = YES;
+    [[self window] invalidateCursorRectsForView:self];
+    
+    [[[NSApp toolboxController] currentTool]
+        handleMouseDraggedFrom:[self convertPoint:[event locationInWindow] fromView:nil]
+        delta:NSMakePoint(0, 0)
+        forDocument:o_document];    
+
     [self mouseMoved:event];
+    [self setNeedsDisplay:YES];
+}
+
+- (void)mouseUp:(NSEvent *)event
+{
+    m_toolActive = NO;
+    [[self window] invalidateCursorRectsForView:self];    
     [self setNeedsDisplay:YES];
 }
 

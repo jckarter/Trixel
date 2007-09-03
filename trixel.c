@@ -57,16 +57,16 @@ _make_shader_flag_sources(char const * flags[], char const * source, size_t *out
         *out_num_sources = 1;
         return flag_sources;
     }
-    
+
     size_t num_flags = 0;
     char const * * fp = flags;
     while(*fp++)
         ++num_flags;
-    
+
     char * * flag_sources = malloc((num_flags + 1) * sizeof(char*));
     for(size_t i = 0; i < num_flags; ++i)
         asprintf(&flag_sources[i], "#define %s 1\n", flags[i]);
-    
+
     flag_sources[num_flags] = strdup(source);
     *out_num_sources = num_flags + 1;
     return flag_sources;
@@ -88,7 +88,7 @@ glsl_shader_from_string(GLenum kind, char const * shader_flags[], char const * s
     GLhandleARB shader = glCreateShaderObjectARB(kind);
     glShaderSourceARB(shader, num_sources, (const GLcharARB**)shader_flag_sources, NULL);
     glCompileShaderARB(shader);
-    
+
     _free_shader_flag_sources(shader_flag_sources, num_sources);
 
     GLint status;
@@ -397,6 +397,7 @@ trixel_prepare_brick(trixel_brick * brick)
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     glGenTextures(1, &brick->voxmap_texture);
     glBindTexture(GL_TEXTURE_3D, brick->voxmap_texture);
@@ -405,6 +406,11 @@ trixel_prepare_brick(trixel_brick * brick)
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
+    glTexImage3D(
+        GL_TEXTURE_3D, 0, GL_LUMINANCE8,
+        (GLsizei)brick->dimensions[0], (GLsizei)brick->dimensions[1], (GLsizei)brick->dimensions[2],
+        0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL
+    );
 
     trixel_update_brick_textures(brick);
 
@@ -428,28 +434,45 @@ trixel_prepare_brick(trixel_brick * brick)
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 }
 
+bool
+trixel_is_brick_prepared(trixel_brick * brick)
+{
+    return brick->vertex_buffer && brick->voxmap_texture && brick->palette_texture;
+}
+
 void
 trixel_free_brick(trixel_brick * brick)
 {
-    glDeleteBuffersARB(1, &brick->vertex_buffer);
-    glDeleteTextures(1, &brick->voxmap_texture);
-    glDeleteTextures(1, &brick->palette_texture);
+    if(brick->vertex_buffer)
+        trixel_unprepare_brick(brick);
     free(brick->voxmap_data);
     free(brick->palette_data);
     free(brick);
 }
 
 void
+trixel_unprepare_brick(trixel_brick * brick)
+{
+    glDeleteBuffersARB(1, &brick->vertex_buffer);
+    glDeleteTextures(1, &brick->voxmap_texture);
+    glDeleteTextures(1, &brick->palette_texture);
+    brick->vertex_buffer = 0;
+    brick->voxmap_texture = 0;
+    brick->palette_texture = 0;
+}
+
+void
 trixel_update_brick_textures(trixel_brick * brick)
 {
     glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, brick->palette_data);
+    glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA, GL_UNSIGNED_BYTE, brick->palette_data);
 
     glBindTexture(GL_TEXTURE_3D, brick->voxmap_texture);
-    glTexImage3D(
-        GL_TEXTURE_3D, 0, GL_LUMINANCE8,
+    glTexSubImage3D(
+        GL_TEXTURE_3D, 0,
+        0, 0, 0,
         (GLsizei)brick->dimensions[0], (GLsizei)brick->dimensions[1], (GLsizei)brick->dimensions[2],
-        0, GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->voxmap_data
+        GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->voxmap_data
     );
 }
 

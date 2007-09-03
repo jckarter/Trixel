@@ -28,6 +28,33 @@ nserror_from_trixel_error(char *cstring)
     return [NSError errorWithDomain:TrixelErrorDomain code:0 userInfo:errorDict];
 }
 
+static void
+_store_nscolor_in_palette(unsigned char * palette_color, NSColor * color)
+{
+    palette_color[0] = (unsigned char)([color redComponent]   * 255.0);
+    palette_color[1] = (unsigned char)([color greenComponent] * 255.0);
+    palette_color[2] = (unsigned char)([color blueComponent]  * 255.0);
+    palette_color[3] = (unsigned char)([color alphaComponent] * 255.0);    
+}
+
+static NSColor *
+_nscolor_from_palette(unsigned char * palette_color)
+{
+    return [NSColor colorWithDeviceRed:(float)palette_color[0]/255.0
+                                 green:(float)palette_color[1]/255.0
+                                  blue:(float)palette_color[2]/255.0
+                                 alpha:(float)palette_color[3]/255.0];
+}
+
+static void
+_update_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
+{
+    size_t voxmap_size = trixel_brick_voxmap_size(brick);
+    for(size_t i = 0; i < voxmap_size; ++i)
+        if(brick->voxmap_data[i] >= minIndex)
+            brick->voxmap_data[i] += offset;
+}
+
 @implementation MasonDocument
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
@@ -105,6 +132,49 @@ nserror_from_trixel_error(char *cstring)
 - (MasonBrickView *)brickView
 {
     return o_brickView;
+}
+
+- (unsigned int)countOfPaletteColors
+{
+    return 256;
+}
+
+- (NSColor *)objectInPaletteColorsAtIndex:(unsigned int)index
+{
+    unsigned char *palette_color = trixel_brick_palette_color(m_brick, index);
+    return _nscolor_from_palette(palette_color);
+}
+
+- (void)insertObject:(NSColor *)color inPaletteColorsAtIndex:(unsigned int)index
+{
+    unsigned char * palette_color = trixel_brick_palette_color(m_brick, index),
+                  * next_palette_color = palette_color + 4;
+    memmove(next_palette_color, palette_color, (256 - index - 1) * 4);
+    _store_nscolor_in_palette(palette_color, color);
+    _update_voxmap_colors(m_brick, index + 1, 1);
+    
+    if(trixel_is_brick_prepared(m_brick))
+        trixel_update_brick_textures(m_brick);
+}
+
+- (void)removeObjectFromPaletteColorsAtIndex:(unsigned int)index
+{
+    unsigned char * palette_color = trixel_brick_palette_color(m_brick, index),
+                  * next_palette_color = palette_color + 4;
+    memmove(palette_color, next_palette_color, (256 - index - 1) * 4);
+    memset(trixel_brick_palette_color(m_brick, 255), 0, 4);
+    _update_voxmap_colors(m_brick, index + 1, -1);
+    
+    if(trixel_is_brick_prepared(m_brick))
+        trixel_update_brick_textures(m_brick);
+ }
+
+- (void)replaceObjectInPaletteColorsAtIndex:(unsigned int)index withObject:(NSColor *)color
+{
+    unsigned char *palette_color = trixel_brick_palette_color(m_brick, index);
+    _store_nscolor_in_palette(palette_color, color);
+    if(trixel_is_brick_prepared(m_brick))
+        trixel_update_brick_textures(m_brick);
 }
 
 - (trixel_brick *)_read_default_brick

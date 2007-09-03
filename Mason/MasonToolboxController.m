@@ -38,9 +38,9 @@ static NSArray * g_tools;
 - (IBAction)changeCurrentTool:(id)sender
 {
     NSLog(@"changeCurrentTool from %@ tag %d", sender, [sender selectedTag]);
-    [self willChangeValueForKey:@"hoverPoint"];
+    [self willChangeValueForKey:@"currentTool"];
     m_currentTool = [g_tools objectAtIndex:[sender selectedTag]];
-    [self didChangeValueForKey:@"hoverPoint"];
+    [self didChangeValueForKey:@"currentTool"];
 }
 
 - (MasonTool *)currentTool
