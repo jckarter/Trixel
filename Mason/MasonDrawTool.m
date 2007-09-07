@@ -15,7 +15,7 @@
 {
     struct point3 hoverPoint = [[document brickView] hoverPoint];
     if(hoverPoint.x >= 0.0) {
-        *trixel_brick_voxel([document brick], hoverPoint.x, hoverPoint.y, hoverPoint.z) += 1;
+        *trixel_brick_voxel([document brick], hoverPoint.x, hoverPoint.y, hoverPoint.z) = [document currentPaletteColor];
     }
     trixel_update_brick_textures([document brick]);
 }

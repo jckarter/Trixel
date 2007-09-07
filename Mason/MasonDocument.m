@@ -1,4 +1,5 @@
 #import "MasonDocument.h"
+#import "MasonColorCell.h"
 #include <stdlib.h>
 
 NSString *TrixelErrorDomain = @"TrixelErrorDomain";
@@ -76,8 +77,9 @@ _update_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
 
 - (void)dealloc
 {
-    if(m_brick)
+    if(m_brick) {
         trixel_free_brick(m_brick);
+    }
     [super dealloc];
 }
 
@@ -93,6 +95,35 @@ _update_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
     for(int i = 0; i < [o_sliceAxisSelector segmentCount]; ++i)
         [o_sliceAxisSelector setLabel:nil forSegment:i];
     [o_sliceAxisSelector selectSegmentWithTag:SLICE_AXIS_SURFACE];
+    
+    NSTableColumn * paletteColumn = [[o_paletteTableView tableColumns] objectAtIndex:0];
+    MasonColorCell * colorCell = [[[MasonColorCell alloc] init] autorelease];
+    [colorCell setEditable:YES];
+    [colorCell setTarget:self];
+    [colorCell setAction:@selector(summonColorPanelForPalette:)];
+    [paletteColumn setDataCell:colorCell];
+}
+
+- (IBAction)summonColorPanelForPalette:(id)sender
+{
+    NSColorPanel * colorPanel = [NSColorPanel sharedColorPanel];
+    m_currentPaletteColor = [sender clickedRow];
+    [colorPanel setTarget:self];
+    [colorPanel setAction:@selector(updatePaletteColorFromPanel:)];
+	[colorPanel setShowsAlpha:YES];
+	[colorPanel setColor:[self objectInPaletteColorsAtIndex:m_currentPaletteColor]];
+	[colorPanel makeKeyAndOrderFront:self];
+    [o_paletteController setSelectionIndex:m_currentPaletteColor];
+}
+
+- (IBAction)updatePaletteColorFromPanel:(id)sender
+{
+    [self replaceObjectInPaletteColorsAtIndex:m_currentPaletteColor withObject:[sender color]];
+}
+
+- (unsigned int)currentPaletteColor
+{
+    return m_currentPaletteColor;
 }
 
 - (NSData *)dataOfType:(NSString *)typeName error:(NSError **)out_error
@@ -155,6 +186,7 @@ _update_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
     
     if(trixel_is_brick_prepared(m_brick))
         trixel_update_brick_textures(m_brick);
+    [o_brickView setNeedsDisplay:YES];
 }
 
 - (void)removeObjectFromPaletteColorsAtIndex:(unsigned int)index
@@ -167,7 +199,8 @@ _update_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
     
     if(trixel_is_brick_prepared(m_brick))
         trixel_update_brick_textures(m_brick);
- }
+    [o_brickView setNeedsDisplay:YES];
+}
 
 - (void)replaceObjectInPaletteColorsAtIndex:(unsigned int)index withObject:(NSColor *)color
 {
@@ -175,6 +208,7 @@ _update_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
     _store_nscolor_in_palette(palette_color, color);
     if(trixel_is_brick_prepared(m_brick))
         trixel_update_brick_textures(m_brick);
+    [o_brickView setNeedsDisplay:YES];
 }
 
 - (trixel_brick *)_read_default_brick

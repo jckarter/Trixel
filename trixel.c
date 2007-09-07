@@ -14,14 +14,16 @@
 
 #define BRICK_MAGIC "Brik"
 
-static struct state {
+struct trixel_internal_state {
     char * resource_path;
     GLhandleARB voxel_program, voxel_vertex_shader, voxel_fragment_shader;
     GLuint cube_element_buffer;
     struct voxel_program_uniforms {
         GLint voxmap, palette, voxmap_size, voxmap_size_inv;
     } voxel_uniforms;
-} g_state;
+};
+
+static inline struct trixel_internal_state * STATE(trixel_state t) { return (struct trixel_internal_state *)t; }
 
 static unsigned char g_cube_elements[] = {
     1, 2, 3, 0,
@@ -130,10 +132,10 @@ error:
 }
 
 char *
-trixel_resource_filename(char const * filename)
+trixel_resource_filename(trixel_state t, char const * filename)
 {
     char * full_filename;
-    asprintf(&full_filename, "%s/%s", g_state.resource_path, filename);
+    asprintf(&full_filename, "%s/%s", STATE(t)->resource_path, filename);
     return full_filename;
 }
 
@@ -169,24 +171,26 @@ error:
 }
 
 static void
-unmake_voxel_program(void)
+unmake_voxel_program(trixel_state t)
 {
-    glDetachObjectARB(g_state.voxel_program, g_state.voxel_vertex_shader);
-    glDetachObjectARB(g_state.voxel_program, g_state.voxel_fragment_shader);
+    glDetachObjectARB(STATE(t)->voxel_program, STATE(t)->voxel_vertex_shader);
+    glDetachObjectARB(STATE(t)->voxel_program, STATE(t)->voxel_fragment_shader);
 
-    glDeleteObjectARB(g_state.voxel_fragment_shader);
-    glDeleteObjectARB(g_state.voxel_vertex_shader);
-    glDeleteObjectARB(g_state.voxel_program);
+    glDeleteObjectARB(STATE(t)->voxel_fragment_shader);
+    glDeleteObjectARB(STATE(t)->voxel_vertex_shader);
+    glDeleteObjectARB(STATE(t)->voxel_program);
 
-    g_state.voxel_fragment_shader = 0;
-    g_state.voxel_vertex_shader = 0;
-    g_state.voxel_program = 0;
+    STATE(t)->voxel_fragment_shader = 0;
+    STATE(t)->voxel_vertex_shader = 0;
+    STATE(t)->voxel_program = 0;
 }
 
-int
+trixel_state
 trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message)
 {
-    memset(&g_state, 0, sizeof(g_state));
+    trixel_state t = malloc(sizeof(struct trixel_internal_state));
+    
+    memset(t, 0, sizeof(*t));
 
     GLenum glew_error = glewInit();
     if(glew_error != GLEW_OK) {
@@ -217,29 +221,30 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
         goto error;
     }
 
-    trixel_reshape(viewport_width, viewport_height);
+    trixel_reshape(t, viewport_width, viewport_height);
 
-    g_state.resource_path = strdup(resource_path);
+    STATE(t)->resource_path = strdup(resource_path);
 
-    glGenBuffersARB(1, &g_state.cube_element_buffer);
-    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, g_state.cube_element_buffer);
+    glGenBuffersARB(1, &STATE(t)->cube_element_buffer);
+    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, STATE(t)->cube_element_buffer);
     glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(g_cube_elements), g_cube_elements, GL_STATIC_DRAW_ARB);
     glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 
-    if(!trixel_update_shaders(shader_flags, out_error_message))
+    if(!trixel_update_shaders(t, shader_flags, out_error_message))
         goto error_after_save_resource_path;
 
-    return 1;
+    return t;
 
 error_after_save_resource_path:
-    glDeleteBuffersARB(1, &g_state.cube_element_buffer);
-    free(g_state.resource_path);
+    glDeleteBuffersARB(1, &STATE(t)->cube_element_buffer);
+    free(STATE(t)->resource_path);
+    free(t);
 error:
-    return 0;
+    return NULL;
 }
 
 void
-trixel_reshape(int viewport_width, int viewport_height)
+trixel_reshape(trixel_state t, int viewport_width, int viewport_height)
 {
     float width = (float)viewport_width, height = (float)viewport_height;
     float fovratio = fmin(width, height),
@@ -257,10 +262,10 @@ trixel_reshape(int viewport_width, int viewport_height)
 }
 
 int
-trixel_update_shaders(char const *shader_flags[], char * * out_error_message)
+trixel_update_shaders(trixel_state t, char const *shader_flags[], char * * out_error_message)
 {
-    char *vertex_source_path = trixel_resource_filename("voxel.vertex.glsl");
-    char *fragment_source_path = trixel_resource_filename("voxel.fragment.glsl");
+    char *vertex_source_path = trixel_resource_filename(t, "voxel.vertex.glsl");
+    char *fragment_source_path = trixel_resource_filename(t, "voxel.fragment.glsl");
     char *vertex_source   = contents_from_filename(vertex_source_path, NULL);
     char *fragment_source = contents_from_filename(fragment_source_path, NULL);
     if(!vertex_source || !fragment_source) {
@@ -277,15 +282,15 @@ trixel_update_shaders(char const *shader_flags[], char * * out_error_message)
     if(!voxel_program)
         goto error_after_fragment_shader;
 
-    if(g_state.voxel_program)
-        unmake_voxel_program();
-    g_state.voxel_vertex_shader = voxel_vertex_shader;
-    g_state.voxel_fragment_shader = voxel_fragment_shader;
-    g_state.voxel_program = voxel_program;
-    g_state.voxel_uniforms.voxmap = glGetUniformLocationARB(g_state.voxel_program, "voxmap");
-    g_state.voxel_uniforms.palette = glGetUniformLocationARB(g_state.voxel_program, "palette");
-    g_state.voxel_uniforms.voxmap_size = glGetUniformLocationARB(g_state.voxel_program, "voxmap_size");
-    g_state.voxel_uniforms.voxmap_size_inv = glGetUniformLocationARB(g_state.voxel_program, "voxmap_size_inv");
+    if(STATE(t)->voxel_program)
+        unmake_voxel_program(t);
+    STATE(t)->voxel_vertex_shader = voxel_vertex_shader;
+    STATE(t)->voxel_fragment_shader = voxel_fragment_shader;
+    STATE(t)->voxel_program = voxel_program;
+    STATE(t)->voxel_uniforms.voxmap = glGetUniformLocationARB(STATE(t)->voxel_program, "voxmap");
+    STATE(t)->voxel_uniforms.palette = glGetUniformLocationARB(STATE(t)->voxel_program, "palette");
+    STATE(t)->voxel_uniforms.voxmap_size = glGetUniformLocationARB(STATE(t)->voxel_program, "voxmap_size");
+    STATE(t)->voxel_uniforms.voxmap_size_inv = glGetUniformLocationARB(STATE(t)->voxel_program, "voxmap_size_inv");
 
     free(vertex_source);
     free(fragment_source);
@@ -294,9 +299,9 @@ trixel_update_shaders(char const *shader_flags[], char * * out_error_message)
     return 1;
 
 error_after_fragment_shader:
-    glDeleteObjectARB(g_state.voxel_fragment_shader);
+    glDeleteObjectARB(voxel_fragment_shader);
 error_after_vertex_shader:
-    glDeleteObjectARB(g_state.voxel_vertex_shader);
+    glDeleteObjectARB(voxel_vertex_shader);
 error:
     free(vertex_source);
     free(fragment_source);
@@ -306,11 +311,12 @@ error:
 }
 
 void
-trixel_finish(void)
+trixel_finish(trixel_state t)
 {
-    unmake_voxel_program();
-    glDeleteBuffersARB(1, &g_state.cube_element_buffer);
-    free(g_state.resource_path);
+    unmake_voxel_program(t);
+    glDeleteBuffersARB(1, &STATE(t)->cube_element_buffer);
+    free(STATE(t)->resource_path);
+    free(t);
 }
 
 trixel_brick *
@@ -483,27 +489,27 @@ trixel_write_brick(trixel_brick * brick, size_t * out_data_length)
 }
 
 void
-trixel_draw_from_brick(trixel_brick * brick)
+trixel_draw_from_brick(trixel_state t, trixel_brick * brick)
 {
     glActiveTextureARB(GL_TEXTURE0_ARB);
     glBindTexture(GL_TEXTURE_3D, brick->voxmap_texture);
     glActiveTextureARB(GL_TEXTURE1_ARB);
     glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
 
-    glUseProgramObjectARB(g_state.voxel_program);
-    glUniform3fvARB(g_state.voxel_uniforms.voxmap_size,     1, brick->dimensions);
-    glUniform3fvARB(g_state.voxel_uniforms.voxmap_size_inv, 1, brick->dimensions_inv);
-    glUniform1iARB(g_state.voxel_uniforms.voxmap,  0);
-    glUniform1iARB(g_state.voxel_uniforms.palette, 1);
+    glUseProgramObjectARB(STATE(t)->voxel_program);
+    glUniform3fvARB(STATE(t)->voxel_uniforms.voxmap_size,     1, brick->dimensions);
+    glUniform3fvARB(STATE(t)->voxel_uniforms.voxmap_size_inv, 1, brick->dimensions_inv);
+    glUniform1iARB(STATE(t)->voxel_uniforms.voxmap,  0);
+    glUniform1iARB(STATE(t)->voxel_uniforms.palette, 1);
 }
 
 void
-trixel_draw_brick(trixel_brick * brick)
+trixel_draw_brick(trixel_state t, trixel_brick * brick)
 {
-    trixel_draw_from_brick(brick);
+    trixel_draw_from_brick(t, brick);
 
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, brick->vertex_buffer);
-    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, g_state.cube_element_buffer);
+    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, STATE(t)->cube_element_buffer);
 
     glVertexPointer(3, GL_SHORT, 0, 0);
     glDrawElements(GL_QUADS, 24, GL_UNSIGNED_BYTE, 0);

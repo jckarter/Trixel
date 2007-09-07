@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>Mason/English.lproj/MasonDocument.nib/classes.nib</string>
+	<string>Mason/MasonDocument.m</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -208,9 +208,39 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>68</integer>
-				<key>line</key>
 				<integer>17</integer>
+				<key>line</key>
+				<integer>189</integer>
+			</dict>
+			<key>columnSelection</key>
+			<false/>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>169</integer>
+			<key>selectFrom</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>189</integer>
+			</dict>
+			<key>selectTo</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>190</integer>
+			</dict>
+		</dict>
+		<key>Mason/MasonColorCell.m</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>30</integer>
+				<key>line</key>
+				<integer>8</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -222,9 +252,9 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>36</integer>
 				<key>line</key>
-				<integer>10</integer>
+				<integer>31</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -236,23 +266,37 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>4</integer>
+				<integer>33</integer>
 				<key>line</key>
-				<integer>64</integer>
+				<integer>125</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>26</integer>
+			<integer>99</integer>
 		</dict>
 		<key>Mason/MasonDrawTool.m</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>30</integer>
+				<integer>119</integer>
 				<key>line</key>
-				<integer>10</integer>
+				<integer>17</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
+		<key>Mason/MasonEraseTool.h</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>1</integer>
+				<key>line</key>
+				<integer>4</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -390,9 +434,9 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>47</integer>
+				<integer>4</integer>
 				<key>line</key>
-				<integer>70</integer>
+				<integer>71</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -446,6 +490,7 @@
 	<array>
 		<string>Mason/main.m</string>
 		<string>Mason/Mason_Prefix.pch</string>
+		<string>Mason/MasonEraseTool.h</string>
 		<string>Mason/MasonDocument.h</string>
 		<string>voxtest.c</string>
 		<string>Makefile</string>
@@ -469,6 +514,7 @@
 		<string>Mason/MasonTool.m</string>
 		<string>trixel.h</string>
 		<string>Mason/MasonDocument.m</string>
+		<string>Mason/MasonColorCell.m</string>
 		<string>Mason/Info.plist</string>
 		<string>Mason/English.lproj/InfoPlist.strings</string>
 		<string>Mason/MasonBrickView.h</string>
@@ -477,6 +523,6 @@
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{706, 28}, {698, 625}}</string>
+	<string>{{645, 249}, {698, 625}}</string>
 </dict>
 </plist>

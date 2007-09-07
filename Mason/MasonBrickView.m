@@ -86,19 +86,16 @@ fbound(float x, float mn, float mx)
 {
     [[NSApp toolboxController] removeObserver:self forKeyPath:@"currentTool"];
     
-    if(m_initialized) {
+    if(m_t) {
         glDeleteFramebuffersEXT(1, &m_framebuffer);
         glDeleteTextures(1, &m_color_texture);
         glDeleteRenderbuffersEXT(1, &m_hover_renderbuffer);
         glDeleteRenderbuffersEXT(1, &m_depth_renderbuffer);
         glDeleteRenderbuffersEXT(1, &m_normal_renderbuffer);
         
-        if([o_document brick])
-            trixel_unprepare_brick([o_document brick]);
-        
-        trixel_finish();
+        trixel_finish(m_t);
     }
-    
+
     [super dealloc];
 }
 
@@ -120,6 +117,8 @@ fbound(float x, float mn, float mx)
 
 - (void)prepareOpenGL
 {
+    NSLog(@"context %@", [self openGLContext]);
+    
     char *shader_flags[] = {
         TRIXEL_SAVE_COORDINATES,
         NULL
@@ -127,14 +126,14 @@ fbound(float x, float mn, float mx)
     [super prepareOpenGL];
     char *error_message;
     NSRect frame = [self bounds];
-    m_initialized = trixel_init_opengl(
+    m_t = trixel_init_opengl(
         [[[NSBundle mainBundle] resourcePath] UTF8String],
         NSWidth(frame), NSHeight(frame),
         (char const * *)shader_flags,
         &error_message
     );
     
-    if(!m_initialized) {
+    if(!m_t) {
         NSLog(@"%s", error_message); // xxx proper error handling
         return;
     }
@@ -174,7 +173,7 @@ fbound(float x, float mn, float mx)
 
 - (void)reshape
 {
-    if(!m_initialized)
+    if(!m_t)
         return;
 
     NSRect frame = [self bounds];
@@ -183,7 +182,7 @@ fbound(float x, float mn, float mx)
     m_trackingRect = [self addTrackingRect:frame owner:self userData:nil assumeInside:NO];
     [[self window] invalidateCursorRectsForView:self];
     
-    trixel_reshape(NSWidth(frame), NSHeight(frame));
+    trixel_reshape(m_t, NSWidth(frame), NSHeight(frame));
     
     [self _reshape_framebuffer];
     
@@ -202,7 +201,7 @@ fbound(float x, float mn, float mx)
     NSRect frame = [self bounds];
     
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_color_texture);
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame), 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame));
@@ -221,7 +220,7 @@ fbound(float x, float mn, float mx)
     
     glDrawBuffersARB(g_num_draw_buffers - 1, draw_buffers + 1);
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     
     glDrawBuffer(draw_buffers[0]);
     glClearColor(0.2, 0.2, 0.2, 1.0);    
@@ -235,7 +234,7 @@ fbound(float x, float mn, float mx)
     glRotatef(m_pitch, 1.0, 0.0, 0.0);
     glRotatef(m_yaw,   0.0, 1.0, 0.0);
     
-    trixel_draw_brick([o_document brick]);
+    trixel_draw_brick(m_t, [o_document brick]);
     
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     glDrawBuffer(GL_BACK);
@@ -346,6 +345,7 @@ fbound(float x, float mn, float mx)
         GL_FLOAT,
         hoverPixelColor
     );
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     
     if(hoverPixelColor[3] == 0.0)
         return (struct point3){ -1, -1, -1 };
@@ -355,7 +355,6 @@ fbound(float x, float mn, float mx)
             hoverPixelColor[1],
             hoverPixelColor[2]
         };
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 }
 
 - (NSString*)hoverPointString

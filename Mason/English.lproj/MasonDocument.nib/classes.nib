@@ -9,12 +9,14 @@
         }, 
         {CLASS = MasonColorCell; LANGUAGE = ObjC; SUPERCLASS = NSActionCell; }, 
         {
+            ACTIONS = {summonColorPanelForPalette = id; updatePaletteColorFromPanel = id; }; 
             CLASS = MasonDocument; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 "o_brickView" = MasonBrickView; 
+                "o_paletteController" = NSArrayController; 
+                "o_paletteTableView" = NSTableView; 
                 "o_sliceAxisSelector" = NSSegmentedControl; 
-                "o_window" = NSWindow; 
             }; 
             SUPERCLASS = NSDocument; 
         }, 

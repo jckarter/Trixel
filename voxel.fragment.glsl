@@ -68,7 +68,7 @@ main()
     gl_FragData[0] = texture1D(palette, cast_index);
 
 #ifdef TRIXEL_SAVE_COORDINATES
-    gl_FragData[1] = vec4(cast_pt * voxmap_size, 1);
+    gl_FragData[1] = vec4(floor(cast_pt * voxmap_size), 1);
     gl_FragData[2] = vec4(cast_normal, 1);
 #endif
 }
