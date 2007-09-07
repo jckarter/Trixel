@@ -6,6 +6,7 @@
 
 // Shader flags:
 #define TRIXEL_SAVE_COORDINATES "TRIXEL_SAVE_COORDINATES"
+#define TRIXEL_GRID "TRIXEL_GRID"
 
 struct point3 {
     float x, y, z;

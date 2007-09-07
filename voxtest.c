@@ -6,7 +6,7 @@
 
 static trixel_brick * g_brick;
 
-static SDL_Surface *
+static trixel_state
 set_video_mode(int width, int height, char * * out_error_message)
 {
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   8);
@@ -20,10 +20,13 @@ set_video_mode(int width, int height, char * * out_error_message)
     if(!screen)
         goto error_from_sdl;
 
-    if(!trixel_init_opengl(".", width, height, NULL, out_error_message))
+    char *flags[] = { TRIXEL_GRID, NULL };
+
+    trixel_state t = trixel_init_opengl(".", width, height, flags, out_error_message);
+    if(!t)
         goto error;
 
-    return screen;
+    return t;
 
 error_from_sdl:
     *out_error_message = strdup(SDL_GetError());
@@ -32,7 +35,7 @@ error:
 }
 
 static void
-draw(float eye[], float yaw, float pitch)
+draw(trixel_state t, float eye[], float yaw, float pitch)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -43,7 +46,7 @@ draw(float eye[], float yaw, float pitch)
     glRotatef(yaw, 0.0, 1.0, 0.0);
     glTranslatef(-eye[0], -eye[1], -eye[2]);
 
-    trixel_draw_brick(g_brick);
+    trixel_draw_brick(t, g_brick);
     
     SDL_GL_SwapBuffers();
 }
@@ -58,11 +61,11 @@ timeofday()
 }
 
 static void
-benchmark(float eye[], float yaw, float pitch)
+benchmark(trixel_state t, float eye[], float yaw, float pitch)
 {
     double start = timeofday();
     for(int i = 0; i < 20; ++i) {
-        draw(eye, yaw, pitch);
+        draw(t, eye, yaw, pitch);
         putchar('.'); fflush(stdout);
     }
     double bench = timeofday() - start;
@@ -70,7 +73,7 @@ benchmark(float eye[], float yaw, float pitch)
 }
 
 static void
-main_loop()
+main_loop(trixel_state t)
 {
     const float rotate_incr = 2.0, eye_incr = 2.0;
     
@@ -118,7 +121,7 @@ main_loop()
             case SDLK_r:
                 {
                     char * error;
-                    if(trixel_update_shaders(NULL, &error)) {
+                    if(trixel_update_shaders(t, NULL, &error)) {
                         printf("Remade voxel program\n");
                     } else {
                         printf("Error trying to remake voxel program:\n%s\n", error);
@@ -127,7 +130,7 @@ main_loop()
                 }
                 break;
             case SDLK_b:
-                benchmark(eye, yaw, pitch);
+                benchmark(t, eye, yaw, pitch);
                 break;
             case SDLK_SPACE:
                 eye[0] = 0.0; eye[1] = 0.0; eye[2] = 128.0;
@@ -137,7 +140,7 @@ main_loop()
             }
             break;
         }
-        draw(eye, yaw, pitch);
+        draw(t, eye, yaw, pitch);
     }
 }
 
@@ -154,21 +157,22 @@ main(int argc, char * * argv)
     SDL_Init(SDL_INIT_EVERYTHING);
     atexit(SDL_Quit);
     
-    if(!set_video_mode(1024, 768, &error_message))
+    trixel_state t = set_video_mode(1024, 768, &error_message);
+    if(!t)
         goto error;
     
     g_brick = trixel_read_brick_from_filename(argv[1], true, &error_message);
     if(!g_brick)
         goto error_after_init;
     
-    main_loop();
+    main_loop(t);
     
-    trixel_finish();
+    trixel_finish(t);
     
     return 0;
 
 error_after_init:
-    trixel_finish();
+    trixel_finish(t);
 error:
     fprintf(stderr, "%s\n", error_message);
     free(error_message);
