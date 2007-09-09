@@ -3,6 +3,7 @@
 #import "MasonApplication.h"
 #import "MasonToolboxController.h"
 #import "MasonTool.h"
+#import "MasonBrick.h"
 #include <GL/glew.h>
 #include <math.h>
 
@@ -13,9 +14,12 @@
 
 #define INITIAL_DISTANCE 32.0
 
-const size_t g_num_draw_buffers = 3;
-const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_COLOR_ATTACHMENT2_EXT };
-const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                  GL_NONE                  };
+const size_t g_num_draw_buffers = 2;
+const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT };
+const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                 };
+
+const char * g_cast_flags[] = { TRIXEL_SAVE_COORDINATES, NULL };
+const char * g_surface_flags[] = { TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
 
 float
 fbound(float x, float mn, float mx)
@@ -91,7 +95,6 @@ fbound(float x, float mn, float mx)
         glDeleteTextures(1, &m_color_texture);
         glDeleteRenderbuffersEXT(1, &m_hover_renderbuffer);
         glDeleteRenderbuffersEXT(1, &m_depth_renderbuffer);
-        glDeleteRenderbuffersEXT(1, &m_normal_renderbuffer);
         
         trixel_finish(m_t);
     }
@@ -153,13 +156,11 @@ fbound(float x, float mn, float mx)
 
     glGenRenderbuffersEXT(1, &m_hover_renderbuffer);
     glGenRenderbuffersEXT(1, &m_depth_renderbuffer);
-    glGenRenderbuffersEXT(1, &m_normal_renderbuffer);
     
     [self _reshape_framebuffer];
     
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, m_color_texture, 0);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
-    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT2_EXT, GL_RENDERBUFFER_EXT, m_normal_renderbuffer);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
 
     if(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
@@ -168,7 +169,7 @@ fbound(float x, float mn, float mx)
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-    trixel_prepare_brick([o_document brick]);
+    [[o_document brick] prepare];
 }
 
 - (void)reshape
@@ -206,9 +207,6 @@ fbound(float x, float mn, float mx)
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame));
 
-    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_normal_renderbuffer);
-    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame));
-
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, NSWidth(frame), NSHeight(frame));
 }
@@ -234,7 +232,7 @@ fbound(float x, float mn, float mx)
     glRotatef(m_pitch, 1.0, 0.0, 0.0);
     glRotatef(m_yaw,   0.0, 1.0, 0.0);
     
-    trixel_draw_brick(m_t, [o_document brick]);
+    [[o_document brick] draw:m_t];
     
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     glDrawBuffer(GL_BACK);

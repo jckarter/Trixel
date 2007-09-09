@@ -3,6 +3,7 @@
 #include "trixel.h"
 
 @class MasonBrickView;
+@class MasonBrick;
 
 @interface MasonDocument : NSDocument
 {
@@ -10,21 +11,15 @@
     IBOutlet MasonBrickView * o_brickView;
     IBOutlet NSTableView *o_paletteTableView;
     IBOutlet NSArrayController *o_paletteController;
-    trixel_brick * m_brick;
     
+    MasonBrick * m_brick;
     unsigned int m_currentPaletteColor;
 }
 
-- (trixel_brick *)brick;
-- (NSString *)brickSizeString;
+- (MasonBrick *)brick;
+- (void)setBrick:(MasonBrick *)brick;
 
 - (MasonBrickView *)brickView;
-
-- (unsigned int)countOfPaletteColors;
-- (NSColor *)objectInPaletteColorsAtIndex:(unsigned int)index;
-- (void)insertObject:(NSColor *)color inPaletteColorsAtIndex:(unsigned int)index;
-- (void)removeObjectFromPaletteColorsAtIndex:(unsigned int)index;
-- (void)replaceObjectInPaletteColorsAtIndex:(unsigned int)index withObject:(NSColor *)color;
 
 - (IBAction)summonColorPanelForPalette:(id)sender;
 - (IBAction)updatePaletteColorFromPanel:(id)sender;
@@ -32,8 +27,8 @@
 - (unsigned int)currentPaletteColor;
 
 // private
-- (trixel_brick *)_read_default_brick;
-- (void)_replace_brick:(trixel_brick *)new_brick;
+- (MasonBrick *)_default_brick;
+
 @end
 
 #define SLICE_AXIS_SURFACE 0

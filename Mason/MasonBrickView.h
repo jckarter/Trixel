@@ -14,7 +14,11 @@
     float m_yaw, m_pitch, m_distance;
     trixel_state m_t;
     
-    GLuint m_framebuffer, m_hover_renderbuffer, m_depth_renderbuffer, m_normal_renderbuffer, m_color_texture;
+    GLuint m_framebuffer, m_hover_renderbuffer, m_depth_renderbuffer, m_color_texture;
+    struct slice_ops {
+        char const * * trixel_flags;
+        GLuint vertex_buffer, element_buffer;
+    } m_slice_ops[4];
 }
 
 - (struct point3)hoverPoint;

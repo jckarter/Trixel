@@ -1,6 +1,7 @@
 #import "MasonEraseTool.h"
 #import "MasonDocument.h"
 #import "MasonBrickView.h"
+#import "MasonBrick.h"
 
 #include "trixel.h"
 
@@ -14,11 +15,9 @@
 - (void)handleMouseDraggedFrom:(NSPoint)from delta:(NSPoint)delta forDocument:(MasonDocument *)document
 {
     struct point3 hoverPoint = [[document brickView] hoverPoint];
-    
-    if(hoverPoint.x >= 0.0) {
-        *(trixel_brick_voxel([document brick], hoverPoint.x, hoverPoint.y, hoverPoint.z)) = 0;
-    }
-    trixel_update_brick_textures([document brick]);
+    if(hoverPoint.x >= 0.0)
+        [[document brick] setVoxel:[document currentPaletteColor]
+                          x:hoverPoint.x y:hoverPoint.y z:hoverPoint.z];
 }
 
 @end

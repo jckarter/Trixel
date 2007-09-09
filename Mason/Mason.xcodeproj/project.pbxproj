@@ -25,6 +25,7 @@
 		D84AFD750C82387D008A8770 /* voxel.fragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD730C82387D008A8770 /* voxel.fragment.glsl */; };
 		D84AFD760C82387D008A8770 /* voxel.vertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD740C82387D008A8770 /* voxel.vertex.glsl */; };
 		D84AFD9A0C826E12008A8770 /* default.brick in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD990C826E12008A8770 /* default.brick */; };
+		D8D11C300C93102E000E5EF8 /* MasonBrick.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D11C2F0C93102E000E5EF8 /* MasonBrick.m */; };
 		D8EDAF200C7E670E00D0DE3F /* surface.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1C0C7E670E00D0DE3F /* surface.png */; };
 		D8EDAF210C7E670E00D0DE3F /* xslice.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1D0C7E670E00D0DE3F /* xslice.png */; };
 		D8EDAF220C7E670E00D0DE3F /* yslice.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1E0C7E670E00D0DE3F /* yslice.png */; };
@@ -72,6 +73,8 @@
 		D84AFD730C82387D008A8770 /* voxel.fragment.glsl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = voxel.fragment.glsl; path = ../voxel.fragment.glsl; sourceTree = SOURCE_ROOT; };
 		D84AFD740C82387D008A8770 /* voxel.vertex.glsl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = voxel.vertex.glsl; path = ../voxel.vertex.glsl; sourceTree = SOURCE_ROOT; };
 		D84AFD990C826E12008A8770 /* default.brick */ = {isa = PBXFileReference; lastKnownFileType = file; path = default.brick; sourceTree = "<group>"; };
+		D8D11C2E0C93102E000E5EF8 /* MasonBrick.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonBrick.h; sourceTree = "<group>"; };
+		D8D11C2F0C93102E000E5EF8 /* MasonBrick.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonBrick.m; sourceTree = "<group>"; };
 		D8EDAF1C0C7E670E00D0DE3F /* surface.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = surface.png; sourceTree = "<group>"; };
 		D8EDAF1D0C7E670E00D0DE3F /* xslice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = xslice.png; sourceTree = "<group>"; };
 		D8EDAF1E0C7E670E00D0DE3F /* yslice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = yslice.png; sourceTree = "<group>"; };
@@ -163,6 +166,8 @@
 				D800AE620C8905C400A38A34 /* MasonApplication.m */,
 				D80648140C8B7DB200B731DD /* MasonColorCell.h */,
 				D80648150C8B7DB200B731DD /* MasonColorCell.m */,
+				D8D11C2E0C93102E000E5EF8 /* MasonBrick.h */,
+				D8D11C2F0C93102E000E5EF8 /* MasonBrick.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -289,6 +294,7 @@
 				D800AE600C8905B100A38A34 /* MasonTool.m in Sources */,
 				D800AE630C8905C400A38A34 /* MasonApplication.m in Sources */,
 				D80648160C8B7DB200B731DD /* MasonColorCell.m in Sources */,
+				D8D11C300C93102E000E5EF8 /* MasonBrick.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
