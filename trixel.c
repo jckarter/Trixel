@@ -13,6 +13,7 @@
 #define FOV        2.41421
 
 #define BRICK_MAGIC "Brik"
+#define NULL_COLOR ((unsigned char *)"\0\0\0\0")
 
 struct trixel_internal_state {
     char * resource_path;
@@ -319,6 +320,11 @@ trixel_finish(trixel_state t)
     free(t);
 }
 
+struct brick_header {
+    char magic[4];
+    uint16_t colors, width, height, depth; // XXX little endian!
+};
+
 trixel_brick *
 trixel_read_brick(const void * data, size_t data_length, bool prepare, char * * out_error_message)
 {
@@ -327,10 +333,7 @@ trixel_read_brick(const void * data, size_t data_length, bool prepare, char * * 
     trixel_brick * brick = malloc(sizeof(trixel_brick));
     memset(brick, 0, sizeof(trixel_brick));
 
-    struct brick_header {
-        char magic[4];
-        uint16_t colors, width, height, depth; // XXX little endian!
-    } * header = (struct brick_header *)data;
+    struct brick_header * header = (struct brick_header *)data;
 
     if(data_length < sizeof(struct brick_header)) {
         asprintf(out_error_message,
@@ -485,7 +488,103 @@ trixel_update_brick_textures(trixel_brick * brick)
 void *
 trixel_write_brick(trixel_brick * brick, size_t * out_data_length)
 {
-    return NULL; // xxx rite me
+    size_t colors = trixel_optimize_brick_palette(brick);
+    
+    size_t palette_length = colors * 4,
+           voxmap_length = trixel_brick_voxmap_size(brick);
+    
+    *out_data_length = sizeof(struct brick_header) + palette_length + voxmap_length;
+    
+    unsigned char * data = malloc(*out_data_length);
+    struct brick_header *header = (struct brick_header *)data;
+    size_t palette_offset = sizeof(struct brick_header),
+           voxmap_offset = palette_offset + palette_length;
+           
+    strncpy(header->magic, BRICK_MAGIC, 4);
+    header->colors = colors;
+    header->width  = (uint16_t)brick->dimensions[0];
+    header->height = (uint16_t)brick->dimensions[1];
+    header->depth  = (uint16_t)brick->dimensions[2];
+    
+    memcpy(data + palette_offset, brick->palette_data + 4, palette_length);
+    memcpy(data + voxmap_offset,  brick->voxmap_data, voxmap_length);
+
+    return data;
+}
+
+static void
+_offset_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
+{
+    size_t voxmap_size = trixel_brick_voxmap_size(brick);
+    for(size_t i = 0; i < voxmap_size; ++i)
+        if(brick->voxmap_data[i] >= minIndex)
+            brick->voxmap_data[i] += offset;
+}
+
+static void
+_change_voxmap_colors(trixel_brick * brick, unsigned new, unsigned old)
+{
+    size_t voxmap_size = trixel_brick_voxmap_size(brick);
+    for(size_t i = 0; i < voxmap_size; ++i)
+        if(brick->voxmap_data[i] == old)
+            brick->voxmap_data[i] = new;
+}
+
+#include <stdio.h>
+
+unsigned
+trixel_optimize_brick_palette(trixel_brick * brick)
+{
+    unsigned i;
+    unsigned top = 256;
+    for(i = 0; i < top; ++i) {
+        printf("<<< [%d|%d] %02x%02x%02x%02x\n", i, top, trixel_brick_palette_color(brick, i)[0],
+                                                 trixel_brick_palette_color(brick, i)[1],
+                                                 trixel_brick_palette_color(brick, i)[2],
+                                                 trixel_brick_palette_color(brick, i)[3]);
+        if(i != 0 && memcmp(trixel_brick_palette_color(brick, i), NULL_COLOR, 4) == 0)
+            break;
+        for(unsigned j = i + 1; j < top; ++j) {
+            while(j < top && memcmp(trixel_brick_palette_color(brick, i), trixel_brick_palette_color(brick, j), 4) == 0) {
+                printf(">>> [%d|%d] %02x%02x%02x%02x\n", j, top, trixel_brick_palette_color(brick, j)[0],
+                                                         trixel_brick_palette_color(brick, j)[1],
+                                                         trixel_brick_palette_color(brick, j)[2],
+                                                         trixel_brick_palette_color(brick, j)[3]);
+                _change_voxmap_colors(brick, i, j);
+                trixel_remove_brick_palette_color(brick, j);
+                --top;
+            }
+        }
+    }
+    if(trixel_is_brick_prepared(brick))
+        trixel_update_brick_textures(brick);
+    return i - 1;
+}
+
+unsigned char *
+trixel_insert_brick_palette_color(trixel_brick * brick, int index)
+{
+    unsigned char * palette_color = trixel_brick_palette_color(brick, index);
+
+    if(index != 0) {
+        unsigned char * next_palette_color = palette_color + 4;
+        memmove(next_palette_color, palette_color, (256 - index - 1) * 4);
+        _offset_voxmap_colors(brick, index + 1, 1);
+    }
+    return palette_color;
+}
+
+void
+trixel_remove_brick_palette_color(trixel_brick * brick, int index)
+{
+    if(index == 0)
+        return;
+
+    unsigned char * palette_color = trixel_brick_palette_color(brick, index),
+                  * next_palette_color = palette_color + 4;
+    memmove(palette_color, next_palette_color, (256 - index - 1) * 4);
+    memset(trixel_brick_palette_color(brick, 255), 0, 4);
+    _offset_voxmap_colors(brick, index + 1, -1);
 }
 
 void

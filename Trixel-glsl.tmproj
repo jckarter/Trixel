@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>Mason/MasonBrick.m</string>
+	<string>rwtest.c</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -18,7 +18,7 @@
 		</dict>
 	</array>
 	<key>fileHierarchyDrawerWidth</key>
-	<integer>200</integer>
+	<integer>249</integer>
 	<key>metaData</key>
 	<dict>
 		<key>Makefile</key>
@@ -26,9 +26,9 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>64</integer>
-				<key>line</key>
 				<integer>0</integer>
+				<key>line</key>
+				<integer>8</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -208,28 +208,28 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>9</integer>
 				<key>line</key>
-				<integer>0</integer>
+				<integer>30</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>-1</integer>
+			<integer>0</integer>
 		</dict>
 		<key>Mason/MasonBrick.m</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>42</integer>
+				<integer>86</integer>
 				<key>line</key>
-				<integer>185</integer>
+				<integer>146</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>168</integer>
+			<integer>129</integer>
 		</dict>
 		<key>Mason/MasonBrickView.h</key>
 		<dict>
@@ -252,28 +252,12 @@
 				<key>column</key>
 				<integer>0</integer>
 				<key>line</key>
-				<integer>38</integer>
+				<integer>290</integer>
 			</dict>
-			<key>columnSelection</key>
-			<false/>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>19</integer>
-			<key>selectFrom</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>31</integer>
-			</dict>
-			<key>selectTo</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>38</integer>
-			</dict>
+			<integer>285</integer>
 		</dict>
 		<key>Mason/MasonColorCell.h</key>
 		<dict>
@@ -338,14 +322,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>49</integer>
+				<integer>0</integer>
 				<key>line</key>
-				<integer>114</integer>
+				<integer>105</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>76</integer>
+			<integer>79</integer>
 		</dict>
 		<key>Mason/MasonDrawTool.h</key>
 		<dict>
@@ -533,19 +517,33 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
+		<key>rwtest.c</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>4</integer>
+				<key>line</key>
+				<integer>5</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
 		<key>trixel.c</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>39</integer>
+				<integer>79</integer>
 				<key>line</key>
-				<integer>324</integer>
+				<integer>552</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>301</integer>
+			<integer>530</integer>
 		</dict>
 		<key>trixel.h</key>
 		<dict>
@@ -554,12 +552,28 @@
 				<key>column</key>
 				<integer>0</integer>
 				<key>line</key>
-				<integer>0</integer>
+				<integer>45</integer>
 			</dict>
+			<key>columnSelection</key>
+			<false/>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>3</integer>
+			<integer>6</integer>
+			<key>selectFrom</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>42</integer>
+			</dict>
+			<key>selectTo</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>45</integer>
+			</dict>
 		</dict>
 		<key>voxel.fragment.glsl</key>
 		<dict>
@@ -608,14 +622,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>15</integer>
+				<integer>0</integer>
 				<key>line</key>
-				<integer>19</integer>
+				<integer>180</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>140</integer>
+			<integer>142</integer>
 		</dict>
 	</dict>
 	<key>openDocuments</key>
@@ -625,6 +639,7 @@
 		<string>Mason/MasonEraseTool.h</string>
 		<string>Mason/MasonDocument.h</string>
 		<string>voxtest.c</string>
+		<string>rwtest.c</string>
 		<string>voxtest</string>
 		<string>Makefile</string>
 		<string>voxel.fragment.glsl</string>
@@ -662,6 +677,6 @@
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{645, 249}, {698, 625}}</string>
+	<string>{{528, 218}, {804, 636}}</string>
 </dict>
 </plist>

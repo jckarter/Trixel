@@ -45,15 +45,6 @@ _nscolor_from_palette(unsigned char * palette_color)
                                  alpha:(float)palette_color[3]/255.0];
 }
 
-static void
-_update_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
-{
-    size_t voxmap_size = trixel_brick_voxmap_size(brick);
-    for(size_t i = 0; i < voxmap_size; ++i)
-        if(brick->voxmap_data[i] >= minIndex)
-            brick->voxmap_data[i] += offset;
-}
-
 @implementation MasonBrick
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
@@ -151,28 +142,24 @@ _update_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
 
 - (void)insertObject:(NSColor *)color inPaletteColorsAtIndex:(unsigned int)index
 {
-    unsigned char * palette_color = trixel_brick_palette_color(m_brick, index),
-                  * next_palette_color = palette_color + 4;
-    memmove(next_palette_color, palette_color, (256 - index - 1) * 4);
-    _store_nscolor_in_palette(palette_color, color);
-    _update_voxmap_colors(m_brick, index + 1, 1);
-    
+    if(index == 0)
+        return;
+    _store_nscolor_in_palette(trixel_insert_brick_palette_color(m_brick, index), color);
+
     [self updateTextures];
 }
 
 - (void)removeObjectFromPaletteColorsAtIndex:(unsigned int)index
 {
-    unsigned char * palette_color = trixel_brick_palette_color(m_brick, index),
-                  * next_palette_color = palette_color + 4;
-    memmove(palette_color, next_palette_color, (256 - index - 1) * 4);
-    memset(trixel_brick_palette_color(m_brick, 255), 0, 4);
-    _update_voxmap_colors(m_brick, index + 1, -1);
-
+    trixel_remove_brick_palette_color(m_brick, index);
     [self updateTextures];
 }
 
 - (void)replaceObjectInPaletteColorsAtIndex:(unsigned int)index withObject:(NSColor *)color
 {
+    if(index == 0)
+        return;
+
     unsigned char *palette_color = trixel_brick_palette_color(m_brick, index);
     _store_nscolor_in_palette(palette_color, color);
 

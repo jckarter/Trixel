@@ -286,9 +286,9 @@ fbound(float x, float mn, float mx)
     [[self window] invalidateCursorRectsForView:self];
 
     MasonTool * currentTool = [[NSApp toolboxController] currentTool];
-    if([currentTool isDestructive])
+    if([currentTool isDestructive]) {
         [[o_document undoManager] beginUndoGrouping];
-    
+    }
     [currentTool
         handleMouseDraggedFrom:[self convertPoint:[event locationInWindow] fromView:nil]
         delta:NSMakePoint(0, 0)
@@ -299,8 +299,9 @@ fbound(float x, float mn, float mx)
 
 - (void)mouseUp:(NSEvent *)event
 {
-    if([[[NSApp toolboxController] currentTool] isDestructive])
+    if([[[NSApp toolboxController] currentTool] isDestructive]) {
         [[o_document undoManager] endUndoGrouping];
+    }
 
     [[self window] invalidateCursorRectsForView:self];    
     m_toolActive = NO;

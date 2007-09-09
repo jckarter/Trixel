@@ -3,3 +3,6 @@ LDFLAGS += -L/opt/local/lib `sdl-config --libs` -framework OpenGL -framework Coc
 
 voxtest: voxtest.o trixel.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+
+rwtest: rwtest.o trixel.o
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)

@@ -39,6 +39,11 @@ trixel_brick * trixel_read_brick(const void * data, size_t data_length, bool pre
 void trixel_free_brick(trixel_brick * brick);
 void * trixel_write_brick(trixel_brick * brick, size_t * out_data_length);
 
+// NB: these don't call trixel_update_brick_textures for you!
+unsigned trixel_optimize_brick_palette(trixel_brick * brick);
+unsigned char * trixel_insert_brick_palette_color(trixel_brick * brick, int color);
+void trixel_remove_brick_palette_color(trixel_brick * brick, int color);
+
 void trixel_prepare_brick(trixel_brick * brick);
 void trixel_unprepare_brick(trixel_brick * brick);
 bool trixel_is_brick_prepared(trixel_brick * brick);
