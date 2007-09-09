@@ -96,6 +96,18 @@
     return o_brickView;
 }
 
+- (void)setBrickVoxel:(unsigned int)index at:(struct point3)pt;
+{
+    if(pt.x < 0.0)
+        return;
+        
+    unsigned old = [m_brick voxelX:pt.x y:pt.y z:pt.z];
+    if(index != old) {
+        [[[self undoManager] prepareWithInvocationTarget:self] setBrickVoxel:old at:pt];
+        [m_brick setVoxel:index x:pt.x y:pt.y z:pt.z];
+    }
+}
+
 - (MasonBrick *)_default_brick
 {
     NSError *error;

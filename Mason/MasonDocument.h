@@ -26,6 +26,8 @@
 
 - (unsigned int)currentPaletteColor;
 
+- (void)setBrickVoxel:(unsigned int)index at:(struct point3)pt;
+
 // private
 - (MasonBrick *)_default_brick;
 

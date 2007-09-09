@@ -35,7 +35,7 @@ int trixel_update_shaders(trixel_state t, char const * shader_flags[], char * * 
 
 void trixel_finish(trixel_state t);
 
-trixel_brick * trixel_read_brick(void * data, size_t data_length, bool prepare, char * * out_error_message);
+trixel_brick * trixel_read_brick(const void * data, size_t data_length, bool prepare, char * * out_error_message);
 void trixel_free_brick(trixel_brick * brick);
 void * trixel_write_brick(trixel_brick * brick, size_t * out_data_length);
 

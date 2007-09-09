@@ -4,6 +4,11 @@
 
 @implementation MasonRotateTool
 
+- (BOOL)isDestructive
+{
+    return NO;
+}
+
 - (NSCursor *)activeCursor
 {
     return [NSCursor closedHandCursor];

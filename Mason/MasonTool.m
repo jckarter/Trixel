@@ -14,6 +14,11 @@
     return [NSCursor arrowCursor];
 }
 
+- (BOOL)isDestructive
+{
+    return NO;
+}
+
 - (void)handleMouseDraggedFrom:(NSPoint)from delta:(NSPoint)delta forDocument:(MasonDocument *)document
 {
     // do nothing

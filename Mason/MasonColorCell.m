@@ -19,7 +19,7 @@
 	[[NSColor blackColor] set];
 	[NSBezierPath strokeRect: square];
 
-	[[self objectValue] drawSwatchInRect: NSInsetRect (square, 2.0, 2.0)];
+	[[self objectValue] drawSwatchInRect: NSInsetRect(square, 2.0, 2.0)];
 }
 
 

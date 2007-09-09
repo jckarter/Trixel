@@ -1,6 +1,6 @@
 #import "MasonBrick.h"
 
-const NSString *TrixelErrorDomain = @"TrixelErrorDomain";
+NSString *TrixelErrorDomain = @"TrixelErrorDomain";
 
 static NSError *
 nserror_from_trixel_error(char *cstring)
@@ -55,6 +55,14 @@ _update_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
 }
 
 @implementation MasonBrick
+
++ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
+{
+    if([key isEqualToString:@"voxmap"])
+        return NO;
+    else
+        return [super automaticallyNotifiesObserversForKey:key];
+}
 
 - (MasonBrick *)initWithData:(NSData *)data withError:(NSError **)out_error
 {
@@ -171,15 +179,26 @@ _update_voxmap_colors(trixel_brick * brick, int minIndex, int offset)
     [self updateTextures];
 }
 
-- (unsigned)voxelX:x y:y z:z
+- (NSData *)voxmap
+{
+    return [NSData dataWithBytesNoCopy:m_brick->voxmap_data
+                                length:trixel_brick_voxmap_size(m_brick)
+                          freeWhenDone:NO];
+}
+
+- (unsigned)voxelX:(unsigned)x y:(unsigned)y z:(unsigned)z
 {
     return *trixel_brick_voxel(m_brick, x, y, z);
 }
 
 - (void)setVoxel:(unsigned)index x:(unsigned)x y:(unsigned)y z:(unsigned)z
 {
+    [self willChangeValueForKey:@"voxmap"];
+    
     *trixel_brick_voxel(m_brick, x, y, z) = index;
     [self updateTextures];
+    
+    [self didChangeValueForKey:@"voxmap"];
 }
 
 - (NSString *)sizeString

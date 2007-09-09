@@ -320,9 +320,9 @@ trixel_finish(trixel_state t)
 }
 
 trixel_brick *
-trixel_read_brick(void * data, size_t data_length, bool prepare, char * * out_error_message)
+trixel_read_brick(const void * data, size_t data_length, bool prepare, char * * out_error_message)
 {
-    uint8_t * byte_data = (uint8_t *)data;
+    const uint8_t * byte_data = (const uint8_t *)data;
 
     trixel_brick * brick = malloc(sizeof(trixel_brick));
     memset(brick, 0, sizeof(trixel_brick));

@@ -28,7 +28,8 @@
 - (void)removeObjectFromPaletteColorsAtIndex:(unsigned int)index;
 - (void)replaceObjectInPaletteColorsAtIndex:(unsigned int)index withObject:(NSColor *)color;
 
-- (unsigned)voxelX:x y:y z:z;
+- (NSData *)voxmap;
+- (unsigned)voxelX:(unsigned)x y:(unsigned)y z:(unsigned)z;
 - (void)setVoxel:(unsigned)index x:(unsigned)x y:(unsigned)y z:(unsigned)z;
 
 - (NSString *)sizeString;

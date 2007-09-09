@@ -6,6 +6,8 @@
 {
 }
 
+- (BOOL)isDestructive;
+
 - (NSCursor *)activeCursor;
 - (NSCursor *)inactiveCursor;
 

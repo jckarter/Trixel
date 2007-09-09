@@ -82,6 +82,8 @@ fbound(float x, float mn, float mx)
     m_trackingRect = [self addTrackingRect:[self bounds] owner:self userData:nil assumeInside:YES];
     
     [[NSApp toolboxController] addObserver:self forKeyPath:@"currentTool" options:NSKeyValueObservingOptionNew context:NULL];
+    [[o_document brick] addObserver:self forKeyPath:@"voxmap" options:NSKeyValueObservingOptionNew context:NULL];
+    [[o_document brick] addObserver:self forKeyPath:@"paletteColors" options:NSKeyValueObservingOptionNew context:NULL];    
     
     [[self window] invalidateCursorRectsForView:self];
 }
@@ -89,6 +91,8 @@ fbound(float x, float mn, float mx)
 - (void)dealloc
 {
     [[NSApp toolboxController] removeObserver:self forKeyPath:@"currentTool"];
+    [[o_document brick] removeObserver:self forKeyPath:@"voxmap"];
+    [[o_document brick] removeObserver:self forKeyPath:@"paletteColors"];
     
     if(m_t) {
         glDeleteFramebuffersEXT(1, &m_framebuffer);
@@ -107,6 +111,8 @@ fbound(float x, float mn, float mx)
     if(object == [NSApp toolboxController] && [path isEqualToString:@"currentTool"]) {
         [[self window] invalidateCursorRectsForView:self];
     }
+    else if(object == [o_document brick])
+        [self setNeedsDisplay:YES];
     //[super observeValueForKeyPath:path ofObject:object change:change context:context];
 }
 
@@ -195,6 +201,7 @@ fbound(float x, float mn, float mx)
 {
     m_yaw = m_yaw + yoffset * MOUSE_ROTATE_FACTOR;
     m_pitch = fbound(m_pitch + poffset * MOUSE_ROTATE_FACTOR, -90.0, 90.0);
+    [self setNeedsDisplay:YES];
 }
 
 - (void)_reshape_framebuffer
@@ -271,29 +278,32 @@ fbound(float x, float mn, float mx)
         handleMouseDraggedFrom:[self convertPoint:[event locationInWindow] fromView:nil]
         delta:NSMakePoint([event deltaX], [event deltaY])
         forDocument:o_document];
-    
-    [self setNeedsDisplay:YES];
 }
 
 - (void)mouseDown:(NSEvent *)event
 {
     m_toolActive = YES;
     [[self window] invalidateCursorRectsForView:self];
+
+    MasonTool * currentTool = [[NSApp toolboxController] currentTool];
+    if([currentTool isDestructive])
+        [[o_document undoManager] beginUndoGrouping];
     
-    [[[NSApp toolboxController] currentTool]
+    [currentTool
         handleMouseDraggedFrom:[self convertPoint:[event locationInWindow] fromView:nil]
         delta:NSMakePoint(0, 0)
         forDocument:o_document];    
 
     [self mouseMoved:event];
-    [self setNeedsDisplay:YES];
 }
 
 - (void)mouseUp:(NSEvent *)event
 {
-    m_toolActive = NO;
+    if([[[NSApp toolboxController] currentTool] isDestructive])
+        [[o_document undoManager] endUndoGrouping];
+
     [[self window] invalidateCursorRectsForView:self];    
-    [self setNeedsDisplay:YES];
+    m_toolActive = NO;
 }
 
 - (void)scrollWheel:(NSEvent *)event
