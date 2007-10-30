@@ -277,14 +277,14 @@ fbound(float x, float mn, float mx)
         vertices[depth_offset + i * 12 + 11] =  d;
     }
     
-    glGenBuffersARB(1, &m_vertex_buffer);
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_vertex_buffer);
-    glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertex_count * sizeof(GLfloat), vertices, GL_STATIC_DRAW_ARB);
+    glGenBuffers(1, &m_vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
+    glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 
     m_slice_ops[SLICE_AXIS_SURFACE].trixel_flags = g_surface_flags;
-    glGenBuffersARB(1, &m_slice_ops[SLICE_AXIS_SURFACE].element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, m_slice_ops[SLICE_AXIS_SURFACE].element_buffer);
-    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(g_surface_elements), g_surface_elements, GL_STATIC_DRAW_ARB);
+    glGenBuffers(1, &m_slice_ops[SLICE_AXIS_SURFACE].element_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_SURFACE].element_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_surface_elements), g_surface_elements, GL_STATIC_DRAW);
 
     m_slice_ops[SLICE_AXIS_XAXIS].trixel_flags = g_slice_flags;
     GLshort xaxis_elements[width * 8];
@@ -299,9 +299,9 @@ fbound(float x, float mn, float mx)
         xaxis_elements[i*8 + 6] = width_elt_offset + i*4 + 1;
         xaxis_elements[i*8 + 7] = width_elt_offset + i*4 + 0;
     }
-    glGenBuffersARB(1, &m_slice_ops[SLICE_AXIS_XAXIS].element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, m_slice_ops[SLICE_AXIS_XAXIS].element_buffer);
-    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(GLshort) * width * 8, xaxis_elements, GL_STATIC_DRAW_ARB);
+    glGenBuffers(1, &m_slice_ops[SLICE_AXIS_XAXIS].element_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_XAXIS].element_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLshort) * width * 8, xaxis_elements, GL_STATIC_DRAW);
 
     m_slice_ops[SLICE_AXIS_YAXIS].trixel_flags = g_slice_flags;
     GLshort yaxis_elements[height * 8];
@@ -316,9 +316,9 @@ fbound(float x, float mn, float mx)
         yaxis_elements[i*8 + 6] = height_elt_offset + i*4 + 1;
         yaxis_elements[i*8 + 7] = height_elt_offset + i*4 + 0;
     }
-    glGenBuffersARB(1, &m_slice_ops[SLICE_AXIS_YAXIS].element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, m_slice_ops[SLICE_AXIS_YAXIS].element_buffer);
-    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(GLshort) * height * 8, yaxis_elements, GL_STATIC_DRAW_ARB);
+    glGenBuffers(1, &m_slice_ops[SLICE_AXIS_YAXIS].element_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_YAXIS].element_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLshort) * height * 8, yaxis_elements, GL_STATIC_DRAW);
 
     m_slice_ops[SLICE_AXIS_ZAXIS].trixel_flags = g_slice_flags;
     GLshort zaxis_elements[depth * 8];
@@ -333,12 +333,12 @@ fbound(float x, float mn, float mx)
         zaxis_elements[i*8 + 6] = depth_elt_offset + i*4 + 1;
         zaxis_elements[i*8 + 7] = depth_elt_offset + i*4 + 0;
     }
-    glGenBuffersARB(1, &m_slice_ops[SLICE_AXIS_ZAXIS].element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, m_slice_ops[SLICE_AXIS_ZAXIS].element_buffer);
-    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(GLshort) * depth * 8, zaxis_elements, GL_STATIC_DRAW_ARB);
+    glGenBuffers(1, &m_slice_ops[SLICE_AXIS_ZAXIS].element_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_ZAXIS].element_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLshort) * depth * 8, zaxis_elements, GL_STATIC_DRAW);
 
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);    
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);    
 
     [brick prepare];
 }
@@ -385,18 +385,21 @@ fbound(float x, float mn, float mx)
 
 - (void)drawRect:(NSRect)r
 {
+    NSRect frame = [self bounds];
+
     const GLenum *draw_buffers = (m_toolActive ? g_tool_active_draw_buffers : g_tool_inactive_draw_buffers);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
     
-    glDrawBuffersARB(g_num_draw_buffers - 1, draw_buffers + 1);
+    glDrawBuffers(g_num_draw_buffers - 1, draw_buffers + 1);
+    
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
-    glDrawBuffer(draw_buffers[0]);
+    glDrawBuffers(1, draw_buffers);
     glClearColor(0.2, 0.2, 0.2, 1.0);    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glDrawBuffersARB(g_num_draw_buffers, draw_buffers);
+    glDrawBuffers(g_num_draw_buffers, draw_buffers);
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -414,8 +417,7 @@ fbound(float x, float mn, float mx)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    NSRect frame = [self bounds];
-    glUseProgramObjectARB(0);
+    glUseProgram(0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_color_texture);
     glBegin(GL_QUADS);

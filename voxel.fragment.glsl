@@ -1,5 +1,3 @@
-#extension GL_ARB_draw_buffers : enable
-
 varying vec3 ray, p0, rayscaled, p0scaled;
 
 uniform sampler3D voxmap;
