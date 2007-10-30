@@ -51,6 +51,39 @@ _gl_print_matrix(GLenum what)
     );
 }
 
+static void
+_gl_report_error(char const * tag)
+{
+    GLenum error = glGetError();
+    if(error != GL_NO_ERROR) {
+        fprintf(stderr, "%s: OpenGL error ", tag);
+        switch(error) {
+            case GL_INVALID_ENUM:
+                fprintf(stderr, "GL_INVALID_ENUM");
+                break;
+            case GL_INVALID_VALUE:
+                fprintf(stderr, "GL_INVALID_VALUE");
+                break;
+            case GL_INVALID_OPERATION:
+                fprintf(stderr, "GL_INVALID_OPERATION");
+                break;
+            case GL_STACK_OVERFLOW:
+                fprintf(stderr, "GL_STACK_OVERFLOW");
+                break;
+            case GL_STACK_UNDERFLOW:
+                fprintf(stderr, "GL_STACK_UNDERFLOW");
+                break;
+            case GL_OUT_OF_MEMORY:
+                fprintf(stderr, "GL_OUT_OF_MEMORY");
+                break;
+            default:
+                fprintf(stderr, "code 0x%x", error);
+                break;
+        }
+        fprintf(stderr, "\n");
+    }
+}
+
 static char * *
 _make_shader_flag_sources(char const * flags[], char const * source, size_t *out_num_sources)
 {
@@ -191,7 +224,7 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
 {
     trixel_state t = malloc(sizeof(struct trixel_internal_state));
     
-    memset(t, 0, sizeof(*t));
+    memset(t, 0, sizeof(struct trixel_internal_state));
 
     GLenum glew_error = glewInit();
     if(glew_error != GLEW_OK) {
@@ -233,6 +266,8 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
 
     if(!trixel_update_shaders(t, shader_flags, out_error_message))
         goto error_after_save_resource_path;
+    
+    _gl_report_error("trixel_init_opengl");
 
     return t;
 
@@ -406,7 +441,9 @@ trixel_prepare_brick(trixel_brick * brick)
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, brick->palette_data);
+
+    _gl_report_error("trixel_prepare_brick palette");
 
     glGenTextures(1, &brick->voxmap_texture);
     glBindTexture(GL_TEXTURE_3D, brick->voxmap_texture);
@@ -418,8 +455,10 @@ trixel_prepare_brick(trixel_brick * brick)
     glTexImage3D(
         GL_TEXTURE_3D, 0, GL_LUMINANCE8,
         (GLsizei)brick->dimensions[0], (GLsizei)brick->dimensions[1], (GLsizei)brick->dimensions[2],
-        0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL
+        0, GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->voxmap_data
     );
+
+    _gl_report_error("trixel_prepare_brick voxmap");
 
     trixel_update_brick_textures(brick);
 
@@ -476,6 +515,8 @@ trixel_update_brick_textures(trixel_brick * brick)
     glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
     glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA, GL_UNSIGNED_BYTE, brick->palette_data);
 
+    _gl_report_error("trixel_update_brick_textures palette");
+
     glBindTexture(GL_TEXTURE_3D, brick->voxmap_texture);
     glTexSubImage3D(
         GL_TEXTURE_3D, 0,
@@ -483,6 +524,8 @@ trixel_update_brick_textures(trixel_brick * brick)
         (GLsizei)brick->dimensions[0], (GLsizei)brick->dimensions[1], (GLsizei)brick->dimensions[2],
         GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->voxmap_data
     );
+
+    _gl_report_error("trixel_update_brick_textures voxmap");
 }
 
 void *
@@ -530,26 +573,16 @@ _change_voxmap_colors(trixel_brick * brick, unsigned new, unsigned old)
             brick->voxmap_data[i] = new;
 }
 
-#include <stdio.h>
-
 unsigned
 trixel_optimize_brick_palette(trixel_brick * brick)
 {
     unsigned i;
     unsigned top = 256;
     for(i = 0; i < top; ++i) {
-        printf("<<< [%d|%d] %02x%02x%02x%02x\n", i, top, trixel_brick_palette_color(brick, i)[0],
-                                                 trixel_brick_palette_color(brick, i)[1],
-                                                 trixel_brick_palette_color(brick, i)[2],
-                                                 trixel_brick_palette_color(brick, i)[3]);
         if(i != 0 && memcmp(trixel_brick_palette_color(brick, i), NULL_COLOR, 4) == 0)
             break;
         for(unsigned j = i + 1; j < top; ++j) {
             while(j < top && memcmp(trixel_brick_palette_color(brick, i), trixel_brick_palette_color(brick, j), 4) == 0) {
-                printf(">>> [%d|%d] %02x%02x%02x%02x\n", j, top, trixel_brick_palette_color(brick, j)[0],
-                                                         trixel_brick_palette_color(brick, j)[1],
-                                                         trixel_brick_palette_color(brick, j)[2],
-                                                         trixel_brick_palette_color(brick, j)[3]);
                 _change_voxmap_colors(brick, i, j);
                 trixel_remove_brick_palette_color(brick, j);
                 --top;

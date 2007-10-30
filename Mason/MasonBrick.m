@@ -197,4 +197,19 @@ _nscolor_from_palette(unsigned char * palette_color)
     ];
 }
 
+- (unsigned)width
+{
+    return (unsigned)m_brick->dimensions[0];
+}
+
+- (unsigned)height
+{
+    return (unsigned)m_brick->dimensions[1];    
+}
+
+- (unsigned)depth
+{
+    return (unsigned)m_brick->dimensions[2];
+}
+
 @end

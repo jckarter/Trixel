@@ -70,7 +70,7 @@
 
 - (NSData *)dataOfType:(NSString *)typeName error:(NSError **)out_error
 {
-    return nil;
+    return [m_brick data];
 }
 
 - (BOOL)readFromData:(NSData *)data ofType:(NSString *)typeName error:(NSError **)out_error

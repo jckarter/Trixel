@@ -33,5 +33,8 @@
 - (void)setVoxel:(unsigned)index x:(unsigned)x y:(unsigned)y z:(unsigned)z;
 
 - (NSString *)sizeString;
+- (unsigned)width;
+- (unsigned)height;
+- (unsigned)depth;
 
 @end

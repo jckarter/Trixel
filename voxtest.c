@@ -20,7 +20,7 @@ set_video_mode(int width, int height, char * * out_error_message)
     if(!screen)
         goto error_from_sdl;
 
-    char *flags[] = { TRIXEL_GRID, NULL };
+    char const * flags[] = { TRIXEL_GRID, NULL };
 
     trixel_state t = trixel_init_opengl(".", width, height, flags, out_error_message);
     if(!t)

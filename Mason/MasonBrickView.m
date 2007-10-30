@@ -14,12 +14,21 @@
 
 #define INITIAL_DISTANCE 32.0
 
-const size_t g_num_draw_buffers = 2;
-const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT };
-const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                 };
+static const size_t g_num_draw_buffers = 2;
+static const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT };
+static const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE                  };
 
-const char * g_cast_flags[] = { TRIXEL_SAVE_COORDINATES, NULL };
-const char * g_surface_flags[] = { TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
+static const char * g_surface_flags[] = { TRIXEL_SAVE_COORDINATES, NULL };
+static const char * g_slice_flags[] = { TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
+static const GLshort g_surface_elements[] = {
+    0, 1, 2, 3,
+    0, 4, 5, 1,
+    4, 7, 6, 5,
+    2, 6, 5, 3,
+    0, 3, 7, 4,
+    2, 1, 5, 6
+};
+
 
 float
 fbound(float x, float mn, float mx)
@@ -128,17 +137,14 @@ fbound(float x, float mn, float mx)
 {
     NSLog(@"context %@", [self openGLContext]);
     
-    char *shader_flags[] = {
-        TRIXEL_SAVE_COORDINATES,
-        NULL
-    };
     [super prepareOpenGL];
+
     char *error_message;
     NSRect frame = [self bounds];
     m_t = trixel_init_opengl(
         [[[NSBundle mainBundle] resourcePath] UTF8String],
         NSWidth(frame), NSHeight(frame),
-        (char const * *)shader_flags,
+        (char const * *)g_surface_flags,
         &error_message
     );
     
@@ -175,7 +181,166 @@ fbound(float x, float mn, float mx)
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-    [[o_document brick] prepare];
+    MasonBrick * brick = [o_document brick];
+
+    size_t width = [brick width], height = [brick height], depth = [brick depth],
+           width_elt_offset = 2 * 4, height_elt_offset = (2 + width) * 4, depth_elt_offset = (2 + width + height) * 4,
+           width_offset = width_elt_offset * 3, height_offset = height_elt_offset * 3, depth_offset = depth_elt_offset * 3;
+    size_t vertex_count = (2 + width + height + depth) * 12;
+    GLfloat vertices[vertex_count];
+    
+    vertices[ 0] = -width/2;
+    vertices[ 1] = -height/2;
+    vertices[ 2] = -depth/2;
+    
+    vertices[ 3] = -width/2;
+    vertices[ 4] =  height/2;
+    vertices[ 5] = -depth/2;
+    
+    vertices[ 6] = -width/2;
+    vertices[ 7] =  height/2;
+    vertices[ 8] =  depth/2;
+    
+    vertices[ 9] = -width/2;
+    vertices[10] = -height/2;
+    vertices[11] =  depth/2;
+        
+    vertices[12] =  width/2;
+    vertices[13] = -height/2;
+    vertices[14] = -depth/2;
+    
+    vertices[15] =  width/2;
+    vertices[16] =  height/2;
+    vertices[17] = -depth/2;
+    
+    vertices[18] =  width/2;
+    vertices[19] =  height/2;
+    vertices[20] =  depth/2;
+    
+    vertices[21] =  width/2;
+    vertices[22] = -height/2;
+    vertices[23] =  depth/2;
+        
+    unsigned i;
+    for(i = 0; i < width; ++i) {
+        GLfloat w = (GLfloat)i + 0.5 - width/2;
+        vertices[width_offset + i * 12 +  0] =  w;
+        vertices[width_offset + i * 12 +  1] = -height/2;
+        vertices[width_offset + i * 12 +  2] = -depth/2;
+        
+        vertices[width_offset + i * 12 +  3] =  w;
+        vertices[width_offset + i * 12 +  4] =  height/2;
+        vertices[width_offset + i * 12 +  5] = -depth/2;
+        
+        vertices[width_offset + i * 12 +  6] =  w;
+        vertices[width_offset + i * 12 +  7] =  height/2;
+        vertices[width_offset + i * 12 +  8] =  depth/2;
+        
+        vertices[width_offset + i * 12 +  9] =  w;
+        vertices[width_offset + i * 12 + 10] = -height/2;
+        vertices[width_offset + i * 12 + 11] =  depth/2;
+    }
+    for(i = 0; i < height; ++i) {
+        GLfloat h = (GLfloat)i + 0.5 - height/2;
+        vertices[height_offset + i * 12 +  0] = -width/2;
+        vertices[height_offset + i * 12 +  1] =  h;
+        vertices[height_offset + i * 12 +  2] = -depth/2;
+
+        vertices[height_offset + i * 12 +  3] =  width/2;
+        vertices[height_offset + i * 12 +  4] =  h;
+        vertices[height_offset + i * 12 +  5] = -depth/2;
+
+        vertices[height_offset + i * 12 +  6] =  width/2;
+        vertices[height_offset + i * 12 +  7] =  h;
+        vertices[height_offset + i * 12 +  8] =  depth/2;
+
+        vertices[height_offset + i * 12 +  9] = -width/2;
+        vertices[height_offset + i * 12 + 10] =  h;
+        vertices[height_offset + i * 12 + 11] =  depth/2;
+    }
+    for(i = 0; i < depth; ++i) {
+        GLfloat d = (GLfloat)i + 0.5 - depth/2;
+        vertices[depth_offset + i * 12 +  0] = -width/2;
+        vertices[depth_offset + i * 12 +  1] = -height/2;
+        vertices[depth_offset + i * 12 +  2] =  d;
+
+        vertices[depth_offset + i * 12 +  3] =  width/2;
+        vertices[depth_offset + i * 12 +  4] = -height/2;
+        vertices[depth_offset + i * 12 +  5] =  d;
+
+        vertices[depth_offset + i * 12 +  6] =  width/2;
+        vertices[depth_offset + i * 12 +  7] =  height/2;
+        vertices[depth_offset + i * 12 +  8] =  d;
+
+        vertices[depth_offset + i * 12 +  9] = -width/2;
+        vertices[depth_offset + i * 12 + 10] =  height/2;
+        vertices[depth_offset + i * 12 + 11] =  d;
+    }
+    
+    glGenBuffersARB(1, &m_vertex_buffer);
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_vertex_buffer);
+    glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertex_count * sizeof(GLfloat), vertices, GL_STATIC_DRAW_ARB);
+
+    m_slice_ops[SLICE_AXIS_SURFACE].trixel_flags = g_surface_flags;
+    glGenBuffersARB(1, &m_slice_ops[SLICE_AXIS_SURFACE].element_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, m_slice_ops[SLICE_AXIS_SURFACE].element_buffer);
+    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(g_surface_elements), g_surface_elements, GL_STATIC_DRAW_ARB);
+
+    m_slice_ops[SLICE_AXIS_XAXIS].trixel_flags = g_slice_flags;
+    GLshort xaxis_elements[width * 8];
+    for(i = 0; i < width; ++i) {
+        xaxis_elements[i*8 + 0] = width_elt_offset + i*4 + 0;
+        xaxis_elements[i*8 + 1] = width_elt_offset + i*4 + 1;
+        xaxis_elements[i*8 + 2] = width_elt_offset + i*4 + 2;
+        xaxis_elements[i*8 + 3] = width_elt_offset + i*4 + 3;
+        
+        xaxis_elements[i*8 + 4] = width_elt_offset + i*4 + 3;
+        xaxis_elements[i*8 + 5] = width_elt_offset + i*4 + 2;
+        xaxis_elements[i*8 + 6] = width_elt_offset + i*4 + 1;
+        xaxis_elements[i*8 + 7] = width_elt_offset + i*4 + 0;
+    }
+    glGenBuffersARB(1, &m_slice_ops[SLICE_AXIS_XAXIS].element_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, m_slice_ops[SLICE_AXIS_XAXIS].element_buffer);
+    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(GLshort) * width * 8, xaxis_elements, GL_STATIC_DRAW_ARB);
+
+    m_slice_ops[SLICE_AXIS_YAXIS].trixel_flags = g_slice_flags;
+    GLshort yaxis_elements[height * 8];
+    for(i = 0; i < height; ++i) {
+        yaxis_elements[i*8 + 0] = height_elt_offset + i*4 + 0;
+        yaxis_elements[i*8 + 1] = height_elt_offset + i*4 + 1;
+        yaxis_elements[i*8 + 2] = height_elt_offset + i*4 + 2;
+        yaxis_elements[i*8 + 3] = height_elt_offset + i*4 + 3;
+        
+        yaxis_elements[i*8 + 4] = height_elt_offset + i*4 + 3;
+        yaxis_elements[i*8 + 5] = height_elt_offset + i*4 + 2;
+        yaxis_elements[i*8 + 6] = height_elt_offset + i*4 + 1;
+        yaxis_elements[i*8 + 7] = height_elt_offset + i*4 + 0;
+    }
+    glGenBuffersARB(1, &m_slice_ops[SLICE_AXIS_YAXIS].element_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, m_slice_ops[SLICE_AXIS_YAXIS].element_buffer);
+    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(GLshort) * height * 8, yaxis_elements, GL_STATIC_DRAW_ARB);
+
+    m_slice_ops[SLICE_AXIS_ZAXIS].trixel_flags = g_slice_flags;
+    GLshort zaxis_elements[depth * 8];
+    for(i = 0; i < depth; ++i) {
+        zaxis_elements[i*8 + 0] = depth_elt_offset + i*4 + 0;
+        zaxis_elements[i*8 + 1] = depth_elt_offset + i*4 + 1;
+        zaxis_elements[i*8 + 2] = depth_elt_offset + i*4 + 2;
+        zaxis_elements[i*8 + 3] = depth_elt_offset + i*4 + 3;
+        
+        zaxis_elements[i*8 + 4] = depth_elt_offset + i*4 + 3;
+        zaxis_elements[i*8 + 5] = depth_elt_offset + i*4 + 2;
+        zaxis_elements[i*8 + 6] = depth_elt_offset + i*4 + 1;
+        zaxis_elements[i*8 + 7] = depth_elt_offset + i*4 + 0;
+    }
+    glGenBuffersARB(1, &m_slice_ops[SLICE_AXIS_ZAXIS].element_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, m_slice_ops[SLICE_AXIS_ZAXIS].element_buffer);
+    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(GLshort) * depth * 8, zaxis_elements, GL_STATIC_DRAW_ARB);
+
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);    
+
+    [brick prepare];
 }
 
 - (void)reshape
