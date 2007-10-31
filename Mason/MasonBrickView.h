@@ -28,6 +28,7 @@
 
 //private
 
-- (void)_reshape_framebuffer;
+- (void)_generate_framebuffer;
+- (void)_destroy_framebuffer;
 
 @end

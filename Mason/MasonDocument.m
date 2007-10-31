@@ -102,6 +102,7 @@
         return;
         
     unsigned old = [m_brick voxelX:pt.x y:pt.y z:pt.z];
+    NSLog(@"%u => %u", old, index);
     if(index != old) {
         [[[self undoManager] prepareWithInvocationTarget:self] setBrickVoxel:old at:pt];
         [m_brick setVoxel:index x:pt.x y:pt.y z:pt.z];

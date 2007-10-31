@@ -74,6 +74,8 @@ fbound(float x, float mn, float mx)
         NSOpenGLPFADepthSize, 32,
         0
     };
+
+    m_framebuffer = m_color_texture = m_hover_renderbuffer = m_depth_renderbuffer = 0;
     
     m_yaw = m_pitch = 0.0;
     m_distance = INITIAL_DISTANCE;
@@ -104,11 +106,8 @@ fbound(float x, float mn, float mx)
     [[o_document brick] removeObserver:self forKeyPath:@"paletteColors"];
     
     if(m_t) {
-        glDeleteFramebuffersEXT(1, &m_framebuffer);
-        glDeleteTextures(1, &m_color_texture);
-        glDeleteRenderbuffersEXT(1, &m_hover_renderbuffer);
-        glDeleteRenderbuffersEXT(1, &m_depth_renderbuffer);
-        
+        if(m_framebuffer)
+            [self _destroy_framebuffer];
         trixel_finish(m_t);
     }
 
@@ -134,9 +133,7 @@ fbound(float x, float mn, float mx)
 }
 
 - (void)prepareOpenGL
-{
-    NSLog(@"context %@", [self openGLContext]);
-    
+{    
     [super prepareOpenGL];
 
     char *error_message;
@@ -153,34 +150,6 @@ fbound(float x, float mn, float mx)
         return;
     }
     
-    glEnable(GL_TEXTURE_RECTANGLE_ARB);
-    
-    glGenFramebuffersEXT(1, &m_framebuffer);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
-    
-    glGenTextures(1, &m_color_texture);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_color_texture);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_R, GL_CLAMP);
-
-    glGenRenderbuffersEXT(1, &m_hover_renderbuffer);
-    glGenRenderbuffersEXT(1, &m_depth_renderbuffer);
-    
-    [self _reshape_framebuffer];
-    
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, m_color_texture, 0);
-    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
-    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
-
-    if(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
-    {
-        NSLog(@"framebuffer not complete %d", glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT));
-    }
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-
     MasonBrick * brick = [o_document brick];
 
     size_t width = [brick width], height = [brick height], depth = [brick depth],
@@ -340,7 +309,11 @@ fbound(float x, float mn, float mx)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);    
 
+    glEnable(GL_TEXTURE_2D);
+
     [brick prepare];
+
+    [self _generate_framebuffer];
 }
 
 - (void)reshape
@@ -355,9 +328,7 @@ fbound(float x, float mn, float mx)
     [[self window] invalidateCursorRectsForView:self];
     
     trixel_reshape(m_t, NSWidth(frame), NSHeight(frame));
-    
-    [self _reshape_framebuffer];
-    
+        
     [[self openGLContext] update];
     [self setNeedsDisplay:YES];
 }
@@ -369,37 +340,72 @@ fbound(float x, float mn, float mx)
     [self setNeedsDisplay:YES];
 }
 
-- (void)_reshape_framebuffer
+- (void)_generate_framebuffer
 {
+    if(m_framebuffer)
+        [self _destroy_framebuffer];
+
+    glGenFramebuffersEXT(1, &m_framebuffer);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
+    
     NSRect frame = [self bounds];
     
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_color_texture);
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glGenTextures(1, &m_color_texture);
+    glBindTexture(GL_TEXTURE_2D, m_color_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
+    glGenRenderbuffersEXT(1, &m_hover_renderbuffer);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame));
 
+    glGenRenderbuffersEXT(1, &m_depth_renderbuffer);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, NSWidth(frame), NSHeight(frame));
+    
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_color_texture, 0);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
+
+    if(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
+    {
+        NSLog(@"framebuffer not complete %d", glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT));
+    }
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+}
+
+- (void)_destroy_framebuffer
+{
+    glDeleteFramebuffersEXT(1, &m_framebuffer);
+    glDeleteTextures(1, &m_color_texture);
+    glDeleteRenderbuffersEXT(1, &m_hover_renderbuffer);
+    glDeleteRenderbuffersEXT(1, &m_depth_renderbuffer);
+    
+    m_framebuffer = m_color_texture = m_hover_renderbuffer = m_depth_renderbuffer = 0;
 }
 
 - (void)drawRect:(NSRect)r
 {
-    NSRect frame = [self bounds];
-
     const GLenum *draw_buffers = (m_toolActive ? g_tool_active_draw_buffers : g_tool_inactive_draw_buffers);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
     
     glDrawBuffers(g_num_draw_buffers - 1, draw_buffers + 1);
-    
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
-    glDrawBuffers(1, draw_buffers);
+    glDrawBuffer(draw_buffers[0]);
     glClearColor(0.2, 0.2, 0.2, 1.0);    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glDrawBuffers(g_num_draw_buffers, draw_buffers);
+    GLint buf0, buf1, buf2;
+    glGetIntegerv(GL_DRAW_BUFFER0, &buf0);
+    glGetIntegerv(GL_DRAW_BUFFER1, &buf1);
+    glGetIntegerv(GL_DRAW_BUFFER2, &buf2);
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -418,22 +424,25 @@ fbound(float x, float mn, float mx)
     glLoadIdentity();
     
     glUseProgram(0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_color_texture);
+    glDisable(GL_DEPTH_TEST);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_color_texture);
     glBegin(GL_QUADS);
+    glColor3f(1.0, 1.0, 1.0);
     glTexCoord2f(0.0, 0.0);
     glVertex2f(-1.0, -1.0);
-    glTexCoord2f(NSWidth(frame), 0.0);
+    glTexCoord2f(1.0, 0.0);
     glVertex2f(1.0, -1.0);
-    glTexCoord2f(NSWidth(frame), NSHeight(frame));
+    glTexCoord2f(1.0, 1.0);
     glVertex2f(1.0, 1.0);
-    glTexCoord2f(0.0, NSHeight(frame));
+    glTexCoord2f(0.0, 1.0);
     glVertex2f(-1.0, 1.0);
     glEnd();
     
+    glEnable(GL_DEPTH_TEST);
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
-    
+
     [[self openGLContext] flushBuffer];
 }
 
@@ -472,6 +481,7 @@ fbound(float x, float mn, float mx)
 
     [[self window] invalidateCursorRectsForView:self];    
     m_toolActive = NO;
+    [self setNeedsDisplay:YES];    
 }
 
 - (void)scrollWheel:(NSEvent *)event

@@ -234,8 +234,7 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
 
     if(!GLEW_VERSION_2_0
         || !GLEW_EXT_framebuffer_object
-        || !GLEW_ARB_texture_float
-        || !GLEW_ARB_texture_rectangle) {
+        || !GLEW_ARB_texture_float) {
         *out_error_message = strdup("Your OpenGL implementation doesn't conform to OpenGL 2.0.");
         goto error;
     }
@@ -433,16 +432,8 @@ error:
 void
 trixel_prepare_brick(trixel_brick * brick)
 {
-    glGenTextures(1, &brick->palette_texture);
-    glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, brick->palette_data);
-
-    _gl_report_error("trixel_prepare_brick palette");
-
     glGenTextures(1, &brick->voxmap_texture);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_3D, brick->voxmap_texture);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -452,10 +443,20 @@ trixel_prepare_brick(trixel_brick * brick)
     glTexImage3D(
         GL_TEXTURE_3D, 0, GL_LUMINANCE8,
         (GLsizei)brick->dimensions[0], (GLsizei)brick->dimensions[1], (GLsizei)brick->dimensions[2],
-        0, GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->voxmap_data
+        0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL
     );
 
     _gl_report_error("trixel_prepare_brick voxmap");
+
+    glGenTextures(1, &brick->palette_texture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+    _gl_report_error("trixel_prepare_brick palette");
 
     trixel_update_brick_textures(brick);
 
@@ -509,20 +510,29 @@ trixel_unprepare_brick(trixel_brick * brick)
 void
 trixel_update_brick_textures(trixel_brick * brick)
 {
-    glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
-    glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA, GL_UNSIGNED_BYTE, brick->palette_data);
-
-    _gl_report_error("trixel_update_brick_textures palette");
-
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_3D, brick->voxmap_texture);
+    /* Leopard nvidia driver bug seems to make glTexSubImage3D only update the z = 0 plane of the texture
     glTexSubImage3D(
         GL_TEXTURE_3D, 0,
         0, 0, 0,
         (GLsizei)brick->dimensions[0], (GLsizei)brick->dimensions[1], (GLsizei)brick->dimensions[2],
         GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->voxmap_data
     );
+    */
+    glTexImage3D(
+        GL_TEXTURE_3D, 0, GL_LUMINANCE8,
+        (GLsizei)brick->dimensions[0], (GLsizei)brick->dimensions[1], (GLsizei)brick->dimensions[2],
+        0, GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->voxmap_data
+    );
 
     _gl_report_error("trixel_update_brick_textures voxmap");
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
+    glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA, GL_UNSIGNED_BYTE, brick->palette_data);
+
+    _gl_report_error("trixel_update_brick_textures palette");
 }
 
 void *

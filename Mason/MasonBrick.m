@@ -175,6 +175,8 @@ _nscolor_from_palette(unsigned char * palette_color)
 
 - (unsigned)voxelX:(unsigned)x y:(unsigned)y z:(unsigned)z
 {
+    NSLog(@"%u %u %u", x, y, z);
+    NSLog(@"%p", trixel_brick_voxel(m_brick, x, y, z));
     return *trixel_brick_voxel(m_brick, x, y, z);
 }
 
