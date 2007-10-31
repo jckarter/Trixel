@@ -336,6 +336,7 @@ fbound(float x, float mn, float mx)
     trixel_reshape(m_t, NSWidth(frame), NSHeight(frame));
         
     [[self openGLContext] update];
+    [self _generate_framebuffer];
     [self setNeedsDisplay:YES];
 }
 
