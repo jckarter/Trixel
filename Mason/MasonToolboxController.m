@@ -1,4 +1,3 @@
-#import <Cocoa/Cocoa.h>
 #import "MasonToolboxController.h"
 #import "MasonRotateTool.h"
 #import "MasonDrawTool.h"

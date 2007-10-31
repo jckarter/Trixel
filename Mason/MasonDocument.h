@@ -1,6 +1,7 @@
+#include <GL/glew.h>
 #import <Cocoa/Cocoa.h>
-
 #include "trixel.h"
+
 
 @class MasonBrickView;
 @class MasonBrick;
@@ -25,6 +26,7 @@
 - (IBAction)updatePaletteColorFromPanel:(id)sender;
 
 - (unsigned int)currentPaletteColor;
+- (void)updatePaletteIndex:(unsigned)index withColor:(NSColor *)color;
 
 - (void)setBrickVoxel:(unsigned int)index at:(struct point3)pt;
 

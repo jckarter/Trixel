@@ -90,7 +90,15 @@ fbound(float x, float mn, float mx)
     [pf release];
     
     [[self window] setAcceptsMouseMovedEvents:YES];
-    m_trackingRect = [self addTrackingRect:[self bounds] owner:self userData:nil assumeInside:YES];
+    [self addTrackingArea:[[[NSTrackingArea alloc]
+            initWithRect:[self bounds]
+            options:NSTrackingMouseEnteredAndExited
+                | NSTrackingMouseMoved
+                | NSTrackingActiveInKeyWindow
+                | NSTrackingInVisibleRect
+            owner:self
+            userInfo:nil]
+        autorelease]];
     
     [[NSApp toolboxController] addObserver:self forKeyPath:@"currentTool" options:NSKeyValueObservingOptionNew context:NULL];
     [[o_document brick] addObserver:self forKeyPath:@"voxmap" options:NSKeyValueObservingOptionNew context:NULL];
@@ -323,8 +331,6 @@ fbound(float x, float mn, float mx)
 
     NSRect frame = [self bounds];
     
-    [self removeTrackingRect:m_trackingRect];
-    m_trackingRect = [self addTrackingRect:frame owner:self userData:nil assumeInside:NO];
     [[self window] invalidateCursorRectsForView:self];
     
     trixel_reshape(m_t, NSWidth(frame), NSHeight(frame));

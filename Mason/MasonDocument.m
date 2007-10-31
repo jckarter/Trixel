@@ -32,8 +32,6 @@
 {
     [super windowControllerDidLoadNib:aController];
         
-    for(int i = 0; i < [o_sliceAxisSelector segmentCount]; ++i)
-        [o_sliceAxisSelector setLabel:nil forSegment:i];
     [o_sliceAxisSelector selectSegmentWithTag:SLICE_AXIS_SURFACE];
     m_currentPaletteColor = 1;
     [o_paletteController setSelectionIndex:1];
@@ -60,7 +58,7 @@
 
 - (IBAction)updatePaletteColorFromPanel:(id)sender
 {
-    [m_brick replaceObjectInPaletteColorsAtIndex:m_currentPaletteColor withObject:[sender color]];
+    [self updatePaletteIndex:m_currentPaletteColor withColor:[sender color]];
 }
 
 - (unsigned int)currentPaletteColor
@@ -102,11 +100,18 @@
         return;
         
     unsigned old = [m_brick voxelX:pt.x y:pt.y z:pt.z];
-    NSLog(@"%u => %u", old, index);
     if(index != old) {
         [[[self undoManager] prepareWithInvocationTarget:self] setBrickVoxel:old at:pt];
         [m_brick setVoxel:index x:pt.x y:pt.y z:pt.z];
     }
+}
+
+- (void)updatePaletteIndex:(unsigned)index withColor:(NSColor *)color
+{
+    [[[self undoManager] prepareWithInvocationTarget:self]
+        updatePaletteIndex:index
+        withColor:[m_brick objectInPaletteColorsAtIndex:index]];
+    [m_brick replaceObjectInPaletteColorsAtIndex:index withObject:color];
 }
 
 - (MasonBrick *)_default_brick

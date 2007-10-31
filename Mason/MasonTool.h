@@ -1,3 +1,4 @@
+#include <GL/glew.h>
 #import <Cocoa/Cocoa.h>
 
 @class MasonDocument;

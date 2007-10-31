@@ -1,5 +1,5 @@
-#import <Cocoa/Cocoa.h>
 #include <GL/glew.h>
+#import <Cocoa/Cocoa.h>
 #include "trixel.h"
 
 @class MasonDocument;
@@ -8,7 +8,6 @@
 {
     IBOutlet MasonDocument *o_document;
 
-    NSTrackingRectTag m_trackingRect;
     BOOL m_hovering, m_toolActive;
     NSPoint m_hoverPixel;
     float m_yaw, m_pitch, m_distance;

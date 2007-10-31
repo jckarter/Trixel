@@ -1,4 +1,3 @@
-#import <Cocoa/Cocoa.h>
 #import "MasonTool.h"
 #import "MasonDocument.h"
 
