@@ -10,17 +10,10 @@
 {
     self = [super init];
     if(self) {
-        m_brick = [[self _default_brick] retain];
+        m_brick = [self _default_brick];
         [self setHasUndoManager:YES];
     }
     return self;
-}
-
-- (void)dealloc
-{
-    if(m_brick)
-        [m_brick release];
-    [super dealloc];
 }
 
 - (NSString *)windowNibName
@@ -37,7 +30,7 @@
     [o_paletteController setSelectionIndex:1];
     
     NSTableColumn * paletteColumn = [[o_paletteTableView tableColumns] objectAtIndex:0];
-    MasonColorCell * colorCell = [[[MasonColorCell alloc] init] autorelease];
+    MasonColorCell * colorCell = [[MasonColorCell alloc] init];
     [colorCell setEditable:YES];
     [colorCell setTarget:self];
     [colorCell setAction:@selector(summonColorPanelForPalette:)];
@@ -73,15 +66,13 @@
 
 - (BOOL)readFromData:(NSData *)data ofType:(NSString *)typeName error:(NSError **)out_error
 {
-    [self setBrick:[[[MasonBrick alloc] initWithData:data withError:out_error] autorelease]];
+    [self setBrick:[[MasonBrick alloc] initWithData:data withError:out_error]];
     return !!m_brick;
 }
 
 - (void)setBrick:(MasonBrick *)brick
 {
-    MasonBrick *oldBrick = m_brick;
-    m_brick = [brick retain];
-    [oldBrick release];
+    m_brick = brick;
 }
 
 - (MasonBrick *)brick
@@ -108,18 +99,21 @@
 
 - (void)updatePaletteIndex:(unsigned)index withColor:(NSColor *)color
 {
+    NSColor * oldColor = [m_brick objectInPaletteColorsAtIndex:index];
+    if([color isEqualTo:oldColor])
+        return;
+    
     [[[self undoManager] prepareWithInvocationTarget:self]
         updatePaletteIndex:index
-        withColor:[m_brick objectInPaletteColorsAtIndex:index]];
+        withColor:oldColor];
     [m_brick replaceObjectInPaletteColorsAtIndex:index withObject:color];
 }
 
 - (MasonBrick *)_default_brick
 {
     NSError *error;
-    return [[[MasonBrick alloc] initWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"default.brick"]
-                                withError:&error]
-               autorelease];
+    return [[MasonBrick alloc] initWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"default.brick"]
+                                withError:&error];
 }
 
 @end

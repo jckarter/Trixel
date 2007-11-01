@@ -87,18 +87,16 @@ fbound(float x, float mn, float mx)
         return;
     }
     [self setPixelFormat:pf];
-    [pf release];
     
     [[self window] setAcceptsMouseMovedEvents:YES];
-    [self addTrackingArea:[[[NSTrackingArea alloc]
+    [self addTrackingArea:[[NSTrackingArea alloc]
             initWithRect:[self bounds]
             options:NSTrackingMouseEnteredAndExited
                 | NSTrackingMouseMoved
                 | NSTrackingActiveInKeyWindow
                 | NSTrackingInVisibleRect
             owner:self
-            userInfo:nil]
-        autorelease]];
+            userInfo:nil]];
     
     [[NSApp toolboxController] addObserver:self forKeyPath:@"currentTool" options:NSKeyValueObservingOptionNew context:NULL];
     [[o_document brick] addObserver:self forKeyPath:@"voxmap" options:NSKeyValueObservingOptionNew context:NULL];
@@ -107,19 +105,11 @@ fbound(float x, float mn, float mx)
     [[self window] invalidateCursorRectsForView:self];
 }
 
-- (void)dealloc
+- (void)finalize
 {
-    [[NSApp toolboxController] removeObserver:self forKeyPath:@"currentTool"];
-    [[o_document brick] removeObserver:self forKeyPath:@"voxmap"];
-    [[o_document brick] removeObserver:self forKeyPath:@"paletteColors"];
-    
-    if(m_t) {
-        if(m_framebuffer)
-            [self _destroy_framebuffer];
+    if(m_t)
         trixel_finish(m_t);
-    }
-
-    [super dealloc];
+    [super finalize];
 }
 
 - (void)observeValueForKeyPath:(NSString*)path ofObject:(id)object change:(NSDictionary *)change context:(void *)context

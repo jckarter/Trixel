@@ -63,7 +63,7 @@ _nscolor_from_palette(unsigned char * palette_color)
         char * error_message;
         m_brick = trixel_read_brick([data bytes], [data length], false, &error_message);
         if(!m_brick) {
-            [self release]; self = nil;
+            self = nil;
             *out_error = nserror_from_trixel_error(error_message);
         }
     }
@@ -78,11 +78,18 @@ _nscolor_from_palette(unsigned char * palette_color)
         char * error_message;
         m_brick = trixel_read_brick_from_filename([filename UTF8String], false, &error_message);
         if(!m_brick) {
-            [self release]; self = nil;
+            self = nil;
             *out_error = nserror_from_trixel_error(error_message);
         }
     }
     return self;    
+}
+
+- (void)finalize
+{
+    if(m_brick)
+        trixel_free_brick(m_brick);
+    [super finalize];
 }
 
 - (NSData *)data
@@ -136,12 +143,14 @@ _nscolor_from_palette(unsigned char * palette_color)
 
 - (NSColor *)objectInPaletteColorsAtIndex:(unsigned int)index
 {
+    //NSLog(@"objectInPaletteColorsAtIndex:%u", index);
     unsigned char *palette_color = trixel_brick_palette_color(m_brick, index);
     return _nscolor_from_palette(palette_color);
 }
 
 - (void)insertObject:(NSColor *)color inPaletteColorsAtIndex:(unsigned int)index
 {
+    //NSLog(@"insertObject:%@ inPaletteColorsAtIndex:%u", color, index);
     if(index == 0)
         return;
     _store_nscolor_in_palette(trixel_insert_brick_palette_color(m_brick, index), color);
@@ -151,12 +160,15 @@ _nscolor_from_palette(unsigned char * palette_color)
 
 - (void)removeObjectFromPaletteColorsAtIndex:(unsigned int)index
 {
+    //NSLog(@"removeObjectFromPaletteColorsAtIndex:%u", index);
     trixel_remove_brick_palette_color(m_brick, index);
     [self updateTextures];
 }
 
 - (void)replaceObjectInPaletteColorsAtIndex:(unsigned int)index withObject:(NSColor *)color
 {
+    //NSLog(@"replaceObjectInPaletteColorsAtIndex:%u withObject:%@", index, color);
+
     if(index == 0)
         return;
 
