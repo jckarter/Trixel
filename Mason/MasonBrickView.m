@@ -425,8 +425,6 @@ _short_buffer_offset(GLuint offset)
 
 - (void)drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber
 {
-    NSLog(@"slice axis %d number %d", axis, sliceNumber);
-
     [[o_document brick] useForDrawing:m_t];
 
     GLuint offset;

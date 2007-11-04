@@ -163,19 +163,16 @@
 
 - (BOOL)canMoveSlice
 {
-    NSLog(@"canMoveSlice axis %d", m_sliceAxis);
     return m_sliceAxis != SLICE_AXIS_SURFACE;
 }
 
 - (BOOL)canMovePreviousSlice
 {
-    NSLog(@"canMovePreviousSlice axis %d number %d", m_sliceAxis, m_sliceNumber);
     return m_sliceNumber > 0;
 }
 
 - (BOOL)canMoveNextSlice
 {
-    NSLog(@"canMoveNextSlice axis %d number %d max slice %d", m_sliceAxis, m_sliceNumber, [self _max_slice]);
     return m_sliceNumber < [self _max_slice];
 }
 
