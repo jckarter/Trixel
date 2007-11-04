@@ -8,13 +8,14 @@
 
 @interface MasonDocument : NSDocument
 {
-    IBOutlet NSSegmentedControl * o_sliceAxisSelector;
+    IBOutlet NSSegmentedControl * o_sliceAxisSelector, *o_sliceMover;
     IBOutlet MasonBrickView * o_brickView;
     IBOutlet NSTableView *o_paletteTableView;
     IBOutlet NSArrayController *o_paletteController;
     
     MasonBrick * m_brick;
-    unsigned int m_currentPaletteColor;
+    NSUInteger m_currentPaletteColor;
+    NSInteger m_sliceAxis, m_sliceNumber;
 }
 
 - (MasonBrick *)brick;
@@ -25,13 +26,26 @@
 - (IBAction)summonColorPanelForPalette:(id)sender;
 - (IBAction)updatePaletteColorFromPanel:(id)sender;
 
-- (unsigned int)currentPaletteColor;
-- (void)updatePaletteIndex:(unsigned)index withColor:(NSColor *)color;
+- (IBAction)updateSliceAxis:(id)sender;
+- (IBAction)moveSlice:(id)sender;
 
-- (void)setBrickVoxel:(unsigned int)index at:(struct point3)pt;
+- (NSUInteger)currentPaletteColor;
+- (void)updatePaletteIndex:(NSUInteger)index withColor:(NSColor *)color;
+
+- (void)setBrickVoxel:(NSUInteger)index at:(struct point3)pt;
+
+- (NSInteger)sliceAxis;
+- (NSInteger)sliceNumber;
+
+- (BOOL)canMoveSlice;
+- (BOOL)canMovePreviousSlice;
+- (BOOL)canMoveNextSlice;
 
 // private
 - (MasonBrick *)_default_brick;
+- (unsigned)_max_slice;
+- (void)setSliceAxis:(NSInteger)sliceAxis;
+- (void)setSliceNumber:(NSInteger)sliceNumber;
 
 @end
 
@@ -40,3 +54,5 @@
 #define SLICE_AXIS_YAXIS   2
 #define SLICE_AXIS_ZAXIS   3
 
+#define SLICE_MOVE_PREVIOUS 0
+#define SLICE_MOVE_NEXT     1

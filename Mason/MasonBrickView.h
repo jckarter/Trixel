@@ -3,6 +3,9 @@
 #include "trixel.h"
 
 @class MasonDocument;
+@class MasonBrick;
+
+typedef void (*ElementRangeFunction)(NSInteger sliceNumber, GLuint *out_firstElement, GLsizei *out_numElements);
 
 @interface MasonBrickView : NSOpenGLView
 {
@@ -17,6 +20,7 @@
     struct slice_ops {
         char const * * trixel_flags;
         GLuint element_buffer;
+		ElementRangeFunction element_range_function;
     } m_slice_ops[4];
 }
 
@@ -26,6 +30,7 @@
 - (void)yaw:(float)offset pitch:(float)offset;
 
 //private
+- (void)drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber;
 
 - (void)_generate_framebuffer;
 - (void)_destroy_framebuffer;

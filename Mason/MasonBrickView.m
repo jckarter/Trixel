@@ -24,16 +24,35 @@ static const GLshort g_surface_elements[] = {
     0, 1, 2, 3,
     0, 4, 5, 1,
     4, 7, 6, 5,
-    2, 6, 5, 3,
+    3, 2, 6, 7,
     0, 3, 7, 4,
     2, 1, 5, 6
 };
-
 
 float
 fbound(float x, float mn, float mx)
 {
     return fmin(fmax(x, mn), mx);
+}
+
+void
+_surface_element_range_function(NSInteger sliceNumber, GLuint *out_firstElement, GLsizei *out_numElements)
+{
+    *out_firstElement = 0;
+    *out_numElements  = 24;
+}
+
+void
+_slice_element_range_function(NSInteger sliceNumber, GLuint *out_firstElement, GLsizei *out_numElements)
+{
+    *out_firstElement = sliceNumber * 8;
+    *out_numElements = 8;
+}
+
+static inline GLvoid *
+_short_buffer_offset(GLuint offset)
+{
+    return (GLvoid *)((char*)NULL + offset*sizeof(GLshort));
 }
 
 @implementation MasonBrickView
@@ -100,7 +119,9 @@ fbound(float x, float mn, float mx)
     
     [[NSApp toolboxController] addObserver:self forKeyPath:@"currentTool" options:NSKeyValueObservingOptionNew context:NULL];
     [[o_document brick] addObserver:self forKeyPath:@"voxmap" options:NSKeyValueObservingOptionNew context:NULL];
-    [[o_document brick] addObserver:self forKeyPath:@"paletteColors" options:NSKeyValueObservingOptionNew context:NULL];    
+    [[o_document brick] addObserver:self forKeyPath:@"paletteColors" options:NSKeyValueObservingOptionNew context:NULL];
+    [o_document addObserver:self forKeyPath:@"sliceAxis" options:NSKeyValueObservingOptionNew context:NULL];
+    [o_document addObserver:self forKeyPath:@"sliceNumber" options:NSKeyValueObservingOptionNew context:NULL];
     
     [[self window] invalidateCursorRectsForView:self];
 }
@@ -117,7 +138,20 @@ fbound(float x, float mn, float mx)
     if(object == [NSApp toolboxController] && [path isEqualToString:@"currentTool"]) {
         [[self window] invalidateCursorRectsForView:self];
     }
-    else if(object == [o_document brick])
+    else if(object == o_document && [path isEqualToString:@"sliceAxis"] && m_t) {
+        char * error;
+        if(!trixel_update_shaders(
+            m_t,
+            m_slice_ops[ [o_document sliceAxis] ].trixel_flags,
+            &error
+        )) {
+            NSLog(@"error resetting trixel flags!! %s", error); // XXX real error handling
+            free(error);
+        }
+        
+        [self setNeedsDisplay:YES];
+    }
+    else if(object == o_document || object == [o_document brick])
         [self setNeedsDisplay:YES];
     //[super observeValueForKeyPath:path ofObject:object change:change context:context];
 }
@@ -150,7 +184,7 @@ fbound(float x, float mn, float mx)
     
     MasonBrick * brick = [o_document brick];
 
-    size_t width = [brick width], height = [brick height], depth = [brick depth],
+    int    width = [brick width], height = [brick height], depth = [brick depth],
            width_elt_offset = 2 * 4, height_elt_offset = (2 + width) * 4, depth_elt_offset = (2 + width + height) * 4,
            width_offset = width_elt_offset * 3, height_offset = height_elt_offset * 3, depth_offset = depth_elt_offset * 3;
     size_t vertex_count = (2 + width + height + depth) * 12;
@@ -161,32 +195,32 @@ fbound(float x, float mn, float mx)
     vertices[ 2] = -depth/2;
     
     vertices[ 3] = -width/2;
-    vertices[ 4] =  height/2;
-    vertices[ 5] = -depth/2;
+    vertices[ 4] = -height/2;
+    vertices[ 5] =  depth/2;
     
     vertices[ 6] = -width/2;
     vertices[ 7] =  height/2;
     vertices[ 8] =  depth/2;
     
     vertices[ 9] = -width/2;
-    vertices[10] = -height/2;
-    vertices[11] =  depth/2;
+    vertices[10] =  height/2;
+    vertices[11] = -depth/2;
         
     vertices[12] =  width/2;
     vertices[13] = -height/2;
     vertices[14] = -depth/2;
     
     vertices[15] =  width/2;
-    vertices[16] =  height/2;
-    vertices[17] = -depth/2;
+    vertices[16] = -height/2;
+    vertices[17] =  depth/2;
     
     vertices[18] =  width/2;
     vertices[19] =  height/2;
     vertices[20] =  depth/2;
     
     vertices[21] =  width/2;
-    vertices[22] = -height/2;
-    vertices[23] =  depth/2;
+    vertices[22] =  height/2;
+    vertices[23] = -depth/2;
         
     unsigned i;
     for(i = 0; i < width; ++i) {
@@ -252,6 +286,7 @@ fbound(float x, float mn, float mx)
     glGenBuffers(1, &m_slice_ops[SLICE_AXIS_SURFACE].element_buffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_SURFACE].element_buffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_surface_elements), g_surface_elements, GL_STATIC_DRAW);
+    m_slice_ops[SLICE_AXIS_SURFACE].element_range_function = _surface_element_range_function;
 
     m_slice_ops[SLICE_AXIS_XAXIS].trixel_flags = g_slice_flags;
     GLshort xaxis_elements[width * 8];
@@ -269,6 +304,7 @@ fbound(float x, float mn, float mx)
     glGenBuffers(1, &m_slice_ops[SLICE_AXIS_XAXIS].element_buffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_XAXIS].element_buffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLshort) * width * 8, xaxis_elements, GL_STATIC_DRAW);
+    m_slice_ops[SLICE_AXIS_XAXIS].element_range_function = _slice_element_range_function;
 
     m_slice_ops[SLICE_AXIS_YAXIS].trixel_flags = g_slice_flags;
     GLshort yaxis_elements[height * 8];
@@ -286,6 +322,7 @@ fbound(float x, float mn, float mx)
     glGenBuffers(1, &m_slice_ops[SLICE_AXIS_YAXIS].element_buffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_YAXIS].element_buffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLshort) * height * 8, yaxis_elements, GL_STATIC_DRAW);
+    m_slice_ops[SLICE_AXIS_YAXIS].element_range_function = _slice_element_range_function;
 
     m_slice_ops[SLICE_AXIS_ZAXIS].trixel_flags = g_slice_flags;
     GLshort zaxis_elements[depth * 8];
@@ -303,6 +340,7 @@ fbound(float x, float mn, float mx)
     glGenBuffers(1, &m_slice_ops[SLICE_AXIS_ZAXIS].element_buffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_ZAXIS].element_buffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLshort) * depth * 8, zaxis_elements, GL_STATIC_DRAW);
+    m_slice_ops[SLICE_AXIS_ZAXIS].element_range_function = _slice_element_range_function;
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);    
@@ -385,8 +423,30 @@ fbound(float x, float mn, float mx)
     m_framebuffer = m_color_texture = m_hover_renderbuffer = m_depth_renderbuffer = 0;
 }
 
-- (void)drawRect:(NSRect)r
+- (void)drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber
 {
+    NSLog(@"slice axis %d number %d", axis, sliceNumber);
+
+    [[o_document brick] useForDrawing:m_t];
+
+    GLuint offset;
+    GLsizei count;
+    m_slice_ops[axis].element_range_function(sliceNumber, &offset, &count);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
+    glVertexPointer(3, GL_FLOAT, 0, 0);    
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[axis].element_buffer);    
+    glDrawElements(GL_QUADS, count, GL_UNSIGNED_SHORT, _short_buffer_offset(offset));
+    
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+- (void)drawRect:(NSRect)r
+{   
     const GLenum *draw_buffers = (m_toolActive ? g_tool_active_draw_buffers : g_tool_inactive_draw_buffers);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
     
@@ -399,10 +459,6 @@ fbound(float x, float mn, float mx)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glDrawBuffers(g_num_draw_buffers, draw_buffers);
-    GLint buf0, buf1, buf2;
-    glGetIntegerv(GL_DRAW_BUFFER0, &buf0);
-    glGetIntegerv(GL_DRAW_BUFFER1, &buf1);
-    glGetIntegerv(GL_DRAW_BUFFER2, &buf2);
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -410,7 +466,8 @@ fbound(float x, float mn, float mx)
     glRotatef(m_pitch, 1.0, 0.0, 0.0);
     glRotatef(m_yaw,   0.0, 1.0, 0.0);
     
-    [[o_document brick] draw:m_t];
+    [self drawBrick:[o_document brick] sliceAxis:[o_document sliceAxis] sliceNumber:[o_document sliceNumber]];
+    //[[o_document brick] draw:m_t];
     
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     glDrawBuffer(GL_BACK);

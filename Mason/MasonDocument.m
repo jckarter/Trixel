@@ -6,6 +6,12 @@
 
 @implementation MasonDocument
 
++ (void)initialize
+{
+    [self setKeys:[NSArray arrayWithObject:@"sliceAxis"]
+          triggerChangeNotificationsForDependentKey:@"canMoveSlice"];
+}
+
 - (id)init
 {
     self = [super init];
@@ -14,6 +20,11 @@
         [self setHasUndoManager:YES];
     }
     return self;
+}
+
+- (NSSegmentedControl *)sliceAxisSelector
+{
+    return o_sliceAxisSelector;
 }
 
 - (NSString *)windowNibName
@@ -26,6 +37,8 @@
     [super windowControllerDidLoadNib:aController];
         
     [o_sliceAxisSelector selectSegmentWithTag:SLICE_AXIS_SURFACE];
+    [self setSliceAxis:SLICE_AXIS_SURFACE];
+    [self setSliceNumber:0];
     m_currentPaletteColor = 1;
     [o_paletteController setSelectionIndex:1];
     
@@ -54,7 +67,7 @@
     [self updatePaletteIndex:m_currentPaletteColor withColor:[sender color]];
 }
 
-- (unsigned int)currentPaletteColor
+- (NSUInteger)currentPaletteColor
 {
     return m_currentPaletteColor;
 }
@@ -85,7 +98,7 @@
     return o_brickView;
 }
 
-- (void)setBrickVoxel:(unsigned int)index at:(struct point3)pt;
+- (void)setBrickVoxel:(NSUInteger)index at:(struct point3)pt;
 {
     if(pt.x < 0.0)
         return;
@@ -97,7 +110,7 @@
     }
 }
 
-- (void)updatePaletteIndex:(unsigned)index withColor:(NSColor *)color
+- (void)updatePaletteIndex:(NSUInteger)index withColor:(NSColor *)color
 {
     NSColor * oldColor = [m_brick objectInPaletteColorsAtIndex:index];
     if([color isEqualTo:oldColor])
@@ -114,6 +127,75 @@
     NSError *error;
     return [[MasonBrick alloc] initWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"default.brick"]
                                 withError:&error];
+}
+
+- (IBAction)updateSliceAxis:(id)sender
+{
+    [self setSliceAxis:[o_sliceAxisSelector selectedSegment]];
+    [self setSliceNumber:0];
+}
+
+- (unsigned)_max_slice
+{
+    switch(m_sliceAxis) {
+        case SLICE_AXIS_SURFACE:
+            return 0;
+        case SLICE_AXIS_XAXIS:
+            return [m_brick width] - 1;
+        case SLICE_AXIS_YAXIS:
+            return [m_brick height] - 1;
+        case SLICE_AXIS_ZAXIS:
+            return [m_brick depth] - 1;
+    }
+    NSLog(@"fell out of _max_slice ?!?!?");
+    return 0;
+}
+
+- (IBAction)moveSlice:(id)sender
+{
+    if([sender selectedSegment] == SLICE_MOVE_PREVIOUS
+        && [self canMovePreviousSlice])
+        [self setSliceNumber:[self sliceNumber] - 1];
+    else if([sender selectedSegment] == SLICE_MOVE_NEXT
+            && [self canMoveNextSlice])
+        [self setSliceNumber:[self sliceNumber] + 1];
+}
+
+- (BOOL)canMoveSlice
+{
+    NSLog(@"canMoveSlice axis %d", m_sliceAxis);
+    return m_sliceAxis != SLICE_AXIS_SURFACE;
+}
+
+- (BOOL)canMovePreviousSlice
+{
+    NSLog(@"canMovePreviousSlice axis %d number %d", m_sliceAxis, m_sliceNumber);
+    return m_sliceNumber > 0;
+}
+
+- (BOOL)canMoveNextSlice
+{
+    NSLog(@"canMoveNextSlice axis %d number %d max slice %d", m_sliceAxis, m_sliceNumber, [self _max_slice]);
+    return m_sliceNumber < [self _max_slice];
+}
+
+- (NSInteger)sliceAxis
+{
+    return m_sliceAxis;
+}
+- (NSInteger)sliceNumber
+{
+    return m_sliceNumber;
+}
+- (void)setSliceAxis:(NSInteger)sliceAxis
+{
+    m_sliceAxis = sliceAxis;
+}
+- (void)setSliceNumber:(NSInteger)sliceNumber
+{
+    m_sliceNumber = sliceNumber;
+    [o_sliceMover setEnabled:[self canMovePreviousSlice] forSegment:SLICE_MOVE_PREVIOUS];
+    [o_sliceMover setEnabled:[self canMoveNextSlice] forSegment:SLICE_MOVE_NEXT];
 }
 
 @end
