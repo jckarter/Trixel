@@ -470,6 +470,7 @@ _short_buffer_offset(GLuint offset)
     
     glUseProgram(0);
     glDisable(GL_TEXTURE_2D);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     
     glBegin(GL_LINES);
 
@@ -523,6 +524,7 @@ _short_buffer_offset(GLuint offset)
     
     glUseProgram(0);
     glDisable(GL_TEXTURE_2D);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     
     glBegin(GL_LINES);
 

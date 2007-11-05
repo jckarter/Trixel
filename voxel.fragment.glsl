@@ -29,17 +29,8 @@ round(vec3 v)
 vec3 cast_pt;
 float cast_index;
 
-vec3
-unbias(vec3 v)
-{
-    return v * vec3(2) - vec3(1);
-}
-
-vec3
-bias(vec3 v)
-{
-    return (v + vec3(1)) / vec3(2);
-}
+vec3 unbias(vec3 v) { return v * vec3(2) - vec3(1); }
+vec3 bias(vec3 v) { return (v + vec3(1)) * vec3(0.5); }
 
 void
 cast_ray()
@@ -85,5 +76,6 @@ main()
     gl_FragData[1] = vec4(floor(cast_pt * voxmap_size), 1);
 #endif
 
-    gl_FragDepth = gl_FragCoord.z;
+    vec4 transformed_cast = gl_ModelViewProjectionMatrix * vec4((cast_pt - vec3(0.5)) * voxmap_size, 1);
+    gl_FragDepth = (transformed_cast.z/transformed_cast.w + 1.0) * 0.5;
 }
