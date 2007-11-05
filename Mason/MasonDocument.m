@@ -10,6 +10,19 @@
 {
     [self setKeys:[NSArray arrayWithObject:@"sliceAxis"]
           triggerChangeNotificationsForDependentKey:@"canMoveSlice"];
+    [self setKeys:[NSArray arrayWithObject:@"sliceAxis"]
+          triggerChangeNotificationsForDependentKey:@"sliceAxisSurface"];
+    [self setKeys:[NSArray arrayWithObject:@"sliceAxis"]
+          triggerChangeNotificationsForDependentKey:@"sliceAxisX"];
+    [self setKeys:[NSArray arrayWithObject:@"sliceAxis"]
+          triggerChangeNotificationsForDependentKey:@"sliceAxisY"];
+    [self setKeys:[NSArray arrayWithObject:@"sliceAxis"]
+          triggerChangeNotificationsForDependentKey:@"sliceAxisZ"];
+
+    [self setKeys:[NSArray arrayWithObject:@"sliceNumber"]
+          triggerChangeNotificationsForDependentKey:@"canMovePreviousSlice"];
+    [self setKeys:[NSArray arrayWithObject:@"sliceNumber"]
+          triggerChangeNotificationsForDependentKey:@"canMoveNextSlice"];
 }
 
 - (id)init
@@ -56,7 +69,7 @@
     m_currentPaletteColor = [sender clickedRow];
     [colorPanel setTarget:self];
     [colorPanel setAction:@selector(updatePaletteColorFromPanel:)];
-	[colorPanel setShowsAlpha:YES];
+    [colorPanel setShowsAlpha:NO]; //YES];
 	[colorPanel setColor:[m_brick objectInPaletteColorsAtIndex:m_currentPaletteColor]];
 	[colorPanel makeKeyAndOrderFront:self];
     [o_paletteController setSelectionIndex:m_currentPaletteColor];
@@ -131,7 +144,11 @@
 
 - (IBAction)updateSliceAxis:(id)sender
 {
-    [self setSliceAxis:[o_sliceAxisSelector selectedSegment]];
+    NSInteger tag = [sender respondsToSelector:@selector(selectedSegment)]
+        ? [sender selectedSegment]
+        : [sender tag];
+        
+    [self setSliceAxis:tag];
     [self setSliceNumber:0];
 }
 
@@ -153,10 +170,14 @@
 
 - (IBAction)moveSlice:(id)sender
 {
-    if([sender selectedSegment] == SLICE_MOVE_PREVIOUS
+    NSInteger tag = [sender respondsToSelector:@selector(selectedSegment)]
+        ? [sender selectedSegment]
+        : [sender tag];
+        
+    if(tag == SLICE_MOVE_PREVIOUS
         && [self canMovePreviousSlice])
         [self setSliceNumber:[self sliceNumber] - 1];
-    else if([sender selectedSegment] == SLICE_MOVE_NEXT
+    else if(tag == SLICE_MOVE_NEXT
             && [self canMoveNextSlice])
         [self setSliceNumber:[self sliceNumber] + 1];
 }
@@ -176,6 +197,11 @@
     return m_sliceNumber < [self _max_slice];
 }
 
+- (BOOL)sliceAxisSurface { return m_sliceAxis == SLICE_AXIS_SURFACE; }
+- (BOOL)sliceAxisX       { return m_sliceAxis == SLICE_AXIS_XAXIS;   }
+- (BOOL)sliceAxisY       { return m_sliceAxis == SLICE_AXIS_YAXIS;   }
+- (BOOL)sliceAxisZ       { return m_sliceAxis == SLICE_AXIS_ZAXIS;   }
+
 - (NSInteger)sliceAxis
 {
     return m_sliceAxis;
@@ -187,6 +213,8 @@
 - (void)setSliceAxis:(NSInteger)sliceAxis
 {
     m_sliceAxis = sliceAxis;
+    if([o_sliceAxisSelector selectedSegment] != m_sliceAxis)
+        [o_sliceAxisSelector setSelectedSegment:m_sliceAxis];
 }
 - (void)setSliceNumber:(NSInteger)sliceNumber
 {

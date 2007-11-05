@@ -347,8 +347,14 @@ trixel_finish(trixel_state t)
 {
     unmake_voxel_program(t);
     glDeleteBuffers(1, &STATE(t)->cube_element_buffer);
+    trixel_only_free(t);
+}
+
+void
+trixel_only_free(trixel_state t)
+{
     free(STATE(t)->resource_path);
-    free(t);
+    free(t);    
 }
 
 struct brick_header {
@@ -491,6 +497,12 @@ trixel_free_brick(trixel_brick * brick)
 {
     if(brick->vertex_buffer)
         trixel_unprepare_brick(brick);
+    trixel_only_free_brick(brick);
+}
+
+void
+trixel_only_free_brick(trixel_brick * brick)
+{
     free(brick->voxmap_data);
     free(brick->palette_data);
     free(brick);

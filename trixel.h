@@ -58,4 +58,9 @@ char * contents_from_filename(char const * filename, size_t * out_length);
 
 trixel_brick * trixel_read_brick_from_filename(char const * filename, bool prepare, char * * out_error_message);
 
+// These only free the memory used by Trixel structures, without destroying OpenGL objects
+// Use in environments where the GL contexts are managed independent of your code (e.g. GC-enabled Cocoa)
+void trixel_only_free_brick(trixel_brick * brick);
+void trixel_only_free(trixel_state t);
+
 #endif /* _TRIXEL_H_ */

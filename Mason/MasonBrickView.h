@@ -30,7 +30,9 @@ typedef void (*ElementRangeFunction)(NSInteger sliceNumber, GLuint *out_firstEle
 - (void)yaw:(float)offset pitch:(float)offset;
 
 //private
+- (void)drawToFramebuffer;
 - (void)drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber;
+- (void)drawFramebufferToWindow;
 
 - (void)_generate_framebuffer;
 - (void)_destroy_framebuffer;

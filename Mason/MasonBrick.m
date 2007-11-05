@@ -88,7 +88,7 @@ _nscolor_from_palette(unsigned char * palette_color)
 - (void)finalize
 {
     if(m_brick)
-        trixel_free_brick(m_brick);
+        trixel_only_free_brick(m_brick);
     [super finalize];
 }
 

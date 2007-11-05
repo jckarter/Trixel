@@ -41,6 +41,11 @@
 - (BOOL)canMovePreviousSlice;
 - (BOOL)canMoveNextSlice;
 
+- (BOOL)sliceAxisSurface;
+- (BOOL)sliceAxisX;
+- (BOOL)sliceAxisY;
+- (BOOL)sliceAxisZ;
+
 // private
 - (MasonBrick *)_default_brick;
 - (unsigned)_max_slice;

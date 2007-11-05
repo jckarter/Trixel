@@ -128,8 +128,7 @@ _short_buffer_offset(GLuint offset)
 
 - (void)finalize
 {
-    if(m_t)
-        trixel_finish(m_t);
+    trixel_only_free(m_t);
     [super finalize];
 }
 
@@ -345,8 +344,6 @@ _short_buffer_offset(GLuint offset)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);    
 
-    glEnable(GL_TEXTURE_2D);
-
     [brick prepare];
 
     [self _generate_framebuffer];
@@ -423,9 +420,31 @@ _short_buffer_offset(GLuint offset)
     m_framebuffer = m_color_texture = m_hover_renderbuffer = m_depth_renderbuffer = 0;
 }
 
+- (void)drawToFramebuffer
+{
+    const GLenum *draw_buffers = (m_toolActive ? g_tool_active_draw_buffers : g_tool_inactive_draw_buffers);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
+
+    glDrawBuffers(g_num_draw_buffers - 1, draw_buffers + 1);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glDrawBuffer(draw_buffers[0]);
+    glClearColor(0.2, 0.2, 0.2, 1.0);    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glDrawBuffers(g_num_draw_buffers, draw_buffers);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(0.0, 0.0, -m_distance);
+    glRotatef(m_pitch, 1.0, 0.0, 0.0);
+    glRotatef(m_yaw,   0.0, 1.0, 0.0);
+}
+
 - (void)drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber
 {
-    [[o_document brick] useForDrawing:m_t];
+    [brick useForDrawing:m_t];
 
     GLuint offset;
     GLsizei count;
@@ -443,30 +462,87 @@ _short_buffer_offset(GLuint offset)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-- (void)drawRect:(NSRect)r
-{   
-    const GLenum *draw_buffers = (m_toolActive ? g_tool_active_draw_buffers : g_tool_inactive_draw_buffers);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
+- (void)drawBoundingCubeForBrick:(MasonBrick *)brick
+{
+    float width2  = ((float)[brick width] ) / 2,
+          height2 = ((float)[brick height]) / 2,
+          depth2  = ((float)[brick depth] ) / 2;
     
-    glDrawBuffers(g_num_draw_buffers - 1, draw_buffers + 1);
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glUseProgram(0);
+    glDisable(GL_TEXTURE_2D);
     
-    glDrawBuffer(draw_buffers[0]);
-    glClearColor(0.2, 0.2, 0.2, 1.0);    
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glBegin(GL_LINES);
+
+    glColor4f(0.5, 0.4, 0.4, 1.0);
+    glVertex3f(-width2, -height2, -depth2);
+    glVertex3f(-width2, -height2,  depth2);
+
+    glVertex3f(-width2,  height2, -depth2);
+    glVertex3f(-width2,  height2,  depth2);
+
+    glVertex3f( width2,  height2, -depth2);
+    glVertex3f( width2,  height2,  depth2);
+
+    glVertex3f( width2, -height2, -depth2);
+    glVertex3f( width2, -height2,  depth2);
     
-    glDrawBuffers(g_num_draw_buffers, draw_buffers);
+    glColor4f(0.4, 0.5, 0.4, 1.0);
+    glVertex3f(-width2, -height2, -depth2);
+    glVertex3f(-width2,  height2, -depth2);
+
+    glVertex3f( width2, -height2, -depth2);
+    glVertex3f( width2,  height2, -depth2);
+
+    glVertex3f( width2, -height2,  depth2);
+    glVertex3f( width2,  height2,  depth2);
+
+    glVertex3f(-width2, -height2,  depth2);
+    glVertex3f(-width2,  height2,  depth2);
+
+    glColor4f(0.4, 0.4, 0.5, 1.0);
+    glVertex3f(-width2, -height2, -depth2);
+    glVertex3f( width2, -height2, -depth2);
+
+    glVertex3f(-width2,  height2, -depth2);
+    glVertex3f( width2,  height2, -depth2);
+
+    glVertex3f(-width2,  height2,  depth2);
+    glVertex3f( width2,  height2,  depth2);
+
+    glVertex3f(-width2, -height2,  depth2);
+    glVertex3f( width2, -height2,  depth2);
+
+    glEnd();
+}
+
+- (void)drawAxesForBrick:(MasonBrick *)brick
+{
+    float width2  = ((float)[brick width] ) / 2,
+          height2 = ((float)[brick height]) / 2,
+          depth2  = ((float)[brick depth] ) / 2;
     
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glTranslatef(0.0, 0.0, -m_distance);
-    glRotatef(m_pitch, 1.0, 0.0, 0.0);
-    glRotatef(m_yaw,   0.0, 1.0, 0.0);
+    glUseProgram(0);
+    glDisable(GL_TEXTURE_2D);
     
-    [self drawBrick:[o_document brick] sliceAxis:[o_document sliceAxis] sliceNumber:[o_document sliceNumber]];
-    //[[o_document brick] draw:m_t];
-    
+    glBegin(GL_LINES);
+
+    glColor4f(0.7, 0.5, 0.5, 1.0);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(0.0, 0.0, depth2 + 2.0);
+
+    glColor4f(0.5, 0.7, 0.5, 1.0);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(0.0, height2 + 2.0, 0.0);
+
+    glColor4f(0.5, 0.5, 0.7, 1.0);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(width2 + 2.0, 0.0, 0.0);
+
+    glEnd();
+}
+
+- (void)drawFramebufferToWindow
+{
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     glDrawBuffer(GL_BACK);
     glMatrixMode(GL_PROJECTION);
@@ -478,6 +554,7 @@ _short_buffer_offset(GLuint offset)
     glUseProgram(0);
     glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, m_color_texture);
     glBegin(GL_QUADS);
     glColor3f(1.0, 1.0, 1.0);
@@ -493,8 +570,18 @@ _short_buffer_offset(GLuint offset)
     
     glEnable(GL_DEPTH_TEST);
     glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
+    glPopMatrix();    
+}
 
+- (void)drawRect:(NSRect)r
+{
+    [self drawToFramebuffer];
+    [self drawBoundingCubeForBrick:[o_document brick]];
+    [self drawAxesForBrick:[o_document brick]];    
+    [self drawBrick:[o_document brick] sliceAxis:[o_document sliceAxis] sliceNumber:[o_document sliceNumber]];
+    
+    [self drawFramebufferToWindow];
+    
     [[self openGLContext] flushBuffer];
 }
 

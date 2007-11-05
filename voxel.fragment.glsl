@@ -47,8 +47,6 @@ cast_ray()
 #ifdef TRIXEL_SURFACE_ONLY
     cast_pt = p0scaled;
     cast_index = texture3D(voxmap, cast_pt).r;
-    if(cast_index == 0.0)
-        discard;
 #else
     vec3 rayinv = vec3(1.0)/ray;
     vec3 raysign = step(0.0, ray);
@@ -82,8 +80,10 @@ main()
         maxelt(abs(cast_pt * voxmap_size - round(cast_pt * voxmap_size))) <= grid_line_thickness ? grid_color :
 #endif
         texture1D(palette, cast_index);
-
+        
 #ifdef TRIXEL_SAVE_COORDINATES
     gl_FragData[1] = vec4(floor(cast_pt * voxmap_size), 1);
 #endif
+
+    gl_FragDepth = gl_FragCoord.z;
 }
