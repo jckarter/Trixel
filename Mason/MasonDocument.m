@@ -138,8 +138,8 @@
 - (MasonBrick *)_default_brick
 {
     NSError *error;
-    return [[MasonBrick alloc] initWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"default.brick"]
-                                withError:&error];
+    return [[MasonBrick alloc] initEmptyWithWidth:16 height:16 depth:16
+                               withError:&error];
 }
 
 - (IBAction)updateSliceAxis:(id)sender

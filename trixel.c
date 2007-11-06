@@ -435,6 +435,34 @@ error:
     return NULL;
 }
 
+trixel_brick *
+trixel_make_empty_brick(int w, int h, int d, bool prepare, char * * out_error_message)
+{
+    trixel_brick * brick = malloc(sizeof(trixel_brick));
+    memset(brick, 0, sizeof(trixel_brick));
+
+    brick->dimensions[0] = (float)w;
+    brick->dimensions[1] = (float)h;
+    brick->dimensions[2] = (float)d;
+    
+    brick->dimensions_inv[0] = 1.0 / brick->dimensions[0];
+    brick->dimensions_inv[1] = 1.0 / brick->dimensions[1];
+    brick->dimensions_inv[2] = 1.0 / brick->dimensions[2];
+
+    brick->palette_data = malloc(256 * 4);
+    memset(brick->palette_data, 0, 256 * 4);
+    brick->voxmap_data = malloc(w * h * d);
+    memset(brick->voxmap_data, 0, w * h * d);
+    
+    if(prepare)
+        trixel_prepare_brick(brick);
+    
+    return brick;
+
+error:
+    return NULL;
+}
+
 void
 trixel_prepare_brick(trixel_brick * brick)
 {

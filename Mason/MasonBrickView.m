@@ -420,28 +420,6 @@ _short_buffer_offset(GLuint offset)
     m_framebuffer = m_color_texture = m_hover_renderbuffer = m_depth_renderbuffer = 0;
 }
 
-- (void)drawToFramebuffer
-{
-    const GLenum *draw_buffers = (m_toolActive ? g_tool_active_draw_buffers : g_tool_inactive_draw_buffers);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
-
-    glDrawBuffers(g_num_draw_buffers - 1, draw_buffers + 1);
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glDrawBuffer(draw_buffers[0]);
-    glClearColor(0.2, 0.2, 0.2, 1.0);    
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glDrawBuffers(g_num_draw_buffers, draw_buffers);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glTranslatef(0.0, 0.0, -m_distance);
-    glRotatef(m_pitch, 1.0, 0.0, 0.0);
-    glRotatef(m_yaw,   0.0, 1.0, 0.0);
-}
-
 - (void)drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber
 {
     [brick useForDrawing:m_t];
@@ -470,7 +448,6 @@ _short_buffer_offset(GLuint offset)
     
     glUseProgram(0);
     glDisable(GL_TEXTURE_2D);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     
     glBegin(GL_LINES);
 
@@ -524,7 +501,6 @@ _short_buffer_offset(GLuint offset)
     
     glUseProgram(0);
     glDisable(GL_TEXTURE_2D);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     
     glBegin(GL_LINES);
 
@@ -577,9 +553,27 @@ _short_buffer_offset(GLuint offset)
 
 - (void)drawRect:(NSRect)r
 {
-    [self drawToFramebuffer];
+    const GLenum *draw_buffers = (m_toolActive ? g_tool_active_draw_buffers : g_tool_inactive_draw_buffers);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
+
+    glDrawBuffers(g_num_draw_buffers - 1, draw_buffers + 1);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glDrawBuffer(draw_buffers[0]);
+    glClearColor(0.2, 0.2, 0.2, 1.0);    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(0.0, 0.0, -m_distance);
+    glRotatef(m_pitch, 1.0, 0.0, 0.0);
+    glRotatef(m_yaw,   0.0, 1.0, 0.0);
+
     [self drawBoundingCubeForBrick:[o_document brick]];
     [self drawAxesForBrick:[o_document brick]];    
+
+    glDrawBuffers(g_num_draw_buffers, draw_buffers);
     [self drawBrick:[o_document brick] sliceAxis:[o_document sliceAxis] sliceNumber:[o_document sliceNumber]];
     
     [self drawFramebufferToWindow];

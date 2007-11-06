@@ -85,6 +85,20 @@ _nscolor_from_palette(unsigned char * palette_color)
     return self;    
 }
 
+- (MasonBrick *)initEmptyWithWidth:(int)width height:(int)height depth:(int)depth withError:(NSError **)out_error
+{
+    self = [super init];
+    if(self) {
+        char * error_message;
+        m_brick = trixel_make_empty_brick(width, height, depth, false, &error_message);
+        if(!m_brick) {
+            self = nil;
+            *out_error = nserror_from_trixel_error(error_message);
+        }
+    }
+    return self;    
+}
+
 - (void)finalize
 {
     if(m_brick)

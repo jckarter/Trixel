@@ -10,6 +10,7 @@
 
 - (MasonBrick *)initWithData:(NSData *)data withError:(NSError **)out_error;
 - (MasonBrick *)initWithContentsOfFile:(NSString *)filename withError:(NSError **)out_error;
+- (MasonBrick *)initEmptyWithWidth:(int)width height:(int)height depth:(int)depth withError:(NSError **)out_error;
 
 - (NSData *)data;
 
