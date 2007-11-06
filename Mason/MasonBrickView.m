@@ -14,9 +14,9 @@
 
 #define INITIAL_DISTANCE 32.0
 
-static const size_t g_num_draw_buffers = 2;
-static const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT };
-static const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE                  };
+static const size_t g_num_draw_buffers = 3;
+static const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_COLOR_ATTACHMENT2_EXT };
+static const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                  GL_NONE                  };
 
 static const char * g_surface_flags[] = { TRIXEL_SAVE_COORDINATES, NULL };
 static const char * g_slice_flags[] = { TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
@@ -33,26 +33,6 @@ float
 fbound(float x, float mn, float mx)
 {
     return fmin(fmax(x, mn), mx);
-}
-
-void
-_surface_element_range_function(NSInteger sliceNumber, GLuint *out_firstElement, GLsizei *out_numElements)
-{
-    *out_firstElement = 0;
-    *out_numElements  = 24;
-}
-
-void
-_slice_element_range_function(NSInteger sliceNumber, GLuint *out_firstElement, GLsizei *out_numElements)
-{
-    *out_firstElement = sliceNumber * 8;
-    *out_numElements = 8;
-}
-
-static inline GLvoid *
-_short_buffer_offset(GLuint offset)
-{
-    return (GLvoid *)((char*)NULL + offset*sizeof(GLshort));
 }
 
 @implementation MasonBrickView
@@ -183,169 +163,193 @@ _short_buffer_offset(GLuint offset)
     
     MasonBrick * brick = [o_document brick];
 
-    int    width = [brick width], height = [brick height], depth = [brick depth],
-           width_elt_offset = 2 * 4, height_elt_offset = (2 + width) * 4, depth_elt_offset = (2 + width + height) * 4,
-           width_offset = width_elt_offset * 3, height_offset = height_elt_offset * 3, depth_offset = depth_elt_offset * 3;
-    size_t vertex_count = (2 + width + height + depth) * 12;
-    GLfloat vertices[vertex_count];
-    
-    vertices[ 0] = -width/2;
-    vertices[ 1] = -height/2;
-    vertices[ 2] = -depth/2;
-    
-    vertices[ 3] = -width/2;
-    vertices[ 4] = -height/2;
-    vertices[ 5] =  depth/2;
-    
-    vertices[ 6] = -width/2;
-    vertices[ 7] =  height/2;
-    vertices[ 8] =  depth/2;
-    
-    vertices[ 9] = -width/2;
-    vertices[10] =  height/2;
-    vertices[11] = -depth/2;
+    int width = [brick width], height = [brick height], depth = [brick depth];
         
-    vertices[12] =  width/2;
-    vertices[13] = -height/2;
-    vertices[14] = -depth/2;
+    int width_elt_offset = 24,
+        height_elt_offset = width_elt_offset + width * 8,
+        depth_elt_offset = height_elt_offset + height * 8;
     
-    vertices[15] =  width/2;
-    vertices[16] = -height/2;
-    vertices[17] =  depth/2;
+    int width_offset = width_elt_offset * 3,
+        height_offset = height_elt_offset * 3,
+        depth_offset = depth_elt_offset * 3;
+    size_t vertex_count = (24 + (width + height + depth) * 8) * 12;
     
-    vertices[18] =  width/2;
-    vertices[19] =  height/2;
-    vertices[20] =  depth/2;
+    GLbyte buffer[vertex_count * (sizeof(GLfloat) + sizeof(GLbyte))];
+
+    m_normals_offset = vertex_count * sizeof(GLfloat);
     
-    vertices[21] =  width/2;
-    vertices[22] =  height/2;
-    vertices[23] = -depth/2;
+    GLfloat * vertices = (GLfloat *)buffer;
+    GLbyte  * normals  = buffer + m_normals_offset;
+    
+    vertices[ 0] = -width/2; vertices[ 1] = -height/2; vertices[ 2] = -depth/2;
+    vertices[ 3] = -width/2; vertices[ 4] =  height/2; vertices[ 5] = -depth/2;
+    vertices[ 6] =  width/2; vertices[ 7] =  height/2; vertices[ 8] = -depth/2;
+    vertices[ 9] =  width/2; vertices[10] = -height/2; vertices[11] = -depth/2;
         
+    vertices[12] =  width/2; vertices[13] = -height/2; vertices[14] = -depth/2;
+    vertices[15] =  width/2; vertices[16] =  height/2; vertices[17] = -depth/2;
+    vertices[18] =  width/2; vertices[19] =  height/2; vertices[20] =  depth/2;
+    vertices[21] =  width/2; vertices[22] = -height/2; vertices[23] =  depth/2;
+        
+    vertices[24] =  width/2; vertices[25] = -height/2; vertices[26] =  depth/2;
+    vertices[27] =  width/2; vertices[28] =  height/2; vertices[29] =  depth/2;
+    vertices[30] = -width/2; vertices[31] =  height/2; vertices[32] =  depth/2;
+    vertices[33] = -width/2; vertices[34] = -height/2; vertices[35] =  depth/2;
+        
+    vertices[36] = -width/2; vertices[37] = -height/2; vertices[38] =  depth/2;
+    vertices[39] = -width/2; vertices[40] =  height/2; vertices[41] =  depth/2;
+    vertices[42] = -width/2; vertices[43] =  height/2; vertices[44] = -depth/2;
+    vertices[45] = -width/2; vertices[46] = -height/2; vertices[47] = -depth/2;
+
+    vertices[48] =  width/2; vertices[49] =  height/2; vertices[50] =  depth/2;
+    vertices[51] =  width/2; vertices[52] =  height/2; vertices[53] = -depth/2;
+    vertices[54] = -width/2; vertices[55] =  height/2; vertices[56] = -depth/2;
+    vertices[57] = -width/2; vertices[58] =  height/2; vertices[59] =  depth/2;
+
+    vertices[60] = -width/2; vertices[61] = -height/2; vertices[62] =  depth/2;
+    vertices[63] = -width/2; vertices[64] = -height/2; vertices[65] = -depth/2;
+    vertices[66] =  width/2; vertices[67] = -height/2; vertices[68] = -depth/2;
+    vertices[69] =  width/2; vertices[70] = -height/2; vertices[71] =  depth/2;
+
+    normals[ 0] = 0; normals[ 1] = 0; normals[ 2] = -128;
+    normals[ 3] = 0; normals[ 4] = 0; normals[ 5] = -128;
+    normals[ 6] = 0; normals[ 7] = 0; normals[ 8] = -128;
+    normals[ 9] = 0; normals[10] = 0; normals[11] = -128;
+        
+    normals[12] = 127; normals[13] = 0; normals[14] = 0;
+    normals[15] = 127; normals[16] = 0; normals[17] = 0;
+    normals[18] = 127; normals[19] = 0; normals[20] = 0;
+    normals[21] = 127; normals[22] = 0; normals[23] = 0;
+        
+    normals[24] = 0; normals[25] = 0; normals[26] = 127;
+    normals[27] = 0; normals[28] = 0; normals[29] = 127;
+    normals[30] = 0; normals[31] = 0; normals[32] = 127;
+    normals[33] = 0; normals[34] = 0; normals[35] = 127;
+        
+    normals[36] = -128; normals[37] = 0; normals[38] = 0;
+    normals[39] = -128; normals[40] = 0; normals[41] = 0;
+    normals[42] = -128; normals[43] = 0; normals[44] = 0;
+    normals[45] = -128; normals[46] = 0; normals[47] = 0;
+
+    normals[48] = 0; normals[49] = 127; normals[50] = 0;
+    normals[51] = 0; normals[52] = 127; normals[53] = 0;
+    normals[54] = 0; normals[55] = 127; normals[56] = 0;
+    normals[57] = 0; normals[58] = 127; normals[59] = 0;
+
+    normals[60] = 0; normals[61] = -128; normals[62] = 0;
+    normals[63] = 0; normals[64] = -128; normals[65] = 0;
+    normals[66] = 0; normals[67] = -128; normals[68] = 0;
+    normals[69] = 0; normals[70] = -128; normals[71] = 0;
+
     unsigned i;
     for(i = 0; i < width; ++i) {
         GLfloat w = (GLfloat)i + 0.5 - width/2;
-        vertices[width_offset + i * 12 +  0] =  w;
-        vertices[width_offset + i * 12 +  1] = -height/2;
-        vertices[width_offset + i * 12 +  2] = -depth/2;
+        int base = width_offset + i * 8*3;
+
+        vertices[base +  0] = vertices[base + 21] =  w;
+        vertices[base +  1] = vertices[base + 22] = -height/2;
+        vertices[base +  2] = vertices[base + 23] = -depth/2;
         
-        vertices[width_offset + i * 12 +  3] =  w;
-        vertices[width_offset + i * 12 +  4] =  height/2;
-        vertices[width_offset + i * 12 +  5] = -depth/2;
+        vertices[base +  3] = vertices[base + 18] =  w;
+        vertices[base +  4] = vertices[base + 19] =  height/2;
+        vertices[base +  5] = vertices[base + 20] = -depth/2;
         
-        vertices[width_offset + i * 12 +  6] =  w;
-        vertices[width_offset + i * 12 +  7] =  height/2;
-        vertices[width_offset + i * 12 +  8] =  depth/2;
+        vertices[base +  6] = vertices[base + 15] =  w;
+        vertices[base +  7] = vertices[base + 16] =  height/2;
+        vertices[base +  8] = vertices[base + 17] =  depth/2;
         
-        vertices[width_offset + i * 12 +  9] =  w;
-        vertices[width_offset + i * 12 + 10] = -height/2;
-        vertices[width_offset + i * 12 + 11] =  depth/2;
+        vertices[base +  9] = vertices[base + 12] =  w;
+        vertices[base + 10] = vertices[base + 13] = -height/2;
+        vertices[base + 11] = vertices[base + 14] =  depth/2;
+        
+        normals[base +  0] = normals[base +  3] = normals[base +  6] = normals[base +  9] = 127;
+        normals[base +  1] = normals[base +  4] = normals[base +  7] = normals[base + 10] =   0;
+        normals[base +  2] = normals[base +  5] = normals[base +  8] = normals[base + 11] =   0;
+
+        normals[base + 12] = normals[base + 15] = normals[base + 18] = normals[base + 21] = -128;
+        normals[base + 13] = normals[base + 16] = normals[base + 19] = normals[base + 22] =    0;
+        normals[base + 14] = normals[base + 17] = normals[base + 20] = normals[base + 23] =    0;
     }
     for(i = 0; i < height; ++i) {
         GLfloat h = (GLfloat)i + 0.5 - height/2;
-        vertices[height_offset + i * 12 +  0] = -width/2;
-        vertices[height_offset + i * 12 +  1] =  h;
-        vertices[height_offset + i * 12 +  2] = -depth/2;
+        int base = height_offset + i * 8*3;
 
-        vertices[height_offset + i * 12 +  3] =  width/2;
-        vertices[height_offset + i * 12 +  4] =  h;
-        vertices[height_offset + i * 12 +  5] = -depth/2;
+        vertices[base +  0] = vertices[base + 21] = -width/2;
+        vertices[base +  1] = vertices[base + 22] =  h;
+        vertices[base +  2] = vertices[base + 23] = -depth/2;
+        
+        vertices[base +  3] = vertices[base + 18] = -width/2;
+        vertices[base +  4] = vertices[base + 19] =  h;
+        vertices[base +  5] = vertices[base + 20] =  depth/2;
+        
+        vertices[base +  6] = vertices[base + 15] =  width/2;
+        vertices[base +  7] = vertices[base + 16] =  h;
+        vertices[base +  8] = vertices[base + 17] =  depth/2;
+        
+        vertices[base +  9] = vertices[base + 12] =  width/2;
+        vertices[base + 10] = vertices[base + 13] =  h;
+        vertices[base + 11] = vertices[base + 14] = -depth/2;
+        
+        normals[base +  0] = normals[base +  3] = normals[base +  6] = normals[base +  9] =   0;
+        normals[base +  1] = normals[base +  4] = normals[base +  7] = normals[base + 10] = 127;
+        normals[base +  2] = normals[base +  5] = normals[base +  8] = normals[base + 11] =   0;
 
-        vertices[height_offset + i * 12 +  6] =  width/2;
-        vertices[height_offset + i * 12 +  7] =  h;
-        vertices[height_offset + i * 12 +  8] =  depth/2;
-
-        vertices[height_offset + i * 12 +  9] = -width/2;
-        vertices[height_offset + i * 12 + 10] =  h;
-        vertices[height_offset + i * 12 + 11] =  depth/2;
+        normals[base + 12] = normals[base + 15] = normals[base + 18] = normals[base + 21] =    0;
+        normals[base + 13] = normals[base + 16] = normals[base + 19] = normals[base + 22] = -128;
+        normals[base + 14] = normals[base + 17] = normals[base + 20] = normals[base + 23] =    0;
     }
     for(i = 0; i < depth; ++i) {
         GLfloat d = (GLfloat)i + 0.5 - depth/2;
-        vertices[depth_offset + i * 12 +  0] = -width/2;
-        vertices[depth_offset + i * 12 +  1] = -height/2;
-        vertices[depth_offset + i * 12 +  2] =  d;
+        int base = depth_offset + i * 8*3;
 
-        vertices[depth_offset + i * 12 +  3] =  width/2;
-        vertices[depth_offset + i * 12 +  4] = -height/2;
-        vertices[depth_offset + i * 12 +  5] =  d;
+        vertices[base +  0] = vertices[base + 21] =  width/2;
+        vertices[base +  1] = vertices[base + 22] = -height/2;
+        vertices[base +  2] = vertices[base + 23] =  d;
+        
+        vertices[base +  3] = vertices[base + 18] =  width/2;
+        vertices[base +  4] = vertices[base + 19] =  height/2;
+        vertices[base +  5] = vertices[base + 20] =  d;
+        
+        vertices[base +  6] = vertices[base + 15] = -width/2;
+        vertices[base +  7] = vertices[base + 16] =  height/2;
+        vertices[base +  8] = vertices[base + 17] =  d;
+        
+        vertices[base +  9] = vertices[base + 12] = -width/2;
+        vertices[base + 10] = vertices[base + 13] = -height/2;
+        vertices[base + 11] = vertices[base + 14] =  d;
+        
+        normals[base +  0] = normals[base +  3] = normals[base +  6] = normals[base +  9] =   0;
+        normals[base +  1] = normals[base +  4] = normals[base +  7] = normals[base + 10] =   0;
+        normals[base +  2] = normals[base +  5] = normals[base +  8] = normals[base + 11] = 127;
 
-        vertices[depth_offset + i * 12 +  6] =  width/2;
-        vertices[depth_offset + i * 12 +  7] =  height/2;
-        vertices[depth_offset + i * 12 +  8] =  d;
-
-        vertices[depth_offset + i * 12 +  9] = -width/2;
-        vertices[depth_offset + i * 12 + 10] =  height/2;
-        vertices[depth_offset + i * 12 + 11] =  d;
+        normals[base + 12] = normals[base + 15] = normals[base + 18] = normals[base + 21] =    0;
+        normals[base + 13] = normals[base + 16] = normals[base + 19] = normals[base + 22] =    0;
+        normals[base + 14] = normals[base + 17] = normals[base + 20] = normals[base + 23] = -128;
     }
     
     glGenBuffers(1, &m_vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertex_count * (sizeof(GLfloat)+sizeof(GLbyte)), buffer, GL_STATIC_DRAW);
 
     m_slice_ops[SLICE_AXIS_SURFACE].trixel_flags = g_surface_flags;
-    glGenBuffers(1, &m_slice_ops[SLICE_AXIS_SURFACE].element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_SURFACE].element_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_surface_elements), g_surface_elements, GL_STATIC_DRAW);
-    m_slice_ops[SLICE_AXIS_SURFACE].element_range_function = _surface_element_range_function;
+    m_slice_ops[SLICE_AXIS_SURFACE].buffer_first = 0;
+    m_slice_ops[SLICE_AXIS_SURFACE].buffer_count = 24;    
 
     m_slice_ops[SLICE_AXIS_XAXIS].trixel_flags = g_slice_flags;
-    GLshort xaxis_elements[width * 8];
-    for(i = 0; i < width; ++i) {
-        xaxis_elements[i*8 + 0] = width_elt_offset + i*4 + 0;
-        xaxis_elements[i*8 + 1] = width_elt_offset + i*4 + 1;
-        xaxis_elements[i*8 + 2] = width_elt_offset + i*4 + 2;
-        xaxis_elements[i*8 + 3] = width_elt_offset + i*4 + 3;
-        
-        xaxis_elements[i*8 + 4] = width_elt_offset + i*4 + 3;
-        xaxis_elements[i*8 + 5] = width_elt_offset + i*4 + 2;
-        xaxis_elements[i*8 + 6] = width_elt_offset + i*4 + 1;
-        xaxis_elements[i*8 + 7] = width_elt_offset + i*4 + 0;
-    }
-    glGenBuffers(1, &m_slice_ops[SLICE_AXIS_XAXIS].element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_XAXIS].element_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLshort) * width * 8, xaxis_elements, GL_STATIC_DRAW);
-    m_slice_ops[SLICE_AXIS_XAXIS].element_range_function = _slice_element_range_function;
+    m_slice_ops[SLICE_AXIS_XAXIS].buffer_first = width_elt_offset;
+    m_slice_ops[SLICE_AXIS_XAXIS].buffer_count = 8;    
 
     m_slice_ops[SLICE_AXIS_YAXIS].trixel_flags = g_slice_flags;
-    GLshort yaxis_elements[height * 8];
-    for(i = 0; i < height; ++i) {
-        yaxis_elements[i*8 + 0] = height_elt_offset + i*4 + 0;
-        yaxis_elements[i*8 + 1] = height_elt_offset + i*4 + 1;
-        yaxis_elements[i*8 + 2] = height_elt_offset + i*4 + 2;
-        yaxis_elements[i*8 + 3] = height_elt_offset + i*4 + 3;
-        
-        yaxis_elements[i*8 + 4] = height_elt_offset + i*4 + 3;
-        yaxis_elements[i*8 + 5] = height_elt_offset + i*4 + 2;
-        yaxis_elements[i*8 + 6] = height_elt_offset + i*4 + 1;
-        yaxis_elements[i*8 + 7] = height_elt_offset + i*4 + 0;
-    }
-    glGenBuffers(1, &m_slice_ops[SLICE_AXIS_YAXIS].element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_YAXIS].element_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLshort) * height * 8, yaxis_elements, GL_STATIC_DRAW);
-    m_slice_ops[SLICE_AXIS_YAXIS].element_range_function = _slice_element_range_function;
+    m_slice_ops[SLICE_AXIS_YAXIS].buffer_first = height_elt_offset;
+    m_slice_ops[SLICE_AXIS_YAXIS].buffer_count = 8;    
 
     m_slice_ops[SLICE_AXIS_ZAXIS].trixel_flags = g_slice_flags;
-    GLshort zaxis_elements[depth * 8];
-    for(i = 0; i < depth; ++i) {
-        zaxis_elements[i*8 + 0] = depth_elt_offset + i*4 + 0;
-        zaxis_elements[i*8 + 1] = depth_elt_offset + i*4 + 1;
-        zaxis_elements[i*8 + 2] = depth_elt_offset + i*4 + 2;
-        zaxis_elements[i*8 + 3] = depth_elt_offset + i*4 + 3;
-        
-        zaxis_elements[i*8 + 4] = depth_elt_offset + i*4 + 3;
-        zaxis_elements[i*8 + 5] = depth_elt_offset + i*4 + 2;
-        zaxis_elements[i*8 + 6] = depth_elt_offset + i*4 + 1;
-        zaxis_elements[i*8 + 7] = depth_elt_offset + i*4 + 0;
-    }
-    glGenBuffers(1, &m_slice_ops[SLICE_AXIS_ZAXIS].element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[SLICE_AXIS_ZAXIS].element_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLshort) * depth * 8, zaxis_elements, GL_STATIC_DRAW);
-    m_slice_ops[SLICE_AXIS_ZAXIS].element_range_function = _slice_element_range_function;
+    m_slice_ops[SLICE_AXIS_ZAXIS].buffer_first = depth_elt_offset;
+    m_slice_ops[SLICE_AXIS_ZAXIS].buffer_count = 8;    
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);    
 
     [brick prepare];
-
     [self _generate_framebuffer];
 }
 
@@ -395,12 +399,17 @@ _short_buffer_offset(GLuint offset)
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame));
 
+    glGenRenderbuffersEXT(1, &m_normal_renderbuffer);
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_normal_renderbuffer);
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, NSWidth(frame), NSHeight(frame));
+
     glGenRenderbuffersEXT(1, &m_depth_renderbuffer);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, NSWidth(frame), NSHeight(frame));
     
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_color_texture, 0);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_RENDERBUFFER_EXT, m_hover_renderbuffer);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT2_EXT, GL_RENDERBUFFER_EXT, m_normal_renderbuffer);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_RENDERBUFFER_EXT, m_depth_renderbuffer);
 
     if(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
@@ -415,6 +424,7 @@ _short_buffer_offset(GLuint offset)
     glDeleteFramebuffersEXT(1, &m_framebuffer);
     glDeleteTextures(1, &m_color_texture);
     glDeleteRenderbuffersEXT(1, &m_hover_renderbuffer);
+    glDeleteRenderbuffersEXT(1, &m_normal_renderbuffer);
     glDeleteRenderbuffersEXT(1, &m_depth_renderbuffer);
     
     m_framebuffer = m_color_texture = m_hover_renderbuffer = m_depth_renderbuffer = 0;
@@ -424,20 +434,19 @@ _short_buffer_offset(GLuint offset)
 {
     [brick useForDrawing:m_t];
 
-    GLuint offset;
-    GLsizei count;
-    m_slice_ops[axis].element_range_function(sliceNumber, &offset, &count);
+    GLint first = m_slice_ops[axis].buffer_first;
+    GLsizei count = m_slice_ops[axis].buffer_count;
 
     glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
-    glVertexPointer(3, GL_FLOAT, 0, 0);    
+    glVertexPointer(3, GL_FLOAT, 0, 0);
+    glNormalPointer(GL_BYTE, 0, (void*)m_normals_offset);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_slice_ops[axis].element_buffer);    
-    glDrawElements(GL_QUADS, count, GL_UNSIGNED_SHORT, _short_buffer_offset(offset));
+    glDrawArrays(GL_QUADS, first + count * sliceNumber, count);
     
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 - (void)drawBoundingCubeForBrick:(MasonBrick *)brick

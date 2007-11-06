@@ -1,12 +1,10 @@
-varying vec3 ray, p0, rayscaled, p0scaled;
+varying vec3 ray, p0, rayscaled, p0scaled, surface_normal;
 
 uniform sampler3D voxmap;
 uniform sampler1D palette;
 uniform vec3 voxmap_size, voxmap_size_inv;
 
 const float tbias = 0.00001;
-const float grid_line_thickness = 0.1;
-const vec4 grid_color = vec4(0.0, 0.0, 0.0, 1.0);
 
 float
 minelt(vec3 v)
@@ -26,7 +24,7 @@ round(vec3 v)
     return floor(v + vec3(0.5));
 }
 
-vec3 cast_pt;
+vec3 cast_pt, normal;
 float cast_index;
 
 vec3 unbias(vec3 v) { return v * vec3(2) - vec3(1); }
@@ -38,6 +36,7 @@ cast_ray()
 #ifdef TRIXEL_SURFACE_ONLY
     cast_pt = p0scaled;
     cast_index = texture3D(voxmap, cast_pt).r;
+    normal = surface_normal;
 #else
     vec3 rayinv = vec3(1.0)/ray;
     vec3 raysign = step(0.0, ray);
@@ -51,8 +50,12 @@ cast_ray()
     do {
         cast_pt = p0scaled + rayscaled*t;
         cast_index = texture3D(voxmap, cast_pt).r;
-        if(cast_index != 0.0)
+        if(cast_index != 0.0) {
+            normal = t == tbias
+                ? surface_normal
+                : -step(-t, -tv) * unbias(raysign);
             return;
+        }
         
         tv += absrayinv * step(-t, -tv);
         t = minelt(tv);
@@ -66,14 +69,11 @@ void
 main()
 {
     cast_ray();
-    gl_FragData[0] =
-#ifdef TRIXEL_GRID
-        maxelt(abs(cast_pt * voxmap_size - round(cast_pt * voxmap_size))) <= grid_line_thickness ? grid_color :
-#endif
-        texture1D(palette, cast_index);
+    gl_FragData[0] = texture1D(palette, cast_index);
         
 #ifdef TRIXEL_SAVE_COORDINATES
     gl_FragData[1] = vec4(floor(cast_pt * voxmap_size), 1);
+    gl_FragData[2] = vec4(normal, 1);
 #endif
 
     vec4 transformed_cast = gl_ModelViewProjectionMatrix * vec4((cast_pt - vec3(0.5)) * voxmap_size, 1);

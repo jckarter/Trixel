@@ -5,8 +5,6 @@
 @class MasonDocument;
 @class MasonBrick;
 
-typedef void (*ElementRangeFunction)(NSInteger sliceNumber, GLuint *out_firstElement, GLsizei *out_numElements);
-
 @interface MasonBrickView : NSOpenGLView
 {
     IBOutlet MasonDocument *o_document;
@@ -16,11 +14,14 @@ typedef void (*ElementRangeFunction)(NSInteger sliceNumber, GLuint *out_firstEle
     float m_yaw, m_pitch, m_distance;
     trixel_state m_t;
     
-    GLuint m_vertex_buffer, m_framebuffer, m_hover_renderbuffer, m_depth_renderbuffer, m_color_texture;
+    GLuint m_vertex_buffer,
+           m_framebuffer,
+           m_color_texture,
+           m_hover_renderbuffer, m_normal_renderbuffer, m_depth_renderbuffer;
+    GLsizei m_normals_offset;
     struct slice_ops {
         char const * * trixel_flags;
-        GLuint element_buffer;
-		ElementRangeFunction element_range_function;
+        GLuint buffer_first, buffer_count;
     } m_slice_ops[4];
 }
 

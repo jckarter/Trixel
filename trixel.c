@@ -18,22 +18,12 @@
 struct trixel_internal_state {
     char * resource_path;
     GLuint voxel_program, voxel_vertex_shader, voxel_fragment_shader;
-    GLuint cube_element_buffer;
     struct voxel_program_uniforms {
         GLint voxmap, palette, voxmap_size, voxmap_size_inv;
     } voxel_uniforms;
 };
 
 static inline struct trixel_internal_state * STATE(trixel_state t) { return (struct trixel_internal_state *)t; }
-
-static unsigned char g_cube_elements[] = {
-    1, 2, 3, 0,
-    2, 1, 5, 6,
-    6, 5, 4, 7,
-    7, 4, 0, 3,
-    2, 6, 7, 3,
-    5, 1, 0, 4
-};
 
 static void
 _gl_print_matrix(GLenum what)
@@ -244,7 +234,6 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glEnableClientState(GL_VERTEX_ARRAY);
 
     if(glGetError() != GL_NO_ERROR) {
         *out_error_message = strdup("OpenGL had an error while setting up.");
@@ -255,11 +244,6 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
 
     STATE(t)->resource_path = strdup(resource_path);
 
-    glGenBuffers(1, &STATE(t)->cube_element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, STATE(t)->cube_element_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_cube_elements), g_cube_elements, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
     if(!trixel_update_shaders(t, shader_flags, out_error_message))
         goto error_after_save_resource_path;
     
@@ -268,7 +252,6 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
     return t;
 
 error_after_save_resource_path:
-    glDeleteBuffers(1, &STATE(t)->cube_element_buffer);
     free(STATE(t)->resource_path);
     free(t);
 error:
@@ -346,7 +329,6 @@ void
 trixel_finish(trixel_state t)
 {
     unmake_voxel_program(t);
-    glDeleteBuffers(1, &STATE(t)->cube_element_buffer);
     trixel_only_free(t);
 }
 
@@ -497,20 +479,77 @@ trixel_prepare_brick(trixel_brick * brick)
     GLshort width2  = (GLshort)brick->dimensions[0] / 2,
             height2 = (GLshort)brick->dimensions[1] / 2,
             depth2  = (GLshort)brick->dimensions[2] / 2;
-    GLshort vertices[] = {
-        -width2, -height2, -depth2,
-        -width2,  height2, -depth2,
-         width2,  height2, -depth2,
-         width2, -height2, -depth2,
-        -width2, -height2,  depth2,
-        -width2,  height2,  depth2,
-         width2,  height2,  depth2,
-         width2, -height2,  depth2
+    struct {
+        GLshort vertices[6*4*3];
+        GLbyte  normals [6*4*3];
+    } buffer = {
+        {
+            -width2, -height2, -depth2,
+            -width2,  height2, -depth2,
+             width2,  height2, -depth2,
+             width2, -height2, -depth2,
+         
+             width2, -height2, -depth2,
+             width2,  height2, -depth2,
+             width2,  height2,  depth2,
+             width2, -height2,  depth2,
+         
+             width2, -height2,  depth2,
+             width2,  height2,  depth2,
+            -width2,  height2,  depth2,
+            -width2, -height2,  depth2,
+        
+            -width2, -height2,  depth2,
+            -width2,  height2,  depth2,
+            -width2,  height2, -depth2,
+            -width2, -height2, -depth2,
+        
+             width2,  height2,  depth2,
+             width2,  height2, -depth2,
+            -width2,  height2, -depth2,
+            -width2,  height2,  depth2,
+
+            -width2, -height2,  depth2,
+            -width2, -height2, -depth2,
+             width2,  height2, -depth2,
+             width2,  height2,  depth2
+        },
+        {
+             0,  0, -128,
+             0,  0, -128,
+             0,  0, -128,
+             0,  0, -128,
+
+             127,  0,  0,
+             127,  0,  0,
+             127,  0,  0,
+             127,  0,  0,
+
+             0,  0,  127,
+             0,  0,  127,
+             0,  0,  127,
+             0,  0,  127,
+
+            -128,  0,  0,
+            -128,  0,  0,
+            -128,  0,  0,
+            -128,  0,  0,
+
+             0,  127,  0,
+             0,  127,  0,
+             0,  127,  0,
+             0,  127,  0,
+
+             0, -128,  0,
+             0, -128,  0,
+             0, -128,  0,
+             0, -128,  0
+        }
     };
 
     glGenBuffers(1, &brick->vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, brick->vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(buffer), &buffer, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -687,14 +726,16 @@ trixel_draw_brick(trixel_state t, trixel_brick * brick)
 {
     trixel_draw_from_brick(t, brick);
 
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+
     glBindBuffer(GL_ARRAY_BUFFER, brick->vertex_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, STATE(t)->cube_element_buffer);
 
     glVertexPointer(3, GL_SHORT, 0, 0);
-    glDrawElements(GL_QUADS, 24, GL_UNSIGNED_BYTE, 0);
+    glNormalPointer(GL_BYTE, 0, (void*)(6*4*3*sizeof(GLshort)));
+    glDrawArrays(GL_QUADS, 0, 6*4);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 trixel_brick *
