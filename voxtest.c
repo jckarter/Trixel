@@ -6,6 +6,8 @@
 
 static trixel_brick * g_brick;
 
+static const char * g_flags[] = { TRIXEL_LIGHTING, NULL };
+
 static trixel_state
 set_video_mode(int width, int height, char * * out_error_message)
 {
@@ -20,11 +22,16 @@ set_video_mode(int width, int height, char * * out_error_message)
     if(!screen)
         goto error_from_sdl;
 
-    char const * flags[] = { TRIXEL_GRID, NULL };
-
-    trixel_state t = trixel_init_opengl(".", width, height, flags, out_error_message);
+    trixel_state t = trixel_init_opengl(".", width, height, g_flags, out_error_message);
     if(!t)
         goto error;
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    GLfloat ambient[4] = { 0.2, 0.2, 0.2, 1.0 };
+    GLfloat diffuse[4] = { 0.8, 0.8, 0.8, 1.0 };
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
 
     return t;
 
@@ -41,11 +48,15 @@ draw(trixel_state t, float eye[], float yaw, float pitch)
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    
     //view
     glRotatef(pitch, -1.0, 0.0, 0.0);
     glRotatef(yaw, 0.0, 1.0, 0.0);
     glTranslatef(-eye[0], -eye[1], -eye[2]);
 
+    GLfloat position[4] = { -32.0, 32.0, 64.0, 1.0 };
+    glLightfv(GL_LIGHT0, GL_POSITION, position);
+    
     trixel_draw_brick(t, g_brick);
     
     SDL_GL_SwapBuffers();
@@ -121,7 +132,7 @@ main_loop(trixel_state t)
             case SDLK_r:
                 {
                     char * error;
-                    if(trixel_update_shaders(t, NULL, &error)) {
+                    if(trixel_update_shaders(t, g_flags, &error)) {
                         printf("Remade voxel program\n");
                     } else {
                         printf("Error trying to remake voxel program:\n%s\n", error);

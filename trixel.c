@@ -511,8 +511,8 @@ trixel_prepare_brick(trixel_brick * brick)
 
             -width2, -height2,  depth2,
             -width2, -height2, -depth2,
-             width2,  height2, -depth2,
-             width2,  height2,  depth2
+             width2, -height2, -depth2,
+             width2, -height2,  depth2
         },
         {
              0,  0, -128,
