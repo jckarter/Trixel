@@ -76,7 +76,6 @@ light(vec4 color)
     vec4 lit_color = vec4(0.0);
     for(int light = 0; light < num_lights; ++light) {
         vec3 light_direction = normalize(gl_LightSource[light].position.xyz - world_cast_pt);
-        return gl_LightSource[light].position / vec4(128);
         lit_color += gl_LightSource[light].ambient + gl_LightSource[light].diffuse * color * dot(light_direction, normal);
     }
     return lit_color;
