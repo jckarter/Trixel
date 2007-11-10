@@ -123,6 +123,14 @@
     }
 }
 
+- (NSUInteger)brickVoxelAt:(struct point3)pt
+{
+    if(pt.x < 0.0)
+        return (NSUInteger)-1;
+
+    return [m_brick voxelX:pt.x y:pt.y z:pt.z];    
+}
+
 - (void)updatePaletteIndex:(NSUInteger)index withColor:(NSColor *)color
 {
     NSColor * oldColor = [m_brick objectInPaletteColorsAtIndex:index];

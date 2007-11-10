@@ -95,7 +95,13 @@ void
 main()
 {
     cast_ray();
-    gl_FragData[0] = light(texture1D(palette, cast_index));
+    vec4 color = texture1D(palette, cast_index);
+    
+#ifdef TRIXEL_SURFACE_ONLY
+    gl_FragData[0] = color.a == 0.0 ? vec4(color.rgb, 0.2) : color;
+#else
+    gl_FragData[0] = light(color);
+#endif
         
 #ifdef TRIXEL_SAVE_COORDINATES
     gl_FragData[1] = vec4(floor(cast_pt * voxmap_size), 1);

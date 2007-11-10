@@ -217,25 +217,30 @@ _nscolor_from_palette(unsigned char * palette_color)
 - (NSString *)sizeString
 {
     return [NSString stringWithFormat:@"%ux%ux%u",
-        (unsigned)m_brick->dimensions[0],
-        (unsigned)m_brick->dimensions[1],
-        (unsigned)m_brick->dimensions[2]
+        (unsigned)m_brick->dimensions.x,
+        (unsigned)m_brick->dimensions.y,
+        (unsigned)m_brick->dimensions.z
     ];
 }
 
 - (unsigned)width
 {
-    return (unsigned)m_brick->dimensions[0];
+    return (unsigned)m_brick->dimensions.x;
 }
 
 - (unsigned)height
 {
-    return (unsigned)m_brick->dimensions[1];    
+    return (unsigned)m_brick->dimensions.y;    
 }
 
 - (unsigned)depth
 {
-    return (unsigned)m_brick->dimensions[2];
+    return (unsigned)m_brick->dimensions.z;
+}
+
+- (struct point3)dimensions
+{
+    return m_brick->dimensions;
 }
 
 @end

@@ -33,6 +33,7 @@
 - (void)updatePaletteIndex:(NSUInteger)index withColor:(NSColor *)color;
 
 - (void)setBrickVoxel:(NSUInteger)index at:(struct point3)pt;
+- (NSUInteger)brickVoxelAt:(struct point3)pt;
 
 - (NSInteger)sliceAxis;
 - (NSInteger)sliceNumber;

@@ -20,6 +20,7 @@
 - (void)handleMouseDraggedFrom:(NSPoint)from delta:(NSPoint)delta forDocument:(MasonDocument *)document
 {
     struct point3 hoverPoint = [[document brickView] hoverPoint];
+    if(hoverPoint.x == -1) return;
     [document setBrickVoxel:0 at:hoverPoint];
 }
 

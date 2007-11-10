@@ -394,13 +394,13 @@ trixel_read_brick(const void * data, size_t data_length, bool prepare, char * * 
         goto error;
     }
 
-    brick->dimensions[0] = (float)header->width;
-    brick->dimensions[1] = (float)header->height;
-    brick->dimensions[2] = (float)header->depth;
+    brick->dimensions.x = (float)header->width;
+    brick->dimensions.y = (float)header->height;
+    brick->dimensions.z = (float)header->depth;
 
-    brick->dimensions_inv[0] = 1.0 / brick->dimensions[0];
-    brick->dimensions_inv[1] = 1.0 / brick->dimensions[1];
-    brick->dimensions_inv[2] = 1.0 / brick->dimensions[2];
+    brick->dimensions_inv.x = 1.0 / brick->dimensions.x;
+    brick->dimensions_inv.y = 1.0 / brick->dimensions.y;
+    brick->dimensions_inv.z = 1.0 / brick->dimensions.z;
 
     brick->palette_data = malloc(256 * 4);
     memset(brick->palette_data, 0, 256 * 4);
@@ -423,13 +423,13 @@ trixel_make_empty_brick(int w, int h, int d, bool prepare, char * * out_error_me
     trixel_brick * brick = malloc(sizeof(trixel_brick));
     memset(brick, 0, sizeof(trixel_brick));
 
-    brick->dimensions[0] = (float)w;
-    brick->dimensions[1] = (float)h;
-    brick->dimensions[2] = (float)d;
+    brick->dimensions.x = (float)w;
+    brick->dimensions.y = (float)h;
+    brick->dimensions.z = (float)d;
     
-    brick->dimensions_inv[0] = 1.0 / brick->dimensions[0];
-    brick->dimensions_inv[1] = 1.0 / brick->dimensions[1];
-    brick->dimensions_inv[2] = 1.0 / brick->dimensions[2];
+    brick->dimensions_inv.x = 1.0 / brick->dimensions.x;
+    brick->dimensions_inv.y = 1.0 / brick->dimensions.y;
+    brick->dimensions_inv.z = 1.0 / brick->dimensions.z;
 
     brick->palette_data = malloc(256 * 4);
     memset(brick->palette_data, 0, 256 * 4);
@@ -458,7 +458,7 @@ trixel_prepare_brick(trixel_brick * brick)
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
     glTexImage3D(
         GL_TEXTURE_3D, 0, GL_LUMINANCE8,
-        (GLsizei)brick->dimensions[0], (GLsizei)brick->dimensions[1], (GLsizei)brick->dimensions[2],
+        (GLsizei)brick->dimensions.x, (GLsizei)brick->dimensions.y, (GLsizei)brick->dimensions.z,
         0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL
     );
 
@@ -476,9 +476,9 @@ trixel_prepare_brick(trixel_brick * brick)
 
     trixel_update_brick_textures(brick);
 
-    GLshort width2  = (GLshort)brick->dimensions[0] / 2,
-            height2 = (GLshort)brick->dimensions[1] / 2,
-            depth2  = (GLshort)brick->dimensions[2] / 2;
+    GLshort width2  = (GLshort)brick->dimensions.x / 2,
+            height2 = (GLshort)brick->dimensions.y / 2,
+            depth2  = (GLshort)brick->dimensions.z / 2;
     struct {
         GLshort vertices[6*4*3];
         GLbyte  normals [6*4*3];
@@ -595,13 +595,13 @@ trixel_update_brick_textures(trixel_brick * brick)
     glTexSubImage3D(
         GL_TEXTURE_3D, 0,
         0, 0, 0,
-        (GLsizei)brick->dimensions[0], (GLsizei)brick->dimensions[1], (GLsizei)brick->dimensions[2],
+        (GLsizei)brick->dimensions.x, (GLsizei)brick->dimensions.y, (GLsizei)brick->dimensions.z,
         GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->voxmap_data
     );
     */
     glTexImage3D(
         GL_TEXTURE_3D, 0, GL_LUMINANCE8,
-        (GLsizei)brick->dimensions[0], (GLsizei)brick->dimensions[1], (GLsizei)brick->dimensions[2],
+        (GLsizei)brick->dimensions.x, (GLsizei)brick->dimensions.y, (GLsizei)brick->dimensions.z,
         0, GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->voxmap_data
     );
 
@@ -631,9 +631,9 @@ trixel_write_brick(trixel_brick * brick, size_t * out_data_length)
            
     strncpy(header->magic, BRICK_MAGIC, 4);
     header->colors = colors;
-    header->width  = (uint16_t)brick->dimensions[0];
-    header->height = (uint16_t)brick->dimensions[1];
-    header->depth  = (uint16_t)brick->dimensions[2];
+    header->width  = (uint16_t)brick->dimensions.x;
+    header->height = (uint16_t)brick->dimensions.y;
+    header->depth  = (uint16_t)brick->dimensions.z;
     
     memcpy(data + palette_offset, brick->palette_data + 4, palette_length);
     memcpy(data + voxmap_offset,  brick->voxmap_data, voxmap_length);
@@ -715,8 +715,8 @@ trixel_draw_from_brick(trixel_state t, trixel_brick * brick)
     glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
 
     glUseProgram(STATE(t)->voxel_program);
-    glUniform3fv(STATE(t)->voxel_uniforms.voxmap_size,     1, brick->dimensions);
-    glUniform3fv(STATE(t)->voxel_uniforms.voxmap_size_inv, 1, brick->dimensions_inv);
+    glUniform3fv(STATE(t)->voxel_uniforms.voxmap_size,     1, (GLfloat *)&brick->dimensions);
+    glUniform3fv(STATE(t)->voxel_uniforms.voxmap_size_inv, 1, (GLfloat *)&brick->dimensions_inv);
     glUniform1i(STATE(t)->voxel_uniforms.voxmap,  0);
     glUniform1i(STATE(t)->voxel_uniforms.palette, 1);
 }

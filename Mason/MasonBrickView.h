@@ -22,10 +22,12 @@
     struct slice_ops {
         char const * * trixel_flags;
         GLuint buffer_first, buffer_count;
+        void (*set_up_state_func)(void);
     } m_slice_ops[4];
 }
 
 - (struct point3)hoverPoint;
+- (struct point3)hoverNormal;
 - (NSString *)hoverPointString;
 
 - (void)yaw:(float)offset pitch:(float)offset;
@@ -36,5 +38,7 @@
 
 - (void)_generate_framebuffer;
 - (void)_destroy_framebuffer;
+
+- (struct point3)_hoverValueFromBuffer:(GLenum)buffer;
 
 @end

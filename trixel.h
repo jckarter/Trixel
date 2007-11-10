@@ -13,8 +13,15 @@ struct point3 {
     float x, y, z;
 };
 
+static inline struct point3 add_point3(struct point3 a, struct point3 b) 
+    { return (struct point3){ a.x + b.x, a.y + b.y, a.z + b.z }; }
+static inline struct point3 sub_point3(struct point3 a, struct point3 b) 
+    { return (struct point3){ a.x - b.x, a.y - b.y, a.z - b.z }; }
+static inline bool in_point3(struct point3 bound, struct point3 p) 
+    { return p.x >= 0 && p.y >= 0 && p.z >= 0 && p.x < bound.x && p.y < bound.y && p.z < bound.z; }
+
 typedef struct tag_trixel_brick {
-    float dimensions[3], dimensions_inv[3];
+    struct point3 dimensions, dimensions_inv;
     unsigned char * palette_data;
     unsigned char * voxmap_data;
     GLuint palette_texture, voxmap_texture, vertex_buffer;
@@ -23,11 +30,11 @@ typedef struct tag_trixel_brick {
 typedef void * trixel_state;
 
 static inline unsigned char * trixel_brick_voxel(trixel_brick * b, int x, int y, int z)
-    { return &b->voxmap_data[x + y * (int)b->dimensions[0] + z * (int)b->dimensions[0] * (int)b->dimensions[1]]; }
+    { return &b->voxmap_data[x + y * (int)b->dimensions.x + z * (int)b->dimensions.x * (int)b->dimensions.y]; }
 static inline unsigned char * trixel_brick_palette_color(trixel_brick * b, int color)
     { return &b->palette_data[color * 4]; }
 static inline size_t trixel_brick_voxmap_size(trixel_brick * b)
-    { return (size_t)b->dimensions[0] * (size_t)b->dimensions[1] * (size_t)b->dimensions[2]; }
+    { return (size_t)b->dimensions.x * (size_t)b->dimensions.y * (size_t)b->dimensions.z; }
 
 trixel_state trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message);
 void trixel_reshape(trixel_state t, int viewport_width, int viewport_height);

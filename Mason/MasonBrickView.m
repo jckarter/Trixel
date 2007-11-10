@@ -35,6 +35,19 @@ fbound(float x, float mn, float mx)
     return fmin(fmax(x, mn), mx);
 }
 
+void
+surface_set_up_state(void)
+{
+    glDisable(GL_BLEND);
+}
+
+void
+slice_set_up_state(void)
+{
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+}
+
 @implementation MasonBrickView
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
@@ -127,6 +140,7 @@ fbound(float x, float mn, float mx)
             NSLog(@"error resetting trixel flags!! %s", error); // XXX real error handling
             free(error);
         }
+        m_slice_ops[ [o_document sliceAxis] ].set_up_state_func();
         
         [self setNeedsDisplay:YES];
     }
@@ -334,18 +348,22 @@ fbound(float x, float mn, float mx)
     m_slice_ops[SLICE_AXIS_SURFACE].trixel_flags = g_surface_flags;
     m_slice_ops[SLICE_AXIS_SURFACE].buffer_first = 0;
     m_slice_ops[SLICE_AXIS_SURFACE].buffer_count = 24;    
+    m_slice_ops[SLICE_AXIS_SURFACE].set_up_state_func = surface_set_up_state;
 
     m_slice_ops[SLICE_AXIS_XAXIS].trixel_flags = g_slice_flags;
     m_slice_ops[SLICE_AXIS_XAXIS].buffer_first = width_elt_offset;
     m_slice_ops[SLICE_AXIS_XAXIS].buffer_count = 8;    
+    m_slice_ops[SLICE_AXIS_XAXIS].set_up_state_func = slice_set_up_state;
 
     m_slice_ops[SLICE_AXIS_YAXIS].trixel_flags = g_slice_flags;
     m_slice_ops[SLICE_AXIS_YAXIS].buffer_first = height_elt_offset;
     m_slice_ops[SLICE_AXIS_YAXIS].buffer_count = 8;    
+    m_slice_ops[SLICE_AXIS_YAXIS].set_up_state_func = slice_set_up_state;
 
     m_slice_ops[SLICE_AXIS_ZAXIS].trixel_flags = g_slice_flags;
     m_slice_ops[SLICE_AXIS_ZAXIS].buffer_first = depth_elt_offset;
     m_slice_ops[SLICE_AXIS_ZAXIS].buffer_count = 8;    
+    m_slice_ops[SLICE_AXIS_ZAXIS].set_up_state_func = slice_set_up_state;
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -539,6 +557,7 @@ fbound(float x, float mn, float mx)
     glLoadIdentity();
     
     glUseProgram(0);
+    glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_2D);
@@ -661,13 +680,23 @@ fbound(float x, float mn, float mx)
 
 - (struct point3)hoverPoint
 {
+    return [self _hoverValueFromBuffer:GL_COLOR_ATTACHMENT1_EXT];
+}
+
+- (struct point3)hoverNormal
+{
+    return [self _hoverValueFromBuffer:GL_COLOR_ATTACHMENT2_EXT];
+}
+
+- (struct point3)_hoverValueFromBuffer:(GLenum)buffer
+{
     if(!m_hovering)
         return (struct point3){ -1, -1, -1 };
 
     float hoverPixelColor[4];
     
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
-    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+    glReadBuffer(buffer);
     glReadPixels(
         (GLint)m_hoverPixel.x, (GLint)m_hoverPixel.y,
         1, 1,
@@ -684,7 +713,7 @@ fbound(float x, float mn, float mx)
             hoverPixelColor[0],
             hoverPixelColor[1],
             hoverPixelColor[2]
-        };
+        };    
 }
 
 - (NSString*)hoverPointString

@@ -38,5 +38,6 @@
 - (unsigned)width;
 - (unsigned)height;
 - (unsigned)depth;
+- (struct point3)dimensions;
 
 @end
