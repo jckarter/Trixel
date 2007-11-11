@@ -13,13 +13,14 @@
     IBOutlet NSTableView *o_paletteTableView;
     IBOutlet NSArrayController *o_paletteController;
     
-    MasonBrick * m_brick;
-    NSUInteger m_currentPaletteColor;
-    NSInteger m_sliceAxis, m_sliceNumber;
+    MasonBrick * brick;
+    NSUInteger currentPaletteColor;
+    NSInteger sliceAxis, sliceNumber;
 }
 
-- (MasonBrick *)brick;
-- (void)setBrick:(MasonBrick *)brick;
+@property MasonBrick * brick;
+@property(readonly) NSUInteger currentPaletteColor;
+@property(readonly) NSInteger sliceAxis, sliceNumber;
 
 - (MasonBrickView *)brickView;
 
@@ -29,14 +30,12 @@
 - (IBAction)updateSliceAxis:(id)sender;
 - (IBAction)moveSlice:(id)sender;
 
-- (NSUInteger)currentPaletteColor;
+- (IBAction)showResizePanel:(id)sender;
+
 - (void)updatePaletteIndex:(NSUInteger)index withColor:(NSColor *)color;
 
 - (void)setBrickVoxel:(NSUInteger)index at:(struct point3)pt;
 - (NSUInteger)brickVoxelAt:(struct point3)pt;
-
-- (NSInteger)sliceAxis;
-- (NSInteger)sliceNumber;
 
 - (BOOL)canMoveSlice;
 - (BOOL)canMovePreviousSlice;
@@ -46,12 +45,6 @@
 - (BOOL)sliceAxisX;
 - (BOOL)sliceAxisY;
 - (BOOL)sliceAxisZ;
-
-// private
-- (MasonBrick *)_default_brick;
-- (unsigned)_max_slice;
-- (void)setSliceAxis:(NSInteger)sliceAxis;
-- (void)setSliceNumber:(NSInteger)sliceNumber;
 
 @end
 

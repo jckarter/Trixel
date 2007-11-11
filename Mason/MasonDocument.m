@@ -2,9 +2,22 @@
 #import "MasonColorCell.h"
 #import "MasonBrick.h"
 #import "MasonBrickView.h"
+#import "MasonResizeBrickController.h"
 #include <stdlib.h>
 
+@interface MasonDocument ()
+
+@property(readwrite) NSUInteger currentPaletteColor;
+@property(readwrite) NSInteger sliceAxis, sliceNumber;
+
+- (MasonBrick *)_defaultBrick;
+- (unsigned)_maxSlice;
+
+@end
+
 @implementation MasonDocument
+
+@synthesize brick, currentPaletteColor, sliceAxis, sliceNumber;
 
 + (void)initialize
 {
@@ -29,7 +42,7 @@
 {
     self = [super init];
     if(self) {
-        m_brick = [self _default_brick];
+        brick = [self _defaultBrick];
         [self setHasUndoManager:YES];
     }
     return self;
@@ -50,9 +63,9 @@
     [super windowControllerDidLoadNib:aController];
         
     [o_sliceAxisSelector selectSegmentWithTag:SLICE_AXIS_SURFACE];
-    [self setSliceAxis:SLICE_AXIS_SURFACE];
-    [self setSliceNumber:0];
-    m_currentPaletteColor = 1;
+    self.sliceAxis = SLICE_AXIS_SURFACE;
+    self.sliceNumber = 0;
+    self.currentPaletteColor = 1;
     [o_paletteController setSelectionIndex:1];
     
     NSTableColumn * paletteColumn = [[o_paletteTableView tableColumns] objectAtIndex:0];
@@ -66,44 +79,29 @@
 - (IBAction)summonColorPanelForPalette:(id)sender
 {
     NSColorPanel * colorPanel = [NSColorPanel sharedColorPanel];
-    m_currentPaletteColor = [sender clickedRow];
+    self.currentPaletteColor = [sender clickedRow];
     [colorPanel setTarget:self];
     [colorPanel setAction:@selector(updatePaletteColorFromPanel:)];
     [colorPanel setShowsAlpha:NO]; //YES];
-	[colorPanel setColor:[m_brick objectInPaletteColorsAtIndex:m_currentPaletteColor]];
+	[colorPanel setColor:[brick objectInPaletteColorsAtIndex:self.currentPaletteColor]];
 	[colorPanel makeKeyAndOrderFront:self];
-    [o_paletteController setSelectionIndex:m_currentPaletteColor];
+    [o_paletteController setSelectionIndex:self.currentPaletteColor];
 }
 
 - (IBAction)updatePaletteColorFromPanel:(id)sender
 {
-    [self updatePaletteIndex:m_currentPaletteColor withColor:[sender color]];
-}
-
-- (NSUInteger)currentPaletteColor
-{
-    return m_currentPaletteColor;
+    [self updatePaletteIndex:self.currentPaletteColor withColor:[sender color]];
 }
 
 - (NSData *)dataOfType:(NSString *)typeName error:(NSError **)out_error
 {
-    return [m_brick data];
+    return [brick data];
 }
 
 - (BOOL)readFromData:(NSData *)data ofType:(NSString *)typeName error:(NSError **)out_error
 {
-    [self setBrick:[[MasonBrick alloc] initWithData:data withError:out_error]];
-    return !!m_brick;
-}
-
-- (void)setBrick:(MasonBrick *)brick
-{
-    m_brick = brick;
-}
-
-- (MasonBrick *)brick
-{
-    return m_brick;
+    self.brick = [[MasonBrick alloc] initWithData:data withError:out_error];
+    return !!brick;
 }
 
 - (MasonBrickView *)brickView
@@ -116,10 +114,10 @@
     if(pt.x < 0.0)
         return;
         
-    unsigned old = [m_brick voxelX:pt.x y:pt.y z:pt.z];
+    unsigned old = [brick voxelX:pt.x y:pt.y z:pt.z];
     if(index != old) {
         [[[self undoManager] prepareWithInvocationTarget:self] setBrickVoxel:old at:pt];
-        [m_brick setVoxel:index x:pt.x y:pt.y z:pt.z];
+        [brick setVoxel:index x:pt.x y:pt.y z:pt.z];
     }
 }
 
@@ -128,22 +126,22 @@
     if(pt.x < 0.0)
         return (NSUInteger)-1;
 
-    return [m_brick voxelX:pt.x y:pt.y z:pt.z];    
+    return [brick voxelX:pt.x y:pt.y z:pt.z];    
 }
 
 - (void)updatePaletteIndex:(NSUInteger)index withColor:(NSColor *)color
 {
-    NSColor * oldColor = [m_brick objectInPaletteColorsAtIndex:index];
+    NSColor * oldColor = [brick objectInPaletteColorsAtIndex:index];
     if([color isEqualTo:oldColor])
         return;
     
     [[[self undoManager] prepareWithInvocationTarget:self]
         updatePaletteIndex:index
         withColor:oldColor];
-    [m_brick replaceObjectInPaletteColorsAtIndex:index withObject:color];
+    [brick replaceObjectInPaletteColorsAtIndex:index withObject:color];
 }
 
-- (MasonBrick *)_default_brick
+- (MasonBrick *)_defaultBrick
 {
     NSError *error;
     return [[MasonBrick alloc] initEmptyWithWidth:16 height:16 depth:16
@@ -156,21 +154,21 @@
         ? [sender selectedSegment]
         : [sender tag];
         
-    [self setSliceAxis:tag];
-    [self setSliceNumber:0];
+    self.sliceAxis = tag;
+    self.sliceNumber = 0;
 }
 
-- (unsigned)_max_slice
+- (unsigned)_maxSlice
 {
-    switch(m_sliceAxis) {
+    switch(sliceAxis) {
         case SLICE_AXIS_SURFACE:
             return 0;
         case SLICE_AXIS_XAXIS:
-            return [m_brick width] - 1;
+            return [brick width] - 1;
         case SLICE_AXIS_YAXIS:
-            return [m_brick height] - 1;
+            return [brick height] - 1;
         case SLICE_AXIS_ZAXIS:
-            return [m_brick depth] - 1;
+            return [brick depth] - 1;
     }
     NSLog(@"fell out of _max_slice ?!?!?");
     return 0;
@@ -184,51 +182,36 @@
         
     if(tag == SLICE_MOVE_PREVIOUS
         && [self canMovePreviousSlice])
-        [self setSliceNumber:[self sliceNumber] - 1];
+        --self.sliceNumber;
     else if(tag == SLICE_MOVE_NEXT
             && [self canMoveNextSlice])
-        [self setSliceNumber:[self sliceNumber] + 1];
+        ++self.sliceNumber;
 }
 
 - (BOOL)canMoveSlice
 {
-    return m_sliceAxis != SLICE_AXIS_SURFACE;
+    return self.sliceAxis != SLICE_AXIS_SURFACE;
 }
 
 - (BOOL)canMovePreviousSlice
 {
-    return m_sliceNumber > 0;
+    return self.sliceNumber > 0;
 }
 
 - (BOOL)canMoveNextSlice
 {
-    return m_sliceNumber < [self _max_slice];
+    return self.sliceNumber < [self _maxSlice];
 }
 
-- (BOOL)sliceAxisSurface { return m_sliceAxis == SLICE_AXIS_SURFACE; }
-- (BOOL)sliceAxisX       { return m_sliceAxis == SLICE_AXIS_XAXIS;   }
-- (BOOL)sliceAxisY       { return m_sliceAxis == SLICE_AXIS_YAXIS;   }
-- (BOOL)sliceAxisZ       { return m_sliceAxis == SLICE_AXIS_ZAXIS;   }
+- (BOOL)sliceAxisSurface { return sliceAxis == SLICE_AXIS_SURFACE; }
+- (BOOL)sliceAxisX       { return sliceAxis == SLICE_AXIS_XAXIS;   }
+- (BOOL)sliceAxisY       { return sliceAxis == SLICE_AXIS_YAXIS;   }
+- (BOOL)sliceAxisZ       { return sliceAxis == SLICE_AXIS_ZAXIS;   }
 
-- (NSInteger)sliceAxis
+- (IBAction)showResizePanel:(id)sender
 {
-    return m_sliceAxis;
-}
-- (NSInteger)sliceNumber
-{
-    return m_sliceNumber;
-}
-- (void)setSliceAxis:(NSInteger)sliceAxis
-{
-    m_sliceAxis = sliceAxis;
-    if([o_sliceAxisSelector selectedSegment] != m_sliceAxis)
-        [o_sliceAxisSelector setSelectedSegment:m_sliceAxis];
-}
-- (void)setSliceNumber:(NSInteger)sliceNumber
-{
-    m_sliceNumber = sliceNumber;
-    [o_sliceMover setEnabled:[self canMovePreviousSlice] forSegment:SLICE_MOVE_PREVIOUS];
-    [o_sliceMover setEnabled:[self canMoveNextSlice] forSegment:SLICE_MOVE_NEXT];
+    MasonResizeBrickController * controller = [[MasonResizeBrickController alloc] initWithDocument:self];
+    [controller run];
 }
 
 @end

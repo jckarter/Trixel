@@ -8,6 +8,10 @@
     trixel_brick * m_brick;
 }
 
+@property(readonly) NSString * sizeString;
+@property(readonly) unsigned width, height, depth;
+@property(readonly) struct point3 dimensions;
+
 - (MasonBrick *)initWithData:(NSData *)data withError:(NSError **)out_error;
 - (MasonBrick *)initWithContentsOfFile:(NSString *)filename withError:(NSError **)out_error;
 - (MasonBrick *)initEmptyWithWidth:(int)width height:(int)height depth:(int)depth withError:(NSError **)out_error;
@@ -33,11 +37,5 @@
 - (NSData *)voxmap;
 - (unsigned)voxelX:(unsigned)x y:(unsigned)y z:(unsigned)z;
 - (void)setVoxel:(unsigned)index x:(unsigned)x y:(unsigned)y z:(unsigned)z;
-
-- (NSString *)sizeString;
-- (unsigned)width;
-- (unsigned)height;
-- (unsigned)depth;
-- (struct point3)dimensions;
 
 @end

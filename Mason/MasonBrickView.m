@@ -48,6 +48,16 @@ slice_set_up_state(void)
     glEnable(GL_BLEND);
 }
 
+@interface MasonBrickView ()
+- (void)_drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber;
+- (void)_drawFramebufferToWindow;
+
+- (void)_generateFramebuffer;
+- (void)_destroyFramebuffer;
+
+- (struct point3)_hoverValueFromBuffer:(GLenum)buffer;
+@end
+
 @implementation MasonBrickView
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
@@ -368,7 +378,7 @@ slice_set_up_state(void)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     [brick prepare];
-    [self _generate_framebuffer];
+    [self _generateFramebuffer];
 }
 
 - (void)reshape
@@ -383,7 +393,7 @@ slice_set_up_state(void)
     trixel_reshape(m_t, NSWidth(frame), NSHeight(frame));
         
     [[self openGLContext] update];
-    [self _generate_framebuffer];
+    [self _generateFramebuffer];
     [self setNeedsDisplay:YES];
 }
 
@@ -394,10 +404,10 @@ slice_set_up_state(void)
     [self setNeedsDisplay:YES];
 }
 
-- (void)_generate_framebuffer
+- (void)_generateFramebuffer
 {
     if(m_framebuffer)
-        [self _destroy_framebuffer];
+        [self _destroyFramebuffer];
 
     glGenFramebuffersEXT(1, &m_framebuffer);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
@@ -437,7 +447,7 @@ slice_set_up_state(void)
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 }
 
-- (void)_destroy_framebuffer
+- (void)_destroyFramebuffer
 {
     glDeleteFramebuffersEXT(1, &m_framebuffer);
     glDeleteTextures(1, &m_color_texture);
@@ -448,7 +458,7 @@ slice_set_up_state(void)
     m_framebuffer = m_color_texture = m_hover_renderbuffer = m_depth_renderbuffer = 0;
 }
 
-- (void)drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber
+- (void)_drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber
 {
     [brick useForDrawing:m_t];
 
@@ -546,7 +556,7 @@ slice_set_up_state(void)
     glEnd();
 }
 
-- (void)drawFramebufferToWindow
+- (void)_drawFramebufferToWindow
 {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     glDrawBuffer(GL_BACK);
@@ -602,9 +612,9 @@ slice_set_up_state(void)
     [self drawAxesForBrick:[o_document brick]];    
 
     glDrawBuffers(g_num_draw_buffers, draw_buffers);
-    [self drawBrick:[o_document brick] sliceAxis:[o_document sliceAxis] sliceNumber:[o_document sliceNumber]];
+    [self _drawBrick:[o_document brick] sliceAxis:[o_document sliceAxis] sliceNumber:[o_document sliceNumber]];
     
-    [self drawFramebufferToWindow];
+    [self _drawFramebufferToWindow];
     
     [[self openGLContext] flushBuffer];
 }

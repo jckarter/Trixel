@@ -5,11 +5,11 @@
 
 @interface MasonToolboxController : NSObject
 {
-    MasonTool * m_currentTool;
+    MasonTool * currentTool;
 }
 
-- (IBAction)changeCurrentTool:(id)sender;
+@property(readonly) MasonTool * currentTool;
 
-- (MasonTool *)currentTool;
+- (IBAction)changeCurrentTool:(id)sender;
 
 @end

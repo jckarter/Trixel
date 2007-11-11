@@ -8,15 +8,13 @@
 
 static NSArray * g_tools;
 
+@interface MasonToolboxController ()
+@property(readwrite) MasonTool * currentTool;
+@end
+
 @implementation MasonToolboxController
 
-+ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
-{
-    if([key isEqualToString:@"currentTool"])
-        return NO;
-    else
-        return [super automaticallyNotifiesObserversForKey:key];
-}
+@synthesize currentTool;
 
 + (void)initialize
 {
@@ -33,19 +31,12 @@ static NSArray * g_tools;
 
 - (void)awakeFromNib
 {
-    m_currentTool = [g_tools objectAtIndex:0];
+    self.currentTool = [g_tools objectAtIndex:0];
 }
 
 - (IBAction)changeCurrentTool:(id)sender
 {
-    [self willChangeValueForKey:@"currentTool"];
-    m_currentTool = [g_tools objectAtIndex:[sender selectedTag]];
-    [self didChangeValueForKey:@"currentTool"];
-}
-
-- (MasonTool *)currentTool
-{
-    return m_currentTool;
+    self.currentTool = [g_tools objectAtIndex:[sender selectedTag]];
 }
 
 @end

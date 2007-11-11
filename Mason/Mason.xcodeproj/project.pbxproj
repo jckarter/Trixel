@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
-		8D15AC2D0486D014006FF6A4 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */; };
-		8D15AC2E0486D014006FF6A4 /* MasonDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B4FDCFA73011CA2CEA /* MasonDocument.nib */; };
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
 		8D15AC310486D014006FF6A4 /* MasonDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4ACFDCFA73011CA2CEA /* MasonDocument.m */; settings = {ATTRIBUTES = (); }; };
 		8D15AC320486D014006FF6A4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4B0FDCFA73011CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
@@ -32,6 +30,10 @@
 		D8D7E0A30CE41BD800FDE860 /* MasonBuildTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D7E0A20CE41BD800FDE860 /* MasonBuildTool.m */; };
 		D8D7E0A80CE41C1100FDE860 /* MasonPullTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D7E0A50CE41C1100FDE860 /* MasonPullTool.m */; };
 		D8D7E0A90CE41C1100FDE860 /* MasonPushTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D7E0A70CE41C1100FDE860 /* MasonPushTool.m */; };
+		D8D7E0B70CE621DC00FDE860 /* MasonResizeBrickController.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D7E0B60CE621DC00FDE860 /* MasonResizeBrickController.m */; };
+		D8D7E1B20CE69A7500FDE860 /* MasonDocument.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E1B00CE69A7500FDE860 /* MasonDocument.xib */; };
+		D8D7E1B50CE69AAE00FDE860 /* ResizeBrick.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E1B40CE69AAE00FDE860 /* ResizeBrick.xib */; };
+		D8D7E1B80CE69AD000FDE860 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E1B60CE69AD000FDE860 /* MainMenu.xib */; };
 		D8EDAF200C7E670E00D0DE3F /* surface.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1C0C7E670E00D0DE3F /* surface.png */; };
 		D8EDAF210C7E670E00D0DE3F /* xslice.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1D0C7E670E00D0DE3F /* xslice.png */; };
 		D8EDAF220C7E670E00D0DE3F /* yslice.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1E0C7E670E00D0DE3F /* yslice.png */; };
@@ -53,8 +55,6 @@
 		2A37F4ACFDCFA73011CA2CEA /* MasonDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonDocument.m; sourceTree = "<group>"; };
 		2A37F4AEFDCFA73011CA2CEA /* MasonDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonDocument.h; sourceTree = "<group>"; };
 		2A37F4B0FDCFA73011CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		2A37F4B5FDCFA73011CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MasonDocument.nib; sourceTree = "<group>"; };
-		2A37F4B7FDCFA73011CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		2A37F4BAFDCFA73011CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = English.lproj/Credits.rtf; sourceTree = "<group>"; };
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -90,6 +90,11 @@
 		D8D7E0A50CE41C1100FDE860 /* MasonPullTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonPullTool.m; sourceTree = "<group>"; };
 		D8D7E0A60CE41C1100FDE860 /* MasonPushTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonPushTool.h; sourceTree = "<group>"; };
 		D8D7E0A70CE41C1100FDE860 /* MasonPushTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonPushTool.m; sourceTree = "<group>"; };
+		D8D7E0B20CE6202400FDE860 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/ResizeBrick.xib; sourceTree = "<group>"; };
+		D8D7E0B50CE621DC00FDE860 /* MasonResizeBrickController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonResizeBrickController.h; sourceTree = "<group>"; };
+		D8D7E0B60CE621DC00FDE860 /* MasonResizeBrickController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonResizeBrickController.m; sourceTree = "<group>"; };
+		D8D7E1B10CE69A7500FDE860 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MasonDocument.xib; sourceTree = "<group>"; };
+		D8D7E1B70CE69AD000FDE860 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		D8EDAF1C0C7E670E00D0DE3F /* surface.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = surface.png; sourceTree = "<group>"; };
 		D8EDAF1D0C7E670E00D0DE3F /* xslice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = xslice.png; sourceTree = "<group>"; };
 		D8EDAF1E0C7E670E00D0DE3F /* yslice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = yslice.png; sourceTree = "<group>"; };
@@ -189,6 +194,8 @@
 				D80648150C8B7DB200B731DD /* MasonColorCell.m */,
 				D8D11C2E0C93102E000E5EF8 /* MasonBrick.h */,
 				D8D11C2F0C93102E000E5EF8 /* MasonBrick.m */,
+				D8D7E0B50CE621DC00FDE860 /* MasonResizeBrickController.h */,
+				D8D7E0B60CE621DC00FDE860 /* MasonResizeBrickController.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -207,6 +214,8 @@
 		2A37F4B8FDCFA73011CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D8D7E1B60CE69AD000FDE860 /* MainMenu.xib */,
+				D8D7E1B00CE69A7500FDE860 /* MasonDocument.xib */,
 				D8D7E09B0CE413E800FDE860 /* build.png */,
 				D8D7E09C0CE413E800FDE860 /* pull.png */,
 				D8D7E09D0CE413E800FDE860 /* push.png */,
@@ -223,10 +232,9 @@
 				D8EDAF1E0C7E670E00D0DE3F /* yslice.png */,
 				D8EDAF1F0C7E670E00D0DE3F /* zslice.png */,
 				2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */,
-				2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */,
-				2A37F4B4FDCFA73011CA2CEA /* MasonDocument.nib */,
 				8D15AC360486D014006FF6A4 /* Info.plist */,
 				089C165FFE840EACC02AAC07 /* InfoPlist.strings */,
+				D8D7E1B40CE69AAE00FDE860 /* ResizeBrick.xib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -284,8 +292,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */,
-				8D15AC2D0486D014006FF6A4 /* MainMenu.nib in Resources */,
-				8D15AC2E0486D014006FF6A4 /* MasonDocument.nib in Resources */,
 				8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */,
 				D8EDAF200C7E670E00D0DE3F /* surface.png in Resources */,
 				D8EDAF210C7E670E00D0DE3F /* xslice.png in Resources */,
@@ -302,6 +308,9 @@
 				D8D7E09E0CE413E800FDE860 /* build.png in Resources */,
 				D8D7E09F0CE413E800FDE860 /* pull.png in Resources */,
 				D8D7E0A00CE413E800FDE860 /* push.png in Resources */,
+				D8D7E1B50CE69AAE00FDE860 /* ResizeBrick.xib in Resources */,
+				D8D7E1B20CE69A7500FDE860 /* MasonDocument.xib in Resources */,
+				D8D7E1B80CE69AD000FDE860 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,6 +336,7 @@
 				D8D7E0A30CE41BD800FDE860 /* MasonBuildTool.m in Sources */,
 				D8D7E0A80CE41C1100FDE860 /* MasonPullTool.m in Sources */,
 				D8D7E0A90CE41C1100FDE860 /* MasonPushTool.m in Sources */,
+				D8D7E0B70CE621DC00FDE860 /* MasonResizeBrickController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -341,28 +351,36 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		2A37F4B4FDCFA73011CA2CEA /* MasonDocument.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				2A37F4B5FDCFA73011CA2CEA /* English */,
-			);
-			name = MasonDocument.nib;
-			sourceTree = "<group>";
-		};
-		2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				2A37F4B7FDCFA73011CA2CEA /* English */,
-			);
-			name = MainMenu.nib;
-			sourceTree = "<group>";
-		};
 		2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */ = {
 			isa = PBXVariantGroup;
 			children = (
 				2A37F4BAFDCFA73011CA2CEA /* English */,
 			);
 			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		D8D7E1B00CE69A7500FDE860 /* MasonDocument.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D8D7E1B10CE69A7500FDE860 /* English */,
+			);
+			name = MasonDocument.xib;
+			sourceTree = "<group>";
+		};
+		D8D7E1B40CE69AAE00FDE860 /* ResizeBrick.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D8D7E0B20CE6202400FDE860 /* English */,
+			);
+			name = ResizeBrick.xib;
+			sourceTree = "<group>";
+		};
+		D8D7E1B60CE69AD000FDE860 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D8D7E1B70CE69AD000FDE860 /* English */,
+			);
+			name = MainMenu.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
