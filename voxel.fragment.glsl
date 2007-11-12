@@ -1,11 +1,20 @@
+const float tbias = 0.00001;
+
 varying vec3 ray, p0, rayscaled, p0scaled, surface_normal;
 
 uniform sampler3D voxmap;
 uniform sampler1D palette;
 uniform vec3 voxmap_size, voxmap_size_inv;
 
-const float tbias = 0.00001;
+#ifdef TRIXEL_LIGHTING
+struct light_struct {
+    vec4 diffuse, ambient;
+    vec4 position;
+};
+
 const int num_lights = 1;
+uniform light_struct lights[num_lights];
+#endif
 
 float
 minelt(vec3 v)
@@ -75,8 +84,8 @@ light(vec4 color)
 {
     vec4 lit_color = vec4(0.0);
     for(int light = 0; light < num_lights; ++light) {
-        vec3 light_direction = normalize(gl_LightSource[light].position.xyz - world_cast_pt);
-        lit_color += gl_LightSource[light].ambient + gl_LightSource[light].diffuse * color * dot(light_direction, normal);
+        vec3 light_direction = normalize(lights[light].position.xyz - world_cast_pt);
+        lit_color += (lights[light].ambient + lights[light].diffuse * dot(light_direction, normal)) * color;
     }
     return lit_color;
 }

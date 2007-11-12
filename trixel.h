@@ -9,6 +9,10 @@
 #define TRIXEL_SURFACE_ONLY "TRIXEL_SURFACE_ONLY"
 #define TRIXEL_LIGHTING "TRIXEL_LIGHTING"
 
+#define TRIXEL_LIGHT_PARAM_POSITION "position"
+#define TRIXEL_LIGHT_PARAM_AMBIENT  "ambient"
+#define TRIXEL_LIGHT_PARAM_DIFFUSE  "diffuse"
+
 struct point3 {
     float x, y, z;
 };
@@ -65,6 +69,8 @@ char * trixel_resource_filename(trixel_state t, char const * filename);
 char * contents_from_filename(char const * filename, size_t * out_length);
 
 trixel_brick * trixel_read_brick_from_filename(char const * filename, bool prepare, char * * out_error_message);
+
+void trixel_light_param(trixel_state t, GLuint light, char const * param_name, GLfloat * param_value);
 
 // These only free the memory used by Trixel structures, without destroying OpenGL objects
 // Use in environments where the GL contexts are managed independent of your code (e.g. GC-enabled Cocoa)

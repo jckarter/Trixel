@@ -26,12 +26,13 @@ set_video_mode(int width, int height, char * * out_error_message)
     if(!t)
         goto error;
 
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
     GLfloat ambient[4] = { 0.2, 0.2, 0.2, 1.0 };
     GLfloat diffuse[4] = { 0.8, 0.8, 0.8, 1.0 };
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+    GLfloat position[4] = { -32.0, 32.0, 64.0, 1.0 };
+
+    trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_AMBIENT, ambient);
+    trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_DIFFUSE, diffuse);
+    trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_POSITION, position);
 
     return t;
 
@@ -54,9 +55,6 @@ draw(trixel_state t, float eye[], float yaw, float pitch)
     glRotatef(yaw, 0.0, 1.0, 0.0);
     glTranslatef(-eye[0], -eye[1], -eye[2]);
 
-    GLfloat position[4] = { -32.0, 32.0, 64.0, 1.0 };
-    glLightfv(GL_LIGHT0, GL_POSITION, position);
-    
     trixel_draw_brick(t, g_brick);
     
     SDL_GL_SwapBuffers();

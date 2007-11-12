@@ -756,3 +756,23 @@ trixel_read_brick_from_filename(char const * filename, bool prepare, char * * ou
 error:
     return NULL;
 }
+
+static GLint
+_light_param_location(trixel_state t, GLuint light, char const * param_name)
+{
+    size_t buflen = 9 + 11 + strlen(param_name) + 1; // length of "lights[].", -MAX_INT, param_name, and '\0'
+    char name[buflen];
+    snprintf(name, buflen, "lights[%u].%s", light, param_name);
+    GLint r = glGetUniformLocation(STATE(t)->voxel_program, name);
+    _gl_report_error("light param location");
+    return r;
+}
+
+void
+trixel_light_param(trixel_state t, GLuint light, char const * param_name, GLfloat * value)
+{
+    GLint uniform = _light_param_location(t, light, param_name);
+    glUseProgram(STATE(t)->voxel_program);
+    glUniform4fv(uniform, 1, value);
+    _gl_report_error("set light param");
+}
