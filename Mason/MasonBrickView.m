@@ -53,6 +53,7 @@ slice_set_up_state(void)
 - (void)_drawFramebufferToWindow;
 
 - (void)_generateFramebuffer;
+- (void)_prepareVertexBufferForBrick:(MasonBrick *)brick;
 - (void)_destroyFramebuffer;
 
 - (struct point3)_hoverValueFromBuffer:(GLenum)buffer;
@@ -120,11 +121,14 @@ slice_set_up_state(void)
             owner:self
             userInfo:nil]];
     
-    [[NSApp toolboxController] addObserver:self forKeyPath:@"currentTool" options:NSKeyValueObservingOptionNew context:NULL];
-    [[o_document brick] addObserver:self forKeyPath:@"voxmap" options:NSKeyValueObservingOptionNew context:NULL];
-    [[o_document brick] addObserver:self forKeyPath:@"paletteColors" options:NSKeyValueObservingOptionNew context:NULL];
-    [o_document addObserver:self forKeyPath:@"sliceAxis" options:NSKeyValueObservingOptionNew context:NULL];
-    [o_document addObserver:self forKeyPath:@"sliceNumber" options:NSKeyValueObservingOptionNew context:NULL];
+    [[NSApp toolboxController] addObserver:self forKeyPath:@"currentTool" options:NSKeyValueObservingOptionOld context:NULL];
+    [[NSApp toolboxController] addObserver:self forKeyPath:@"showBoundingBox" options:NSKeyValueObservingOptionOld context:NULL];
+    [[NSApp toolboxController] addObserver:self forKeyPath:@"showAxes" options:NSKeyValueObservingOptionOld context:NULL];
+    [o_document addObserver:self forKeyPath:@"sliceAxis" options:NSKeyValueObservingOptionOld context:NULL];
+    [o_document addObserver:self forKeyPath:@"sliceNumber" options:NSKeyValueObservingOptionOld context:NULL];
+    [o_document addObserver:self forKeyPath:@"brick" options:NSKeyValueObservingOptionOld context:NULL];
+    [[o_document brick] addObserver:self forKeyPath:@"voxmap" options:NSKeyValueObservingOptionOld context:NULL];
+    [[o_document brick] addObserver:self forKeyPath:@"paletteColors" options:NSKeyValueObservingOptionOld context:NULL];
     
     [[self window] invalidateCursorRectsForView:self];
 }
@@ -140,6 +144,10 @@ slice_set_up_state(void)
     if(object == [NSApp toolboxController] && [path isEqualToString:@"currentTool"]) {
         [[self window] invalidateCursorRectsForView:self];
     }
+    else if(object == [NSApp toolboxController]
+            && ([path isEqualToString:@"showBoundingBox"] || [path isEqualToString:@"showAxes"])) {
+        [self setNeedsDisplay:YES];
+    }
     else if(object == o_document && [path isEqualToString:@"sliceAxis"] && m_t) {
         char * error;
         if(!trixel_update_shaders(
@@ -154,7 +162,18 @@ slice_set_up_state(void)
         
         [self setNeedsDisplay:YES];
     }
-    else if(object == o_document || object == [o_document brick])
+    else if(object == o_document && [path isEqualToString:@"brick"]) {
+        [[change objectForKey:NSKeyValueChangeOldKey] removeObserver:self forKeyPath:@"voxmap"];
+        [[change objectForKey:NSKeyValueChangeOldKey] removeObserver:self forKeyPath:@"paletteColors"];
+        [o_document.brick addObserver:self forKeyPath:@"voxmap" options:NSKeyValueObservingOptionOld context:NULL];
+        [o_document.brick addObserver:self forKeyPath:@"paletteColors" options:NSKeyValueObservingOptionOld context:NULL];
+
+        [self _prepareVertexBufferForBrick:o_document.brick];
+        [o_document.brick prepare];
+        [self setNeedsDisplay:YES];
+    }
+    else if((object == o_document && [path isEqualToString:@"sliceNumber"])
+            || object == [o_document brick])
         [self setNeedsDisplay:YES];
     //[super observeValueForKeyPath:path ofObject:object change:change context:context];
 }
@@ -167,27 +186,9 @@ slice_set_up_state(void)
         [self addCursorRect:[self bounds] cursor:[[[NSApp toolboxController] currentTool] inactiveCursor]];
 }
 
-- (void)prepareOpenGL
-{    
-    [super prepareOpenGL];
-
-    char *error_message;
-    NSRect frame = [self bounds];
-    m_t = trixel_init_opengl(
-        [[[NSBundle mainBundle] resourcePath] UTF8String],
-        NSWidth(frame), NSHeight(frame),
-        (char const * *)g_surface_flags,
-        &error_message
-    );
-    
-    if(!m_t) {
-        NSLog(@"%s", error_message); // xxx proper error handling
-        return;
-    }
-    
-    MasonBrick * brick = [o_document brick];
-
-    int width = [brick width], height = [brick height], depth = [brick depth];
+- (void)_prepareVertexBufferForBrick:(MasonBrick *)brick
+{
+    int width = brick.width, height = brick.height, depth = brick.depth;
         
     int width_elt_offset = 24,
         height_elt_offset = width_elt_offset + width * 8,
@@ -351,7 +352,6 @@ slice_set_up_state(void)
         normals[base + 14] = normals[base + 17] = normals[base + 20] = normals[base + 23] = -128;
     }
     
-    glGenBuffers(1, &m_vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, vertex_count * (sizeof(GLfloat)+sizeof(GLbyte)), buffer, GL_STATIC_DRAW);
 
@@ -376,7 +376,30 @@ slice_set_up_state(void)
     m_slice_ops[SLICE_AXIS_ZAXIS].set_up_state_func = slice_set_up_state;
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
 
+- (void)prepareOpenGL
+{    
+    [super prepareOpenGL];
+
+    char *error_message;
+    NSRect frame = [self bounds];
+    m_t = trixel_init_opengl(
+        [[[NSBundle mainBundle] resourcePath] UTF8String],
+        NSWidth(frame), NSHeight(frame),
+        (char const * *)g_surface_flags,
+        &error_message
+    );
+    
+    if(!m_t) {
+        NSLog(@"%s", error_message); // xxx proper error handling
+        return;
+    }
+
+    glGenBuffers(1, &m_vertex_buffer);    
+    MasonBrick * brick = o_document.brick;
+
+    [self _prepareVertexBufferForBrick:brick];
     [brick prepare];
     [self _generateFramebuffer];
 }
@@ -608,8 +631,10 @@ slice_set_up_state(void)
     glRotatef(m_pitch, 1.0, 0.0, 0.0);
     glRotatef(m_yaw,   0.0, 1.0, 0.0);
 
-    [self drawBoundingCubeForBrick:[o_document brick]];
-    [self drawAxesForBrick:[o_document brick]];    
+    if([[NSApp toolboxController] showBoundingBox])
+        [self drawBoundingCubeForBrick:[o_document brick]];
+    if([[NSApp toolboxController] showAxes])
+        [self drawAxesForBrick:[o_document brick]];    
 
     glDrawBuffers(g_num_draw_buffers, draw_buffers);
     [self _drawBrick:[o_document brick] sliceAxis:[o_document sliceAxis] sliceNumber:[o_document sliceNumber]];

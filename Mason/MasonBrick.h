@@ -5,20 +5,19 @@
 
 @interface MasonBrick : NSObject
 {
-    trixel_brick * m_brick;
+    trixel_brick * trixelBrick;
 }
 
 @property(readonly) NSString * sizeString;
 @property(readonly) unsigned width, height, depth;
 @property(readonly) struct point3 dimensions;
+@property(readonly) trixel_brick * trixelBrick;
 
 - (MasonBrick *)initWithData:(NSData *)data withError:(NSError **)out_error;
 - (MasonBrick *)initWithContentsOfFile:(NSString *)filename withError:(NSError **)out_error;
 - (MasonBrick *)initEmptyWithWidth:(int)width height:(int)height depth:(int)depth withError:(NSError **)out_error;
 
 - (NSData *)data;
-
-- (trixel_brick *)trixel_brick;
 
 - (BOOL)isPrepared;
 - (void)prepare;
@@ -37,5 +36,7 @@
 - (NSData *)voxmap;
 - (unsigned)voxelX:(unsigned)x y:(unsigned)y z:(unsigned)z;
 - (void)setVoxel:(unsigned)index x:(unsigned)x y:(unsigned)y z:(unsigned)z;
+
+- (MasonBrick *)resizedToWidth:(unsigned)width height:(unsigned)height depth:(unsigned)depth;
 
 @end

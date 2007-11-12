@@ -18,7 +18,7 @@
     NSInteger sliceAxis, sliceNumber;
 }
 
-@property MasonBrick * brick;
+@property(readonly) MasonBrick * brick;
 @property(readonly) NSUInteger currentPaletteColor;
 @property(readonly) NSInteger sliceAxis, sliceNumber;
 
@@ -36,6 +36,7 @@
 
 - (void)setBrickVoxel:(NSUInteger)index at:(struct point3)pt;
 - (NSUInteger)brickVoxelAt:(struct point3)pt;
+- (void)resizeBrickToWidth:(NSUInteger)width height:(NSUInteger)height depth:(NSUInteger)depth;
 
 - (BOOL)canMoveSlice;
 - (BOOL)canMovePreviousSlice;

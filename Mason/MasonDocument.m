@@ -7,11 +7,13 @@
 
 @interface MasonDocument ()
 
+@property(readwrite) MasonBrick * brick;
 @property(readwrite) NSUInteger currentPaletteColor;
 @property(readwrite) NSInteger sliceAxis, sliceNumber;
 
 - (MasonBrick *)_defaultBrick;
 - (unsigned)_maxSlice;
+- (void)_replaceBrick:(MasonBrick *)newBrick;
 
 @end
 
@@ -156,6 +158,7 @@
         
     self.sliceAxis = tag;
     self.sliceNumber = 0;
+    [o_sliceAxisSelector setSelectedSegment:tag];
 }
 
 - (unsigned)_maxSlice
@@ -212,6 +215,20 @@
 {
     MasonResizeBrickController * controller = [[MasonResizeBrickController alloc] initWithDocument:self];
     [controller run];
+}
+
+- (void)_replaceBrick:(MasonBrick *)newBrick
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] _replaceBrick:self.brick];
+    self.brick = newBrick;
+}
+
+- (void)resizeBrickToWidth:(NSUInteger)width height:(NSUInteger)height depth:(NSUInteger)depth
+{
+    [self _replaceBrick:[self.brick resizedToWidth:width height:height depth:depth]];
+    self.sliceAxis = SLICE_AXIS_SURFACE;
+    self.sliceNumber = 0;
+    [o_sliceAxisSelector setSelectedSegment:SLICE_AXIS_SURFACE];
 }
 
 @end

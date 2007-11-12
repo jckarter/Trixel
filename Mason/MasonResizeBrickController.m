@@ -31,8 +31,7 @@
 
 - (IBAction)doResize:(id)sender
 {
-    NSLog(@"resize to %u x %u x %u", self.width, self.height, self.depth);
-    //[document resizeBrickToWidth:self.width height:self.height depth:self.depth];
+    [document resizeBrickToWidth:self.width height:self.height depth:self.depth];
     [NSApp endSheet:o_resizePanel];
 }
 
