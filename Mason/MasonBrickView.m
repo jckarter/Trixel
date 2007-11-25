@@ -4,7 +4,6 @@
 #import "MasonToolboxController.h"
 #import "MasonTool.h"
 #import "MasonBrick.h"
-#include <GL/glew.h>
 #include <math.h>
 
 #include "trixel.h"
@@ -14,12 +13,15 @@
 
 #define INITIAL_DISTANCE 32.0
 
+#define RADIANS (M_PI/180.0)
+#define LIGHT_DISTANCE 500.0
+
 static const size_t g_num_draw_buffers = 3;
 static const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_COLOR_ATTACHMENT2_EXT };
 static const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                  GL_NONE                  };
 
-static const char * g_surface_flags[] = { TRIXEL_SAVE_COORDINATES, NULL };
-static const char * g_slice_flags[] = { TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
+static const char * g_surface_flags[] = { TRIXEL_LIGHTING, TRIXEL_SAVE_COORDINATES, NULL };
+static const char * g_slice_flags[] = { TRIXEL_LIGHTING, TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
 static const GLshort g_surface_elements[] = {
     0, 1, 2, 3,
     0, 4, 5, 1,
@@ -55,6 +57,10 @@ slice_set_up_state(void)
 - (void)_generateFramebuffer;
 - (void)_prepareVertexBufferForBrick:(MasonBrick *)brick;
 - (void)_destroyFramebuffer;
+
+- (char const * *)_trixelFlags;
+- (void)_updateLightParams;
+- (void)_updateShaders;
 
 - (struct point3)_hoverValueFromBuffer:(GLenum)buffer;
 @end
@@ -101,6 +107,8 @@ slice_set_up_state(void)
     m_framebuffer = m_color_texture = m_hover_renderbuffer = m_depth_renderbuffer = 0;
     
     m_yaw = m_pitch = 0.0;
+    m_lightYaw = 30.0;
+    m_lightPitch = 60.0;
     m_distance = INITIAL_DISTANCE;
     m_hovering = NO;
     m_toolActive = NO;
@@ -124,6 +132,7 @@ slice_set_up_state(void)
     [[NSApp toolboxController] addObserver:self forKeyPath:@"currentTool" options:NSKeyValueObservingOptionOld context:NULL];
     [[NSApp toolboxController] addObserver:self forKeyPath:@"showBoundingBox" options:NSKeyValueObservingOptionOld context:NULL];
     [[NSApp toolboxController] addObserver:self forKeyPath:@"showAxes" options:NSKeyValueObservingOptionOld context:NULL];
+    [[NSApp toolboxController] addObserver:self forKeyPath:@"showLighting" options:NSKeyValueObservingOptionOld context:NULL];
     [o_document addObserver:self forKeyPath:@"sliceAxis" options:NSKeyValueObservingOptionOld context:NULL];
     [o_document addObserver:self forKeyPath:@"sliceNumber" options:NSKeyValueObservingOptionOld context:NULL];
     [o_document addObserver:self forKeyPath:@"brick" options:NSKeyValueObservingOptionOld context:NULL];
@@ -139,6 +148,51 @@ slice_set_up_state(void)
     [super finalize];
 }
 
+- (char const * *)_trixelFlags
+{
+    return m_slice_ops[ [o_document sliceAxis] ].trixel_flags
+        + ([NSApp toolboxController].showLighting ? 0 : 1);
+}
+
+- (void)_updateLightParams
+{
+    if([NSApp toolboxController].showLighting) {
+        GLfloat cosp = cosf(m_lightPitch * RADIANS), sinp = sinf(m_lightPitch * RADIANS),
+                cosy = cosf(m_lightYaw   * RADIANS), siny = sinf(m_lightYaw   * RADIANS);
+        
+        GLfloat position[4] = {
+             cosp * siny * LIGHT_DISTANCE,
+             sinp * LIGHT_DISTANCE,
+            -cosp * cosy * LIGHT_DISTANCE,
+             1.0
+        };
+        GLfloat ambient[4]  = { 0.3, 0.3, 0.3, 1.0 };
+        GLfloat diffuse[4]  = { 0.7, 0.7, 0.7, 1.0 };
+
+        trixel_light_param(m_t, 0, TRIXEL_LIGHT_PARAM_POSITION, position);
+        trixel_light_param(m_t, 0, TRIXEL_LIGHT_PARAM_AMBIENT,  ambient );
+        trixel_light_param(m_t, 0, TRIXEL_LIGHT_PARAM_DIFFUSE,  diffuse );
+    }
+    m_slice_ops[ [o_document sliceAxis] ].set_up_state_func();
+}
+
+- (void)_updateShaders
+{
+    char * error;
+    
+    NSOpenGLContext * currentContext = [NSOpenGLContext currentContext];
+    
+    [[self openGLContext] makeCurrentContext];
+    
+    if(!trixel_update_shaders(m_t, [self _trixelFlags], &error)) {
+        NSLog(@"error resetting trixel flags!! %s", error); // XXX real error handling
+        free(error);
+    }
+
+    [self _updateLightParams];
+    [currentContext makeCurrentContext];
+}
+
 - (void)observeValueForKeyPath:(NSString*)path ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
     if(object == [NSApp toolboxController] && [path isEqualToString:@"currentTool"]) {
@@ -148,18 +202,10 @@ slice_set_up_state(void)
             && ([path isEqualToString:@"showBoundingBox"] || [path isEqualToString:@"showAxes"])) {
         [self setNeedsDisplay:YES];
     }
-    else if(object == o_document && [path isEqualToString:@"sliceAxis"] && m_t) {
-        char * error;
-        if(!trixel_update_shaders(
-            m_t,
-            m_slice_ops[ [o_document sliceAxis] ].trixel_flags,
-            &error
-        )) {
-            NSLog(@"error resetting trixel flags!! %s", error); // XXX real error handling
-            free(error);
-        }
-        m_slice_ops[ [o_document sliceAxis] ].set_up_state_func();
-        
+    else if(((object == o_document && [path isEqualToString:@"sliceAxis"])
+                || (object == [NSApp toolboxController] && [path isEqualToString:@"showLighting"]))
+            && m_t) {
+        [self _updateShaders];
         [self setNeedsDisplay:YES];
     }
     else if(object == o_document && [path isEqualToString:@"brick"]) {
@@ -402,6 +448,7 @@ slice_set_up_state(void)
     [self _prepareVertexBufferForBrick:brick];
     [brick prepare];
     [self _generateFramebuffer];
+    [self _updateLightParams];
 }
 
 - (void)reshape
@@ -422,8 +469,16 @@ slice_set_up_state(void)
 
 - (void)yaw:(float)yoffset pitch:(float)poffset
 {
-    m_yaw = m_yaw + yoffset * MOUSE_ROTATE_FACTOR;
+    m_yaw += yoffset * MOUSE_ROTATE_FACTOR;
     m_pitch = fbound(m_pitch + poffset * MOUSE_ROTATE_FACTOR, -90.0, 90.0);
+    [self setNeedsDisplay:YES];
+}
+
+- (void)lightYaw:(float)yoffset pitch:(float)poffset
+{
+    m_lightYaw += yoffset * MOUSE_ROTATE_FACTOR;
+    m_lightPitch = fbound(m_lightPitch - poffset * MOUSE_ROTATE_FACTOR, -90.0, 90.0);
+    [self _updateLightParams];
     [self setNeedsDisplay:YES];
 }
 

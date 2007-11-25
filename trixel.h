@@ -17,6 +17,8 @@ struct point3 {
     float x, y, z;
 };
 
+#define POINT3(x, y, z) ((struct point3){ (x), (y), (z) })
+
 static inline struct point3 add_point3(struct point3 a, struct point3 b) 
     { return (struct point3){ a.x + b.x, a.y + b.y, a.z + b.z }; }
 static inline struct point3 sub_point3(struct point3 a, struct point3 b) 
@@ -37,7 +39,7 @@ static inline unsigned char * trixel_brick_voxel(trixel_brick * b, int x, int y,
     { return &b->voxmap_data[x + y * (int)b->dimensions.x + z * (int)b->dimensions.x * (int)b->dimensions.y]; }
 static inline unsigned char * trixel_brick_palette_color(trixel_brick * b, int color)
     { return &b->palette_data[color * 4]; }
-static inline size_t trixel_brick_voxmap_size(trixel_brick * b)
+static inline size_t trixel_brick_voxmap_size(trixel_brick const * b)
     { return (size_t)b->dimensions.x * (size_t)b->dimensions.y * (size_t)b->dimensions.z; }
 
 trixel_state trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message);
@@ -46,8 +48,10 @@ int trixel_update_shaders(trixel_state t, char const * shader_flags[], char * * 
 
 void trixel_finish(trixel_state t);
 
-trixel_brick * trixel_read_brick(const void * data, size_t data_length, bool prepare, char * * out_error_message);
+trixel_brick * trixel_read_brick(void const * data, size_t data_length, bool prepare, char * * out_error_message);
+trixel_brick * trixel_make_solid_brick(int w, int h, int d, bool prepare, char * * out_error_message);
 trixel_brick * trixel_make_empty_brick(int w, int h, int d, bool prepare, char * * out_error_message);
+trixel_brick * trixel_copy_brick(trixel_brick const *brick, bool prepare, char * * out_error_message);
 void trixel_free_brick(trixel_brick * brick);
 void * trixel_write_brick(trixel_brick * brick, size_t * out_data_length);
 

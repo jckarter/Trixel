@@ -15,7 +15,10 @@
 
 - (MasonBrick *)initWithData:(NSData *)data withError:(NSError **)out_error;
 - (MasonBrick *)initWithContentsOfFile:(NSString *)filename withError:(NSError **)out_error;
+- (MasonBrick *)initSolidWithWidth:(int)width height:(int)height depth:(int)depth withError:(NSError **)out_error;
 - (MasonBrick *)initEmptyWithWidth:(int)width height:(int)height depth:(int)depth withError:(NSError **)out_error;
+
+- (MasonBrick *)copyWithZone:(NSZone *)zone;
 
 - (NSData *)data;
 
@@ -38,5 +41,8 @@
 - (void)setVoxel:(unsigned)index x:(unsigned)x y:(unsigned)y z:(unsigned)z;
 
 - (MasonBrick *)resizedToWidth:(unsigned)width height:(unsigned)height depth:(unsigned)depth;
+- (MasonBrick *)shifted:(struct point3)distance;
+- (MasonBrick *)mirrored:(struct point3)axis;
+- (MasonBrick *)flipped:(struct point3)axis;
 
 @end

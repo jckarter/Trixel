@@ -1,5 +1,6 @@
 #import "MasonToolboxController.h"
 #import "MasonRotateTool.h"
+#import "MasonRotateLightTool.h"
 #import "MasonDrawTool.h"
 #import "MasonBuildTool.h"
 #import "MasonEraseTool.h"
@@ -21,11 +22,12 @@ static NSArray * g_tools;
 {
     g_tools = [[NSArray alloc] initWithObjects:
         [[MasonRotateTool alloc] init],
+        [[MasonRotateLightTool alloc] init],
         [[MasonDrawTool   alloc] init],
-        [[MasonBuildTool  alloc] init],
         [[MasonEraseTool  alloc] init],
         [[MasonPushTool   alloc] init],
         [[MasonPullTool   alloc] init],
+        [[MasonBuildTool  alloc] init],
         NULL
     ];
 }

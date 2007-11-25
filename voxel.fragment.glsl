@@ -6,7 +6,6 @@ uniform sampler3D voxmap;
 uniform sampler1D palette;
 uniform vec3 voxmap_size, voxmap_size_inv;
 
-#ifdef TRIXEL_LIGHTING
 struct light_struct {
     vec4 diffuse, ambient;
     vec4 position;
@@ -14,7 +13,6 @@ struct light_struct {
 
 const int num_lights = 1;
 uniform light_struct lights[num_lights];
-#endif
 
 float
 minelt(vec3 v)
@@ -85,7 +83,10 @@ light(vec4 color)
     vec4 lit_color = vec4(0.0);
     for(int light = 0; light < num_lights; ++light) {
         vec3 light_direction = normalize(lights[light].position.xyz - world_cast_pt);
-        lit_color += (lights[light].ambient + lights[light].diffuse * dot(light_direction, normal)) * color;
+        lit_color += (
+            lights[light].ambient
+            + lights[light].diffuse * clamp(dot(light_direction, normal), 0.0, 1.0)
+        ) * color;
     }
     return lit_color;
 }

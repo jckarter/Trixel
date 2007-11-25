@@ -32,6 +32,24 @@
 
 - (IBAction)showResizePanel:(id)sender;
 
+- (IBAction)shiftLeft:(id)sender;
+- (IBAction)shiftRight:(id)sender;
+- (IBAction)shiftDown:(id)sender;
+- (IBAction)shiftUp:(id)sender;
+- (IBAction)shiftOut:(id)sender;
+- (IBAction)shiftIn:(id)sender;
+
+- (IBAction)mirrorLeft:(id)sender;
+- (IBAction)mirrorRight:(id)sender;
+- (IBAction)mirrorDown:(id)sender;
+- (IBAction)mirrorUp:(id)sender;
+- (IBAction)mirrorOut:(id)sender;
+- (IBAction)mirrorIn:(id)sender;
+
+- (IBAction)flipX:(id)sender;
+- (IBAction)flipY:(id)sender;
+- (IBAction)flipZ:(id)sender;
+
 - (void)updatePaletteIndex:(NSUInteger)index withColor:(NSColor *)color;
 
 - (void)setBrickVoxel:(NSUInteger)index at:(struct point3)pt;

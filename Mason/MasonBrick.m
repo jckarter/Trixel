@@ -5,6 +5,9 @@ NSString *TrixelErrorDomain = @"TrixelErrorDomain";
 static inline unsigned umin(unsigned a, unsigned b) { return a < b ? a : b; }
 static inline unsigned umax(unsigned a, unsigned b) { return a > b ? a : b; }
 
+static inline float clamp_neg(float a) { return a < 0 ? 0 : a; }
+static inline float clamp_pos(float a) { return a > 0 ? 0 : a; }
+
 static NSError *
 nserror_from_trixel_error(char *cstring)
 {
@@ -99,6 +102,17 @@ _nscolor_from_palette(unsigned char * palette_color)
     return self;    
 }
 
+- (MasonBrick *)initSolidWithWidth:(int)width height:(int)height depth:(int)depth withError:(NSError **)out_error
+{
+    self = [super init];
+    if(self) {
+        char * error_message;
+        trixelBrick = trixel_make_solid_brick(width, height, depth, false, &error_message);
+        self = [self _commonInit:error_message :out_error];
+    }
+    return self;    
+}
+
 - (MasonBrick *)initEmptyWithWidth:(int)width height:(int)height depth:(int)depth withError:(NSError **)out_error
 {
     self = [super init];
@@ -108,6 +122,19 @@ _nscolor_from_palette(unsigned char * palette_color)
         self = [self _commonInit:error_message :out_error];
     }
     return self;    
+}
+
+- (MasonBrick *)copyWithZone:(NSZone *)zone
+{
+    MasonBrick * copy = [[MasonBrick allocWithZone:zone] init];
+    if(copy) {
+        char * error_message;
+        NSError * error;
+        copy->trixelBrick = trixel_copy_brick(self.trixelBrick, false, &error_message);
+        
+        copy = [copy _commonInit:error_message :&error];
+    }
+    return copy;
 }
 
 - (void)finalize
@@ -261,6 +288,98 @@ _nscolor_from_palette(unsigned char * palette_color)
                 for(unsigned x = 0; x < copy_width; ++x)
                     *trixel_brick_voxel(newBrick.trixelBrick, x, y, z)
                         = *trixel_brick_voxel(self.trixelBrick, x, y, z);
+    }
+    return newBrick;
+}
+
+- (MasonBrick *)shifted:(struct point3)distance
+{
+    NSError * error;
+    MasonBrick * newBrick = [[MasonBrick alloc] initEmptyWithWidth:self.width height:self.height depth:self.depth withError:&error];
+    
+    if(newBrick) {
+        memcpy(newBrick.trixelBrick->palette_data, self.trixelBrick->palette_data, 256*4);
+        
+        unsigned copy_width  = self.width  - abs(distance.x),
+                 copy_height = self.height - abs(distance.y),
+                 copy_depth  = self.depth  - abs(distance.z);
+        unsigned char * from = trixel_brick_voxel(self.trixelBrick, -clamp_pos(distance.x), -clamp_pos(distance.y), -clamp_pos(distance.z)),
+                      * to   = trixel_brick_voxel(newBrick.trixelBrick,  clamp_neg(distance.x),  clamp_neg(distance.y),  clamp_neg(distance.z));
+        
+        for(unsigned z = 0; z < copy_depth; ++z)
+            for(unsigned y = 0; y < copy_height; ++y)
+                for(unsigned x = 0; x < copy_width; ++x) {
+                    int offset = z * self.depth * self.height + y * self.height + x;
+                    to[offset] = from[offset];
+                }
+    }
+    return newBrick;
+}
+
+- (MasonBrick *)flipped:(struct point3)axis
+{
+    NSError * error;
+    MasonBrick * newBrick = [[MasonBrick alloc] initEmptyWithWidth:self.width height:self.height depth:self.depth withError:&error];
+    
+    if(newBrick) {
+        memcpy(newBrick.trixelBrick->palette_data, self.trixelBrick->palette_data, 256*4);
+        
+        unsigned char * to = trixel_brick_voxel(
+                                 newBrick.trixelBrick, 
+                                 (axis.x ? self.width -1 : 0),
+                                 (axis.y ? self.height-1 : 0),
+                                 (axis.z ? self.depth -1 : 0)
+                             );
+        int xpitch = axis.x ? -1 : 1;
+        int ypitch = axis.y ? -self.width : self.width;
+        int zpitch = axis.z ? -self.width * self.height : self.width * self.height;
+        
+        for(unsigned z = 0; z < self.depth; ++z)
+            for(unsigned y = 0; y < self.height; ++y)
+                for(unsigned x = 0; x < self.width; ++x)
+                    to[xpitch * x + ypitch * y + zpitch * z] = *trixel_brick_voxel(self.trixelBrick, x, y, z);
+    }
+    return newBrick;
+}
+
+- (MasonBrick *)mirrored:(struct point3)axis
+{
+    MasonBrick * newBrick = [self copy];
+    
+    if(newBrick) {
+        unsigned from_x = (axis.x > 0 ? self.width -1 : 0),
+                 from_y = (axis.y > 0 ? self.height-1 : 0),
+                 from_z = (axis.z > 0 ? self.depth -1 : 0);
+        
+        unsigned to_x = (axis.x ? self.width -1 - from_x : from_x),
+                 to_y = (axis.y ? self.height-1 - from_y : from_y),
+                 to_z = (axis.z ? self.depth -1 - from_z : from_z);
+    
+        unsigned char * from = trixel_brick_voxel(
+                                   newBrick.trixelBrick,
+                                   from_x, from_y, from_z
+                               ),
+                      * to   = trixel_brick_voxel(
+                                   newBrick.trixelBrick,
+                                   to_x, to_y, to_z
+                               );
+        int copy_width  = axis.x ? self.width /2 : self.width ,
+            copy_height = axis.y ? self.height/2 : self.height,
+            copy_depth  = axis.z ? self.depth /2 : self.depth ;
+
+        int from_xpitch = axis.x > 0 ? -1                        : 1,
+            from_ypitch = axis.y > 0 ? -self.width               : self.width,
+            from_zpitch = axis.z > 0 ? -self.width * self.height : self.width * self.height;
+        
+        int to_xpitch = axis.x ? -from_xpitch : from_xpitch,
+            to_ypitch = axis.y ? -from_ypitch : from_ypitch,
+            to_zpitch = axis.z ? -from_zpitch : from_zpitch;
+        
+        for(unsigned z = 0; z < copy_depth; ++z)
+            for(unsigned y = 0; y < copy_height; ++y)
+                for(unsigned x = 0; x < copy_width; ++x)
+                    to[to_xpitch * x + to_ypitch * y + to_zpitch * z]
+                        = from[from_xpitch * x + from_ypitch * y + from_zpitch * z];
     }
     return newBrick;
 }

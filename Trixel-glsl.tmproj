@@ -562,14 +562,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>15</integer>
 				<key>line</key>
-				<integer>774</integer>
+				<integer>715</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>718</integer>
+			<integer>715</integer>
 		</dict>
 		<key>trixel.h</key>
 		<dict>
@@ -689,6 +689,6 @@
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{960, 114}, {673, 878}}</string>
+	<string>{{271, 14}, {673, 878}}</string>
 </dict>
 </plist>

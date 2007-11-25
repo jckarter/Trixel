@@ -12,6 +12,7 @@
     BOOL m_hovering, m_toolActive;
     NSPoint m_hoverPixel;
     float m_yaw, m_pitch, m_distance;
+    float m_lightYaw, m_lightPitch;
     trixel_state m_t;
     
     GLuint m_vertex_buffer,
@@ -31,5 +32,6 @@
 - (NSString *)hoverPointString;
 
 - (void)yaw:(float)offset pitch:(float)offset;
+- (void)lightYaw:(float)offset pitch:(float)offset;
 
 @end

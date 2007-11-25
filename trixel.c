@@ -418,7 +418,7 @@ error:
 }
 
 trixel_brick *
-trixel_make_empty_brick(int w, int h, int d, bool prepare, char * * out_error_message)
+_trixel_make_brick(int w, int h, int d, bool prepare, bool solid, char * * out_error_message)
 {
     trixel_brick * brick = malloc(sizeof(trixel_brick));
     memset(brick, 0, sizeof(trixel_brick));
@@ -431,10 +431,14 @@ trixel_make_empty_brick(int w, int h, int d, bool prepare, char * * out_error_me
     brick->dimensions_inv.y = 1.0 / brick->dimensions.y;
     brick->dimensions_inv.z = 1.0 / brick->dimensions.z;
 
+    unsigned char fill = solid ? 1 : 0;
+
     brick->palette_data = malloc(256 * 4);
     memset(brick->palette_data, 0, 256 * 4);
+    if(solid)
+        memset(trixel_brick_palette_color(brick, 1), 0xFF, 4);
     brick->voxmap_data = malloc(w * h * d);
-    memset(brick->voxmap_data, 0, w * h * d);
+    memset(brick->voxmap_data, fill, w * h * d);
     
     if(prepare)
         trixel_prepare_brick(brick);
@@ -443,6 +447,35 @@ trixel_make_empty_brick(int w, int h, int d, bool prepare, char * * out_error_me
 
 error:
     return NULL;
+}
+
+trixel_brick *
+trixel_make_empty_brick(int w, int h, int d, bool prepare, char * * out_error_message)
+{
+    return _trixel_make_brick(w, h, d, prepare, false, out_error_message);
+}
+
+trixel_brick *
+trixel_make_solid_brick(int w, int h, int d, bool prepare, char * * out_error_message)
+{
+    return _trixel_make_brick(w, h, d, prepare, true, out_error_message);
+}
+
+trixel_brick *
+trixel_copy_brick(trixel_brick const * brick, bool prepare, char * * out_error_message)
+{
+    trixel_brick * new_brick = trixel_make_empty_brick(
+        brick->dimensions.x, brick->dimensions.y, brick->dimensions.z,
+        false,
+        out_error_message
+    );
+    if(new_brick) {
+        memcpy(new_brick->voxmap_data, brick->voxmap_data, trixel_brick_voxmap_size(brick));
+        memcpy(new_brick->palette_data, brick->palette_data, 256 * 4);
+        if(prepare)
+            trixel_prepare_brick(new_brick);
+    }
+    return new_brick;
 }
 
 void
@@ -773,6 +806,7 @@ trixel_light_param(trixel_state t, GLuint light, char const * param_name, GLfloa
 {
     GLint uniform = _light_param_location(t, light, param_name);
     glUseProgram(STATE(t)->voxel_program);
+    _gl_report_error("use program");
     glUniform4fv(uniform, 1, value);
     _gl_report_error("set light param");
 }

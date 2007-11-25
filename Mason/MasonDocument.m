@@ -146,7 +146,7 @@
 - (MasonBrick *)_defaultBrick
 {
     NSError *error;
-    return [[MasonBrick alloc] initEmptyWithWidth:16 height:16 depth:16
+    return [[MasonBrick alloc] initSolidWithWidth:16 height:16 depth:16
                                withError:&error];
 }
 
@@ -229,6 +229,69 @@
     self.sliceAxis = SLICE_AXIS_SURFACE;
     self.sliceNumber = 0;
     [o_sliceAxisSelector setSelectedSegment:SLICE_AXIS_SURFACE];
+}
+
+- (IBAction)shiftLeft:(id)sender
+{
+    [self _replaceBrick:[self.brick shifted:POINT3(-1,  0,  0)]];
+}
+- (IBAction)shiftRight:(id)sender
+{
+    [self _replaceBrick:[self.brick shifted:POINT3( 1,  0,  0)]];
+}
+- (IBAction)shiftDown:(id)sender
+{
+    [self _replaceBrick:[self.brick shifted:POINT3( 0, -1,  0)]];
+}
+- (IBAction)shiftUp:(id)sender
+{
+    [self _replaceBrick:[self.brick shifted:POINT3( 0,  1,  0)]];
+}
+- (IBAction)shiftOut:(id)sender
+{
+    [self _replaceBrick:[self.brick shifted:POINT3( 0,  0, -1)]];
+}
+- (IBAction)shiftIn:(id)sender
+{
+    [self _replaceBrick:[self.brick shifted:POINT3( 0,  0,  1)]];
+}
+
+- (IBAction)mirrorLeft:(id)sender
+{
+    [self _replaceBrick:[self.brick mirrored:POINT3(-1,  0,  0)]];
+}
+- (IBAction)mirrorRight:(id)sender
+{
+    [self _replaceBrick:[self.brick mirrored:POINT3( 1,  0,  0)]];
+}
+- (IBAction)mirrorDown:(id)sender
+{
+    [self _replaceBrick:[self.brick mirrored:POINT3( 0, -1,  0)]];
+}
+- (IBAction)mirrorUp:(id)sender
+{
+    [self _replaceBrick:[self.brick mirrored:POINT3( 0,  1,  0)]];
+}
+- (IBAction)mirrorOut:(id)sender
+{
+    [self _replaceBrick:[self.brick mirrored:POINT3( 0,  0, -1)]];
+}
+- (IBAction)mirrorIn:(id)sender
+{
+    [self _replaceBrick:[self.brick mirrored:POINT3( 0,  0,  1)]];
+}
+
+- (IBAction)flipX:(id)sender
+{
+    [self _replaceBrick:[self.brick flipped:POINT3(1, 0, 0)]];
+}
+- (IBAction)flipY:(id)sender
+{
+    [self _replaceBrick:[self.brick flipped:POINT3(0, 1, 0)]];
+}
+- (IBAction)flipZ:(id)sender
+{
+    [self _replaceBrick:[self.brick flipped:POINT3(0, 0, 1)]];
 }
 
 @end

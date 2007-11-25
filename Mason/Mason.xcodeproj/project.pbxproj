@@ -23,6 +23,8 @@
 		D84AFD750C82387D008A8770 /* voxel.fragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD730C82387D008A8770 /* voxel.fragment.glsl */; };
 		D84AFD760C82387D008A8770 /* voxel.vertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD740C82387D008A8770 /* voxel.vertex.glsl */; };
 		D84AFD9A0C826E12008A8770 /* default.brick in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD990C826E12008A8770 /* default.brick */; };
+		D84E44C60CE8264A008064EE /* light.png in Resources */ = {isa = PBXBuildFile; fileRef = D84E44C50CE8264A008064EE /* light.png */; };
+		D84E44EF0CE82F7C008064EE /* MasonRotateLightTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D84E44EE0CE82F7C008064EE /* MasonRotateLightTool.m */; };
 		D8D11C300C93102E000E5EF8 /* MasonBrick.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D11C2F0C93102E000E5EF8 /* MasonBrick.m */; };
 		D8D7E09E0CE413E800FDE860 /* build.png in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E09B0CE413E800FDE860 /* build.png */; };
 		D8D7E09F0CE413E800FDE860 /* pull.png in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E09C0CE413E800FDE860 /* pull.png */; };
@@ -79,6 +81,9 @@
 		D84AFD730C82387D008A8770 /* voxel.fragment.glsl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = voxel.fragment.glsl; path = ../voxel.fragment.glsl; sourceTree = SOURCE_ROOT; };
 		D84AFD740C82387D008A8770 /* voxel.vertex.glsl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = voxel.vertex.glsl; path = ../voxel.vertex.glsl; sourceTree = SOURCE_ROOT; };
 		D84AFD990C826E12008A8770 /* default.brick */ = {isa = PBXFileReference; lastKnownFileType = file; path = default.brick; sourceTree = "<group>"; };
+		D84E44C50CE8264A008064EE /* light.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = light.png; sourceTree = "<group>"; };
+		D84E44ED0CE82F7C008064EE /* MasonRotateLightTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonRotateLightTool.h; sourceTree = "<group>"; };
+		D84E44EE0CE82F7C008064EE /* MasonRotateLightTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonRotateLightTool.m; sourceTree = "<group>"; };
 		D8D11C2E0C93102E000E5EF8 /* MasonBrick.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonBrick.h; sourceTree = "<group>"; };
 		D8D11C2F0C93102E000E5EF8 /* MasonBrick.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonBrick.m; sourceTree = "<group>"; };
 		D8D7E09B0CE413E800FDE860 /* build.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = build.png; sourceTree = "<group>"; };
@@ -188,6 +193,8 @@
 				D8EDAF390C7E8BAA00D0DE3F /* MasonBrickView.m */,
 				D800AE490C88DBB700A38A34 /* MasonRotateTool.h */,
 				D800AE4A0C88DBB700A38A34 /* MasonRotateTool.m */,
+				D84E44ED0CE82F7C008064EE /* MasonRotateLightTool.h */,
+				D84E44EE0CE82F7C008064EE /* MasonRotateLightTool.m */,
 				D800AE610C8905C400A38A34 /* MasonApplication.h */,
 				D800AE620C8905C400A38A34 /* MasonApplication.m */,
 				D80648140C8B7DB200B731DD /* MasonColorCell.h */,
@@ -222,6 +229,7 @@
 				D8EF23CA0C88CA1A00457237 /* draw.png */,
 				D8EF23CB0C88CA1A00457237 /* erase.png */,
 				D8EF23CC0C88CA1A00457237 /* hand.png */,
+				D84E44C50CE8264A008064EE /* light.png */,
 				D84AFD990C826E12008A8770 /* default.brick */,
 				D84AFD730C82387D008A8770 /* voxel.fragment.glsl */,
 				D84AFD740C82387D008A8770 /* voxel.vertex.glsl */,
@@ -311,6 +319,7 @@
 				D8D7E1B50CE69AAE00FDE860 /* ResizeBrick.xib in Resources */,
 				D8D7E1B20CE69A7500FDE860 /* MasonDocument.xib in Resources */,
 				D8D7E1B80CE69AD000FDE860 /* MainMenu.xib in Resources */,
+				D84E44C60CE8264A008064EE /* light.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,6 +346,7 @@
 				D8D7E0A80CE41C1100FDE860 /* MasonPullTool.m in Sources */,
 				D8D7E0A90CE41C1100FDE860 /* MasonPushTool.m in Sources */,
 				D8D7E0B70CE621DC00FDE860 /* MasonResizeBrickController.m in Sources */,
+				D84E44EF0CE82F7C008064EE /* MasonRotateLightTool.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
