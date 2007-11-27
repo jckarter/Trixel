@@ -43,5 +43,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>MasonApplication</string>
+        <key>NSAppleScriptEnabled</key>
+        <string>YES</string>
+        <key>OSAScriptingDefinition</key>
+        <string>Mason.sdef</string>
 </dict>
 </plist>

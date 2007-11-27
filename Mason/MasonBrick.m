@@ -1,4 +1,5 @@
 #import "MasonBrick.h"
+#import "MasonScriptingPaletteColor.h"
 
 NSString *TrixelErrorDomain = @"TrixelErrorDomain";
 
@@ -34,7 +35,7 @@ nserror_from_trixel_error(char *cstring)
 }
 
 static void
-_store_nscolor_in_palette(unsigned char * palette_color, NSColor * color)
+_store_color_in_palette(unsigned char * palette_color, id color)
 {
     palette_color[0] = (unsigned char)([color redComponent]   * 255.0);
     palette_color[1] = (unsigned char)([color greenComponent] * 255.0);
@@ -51,15 +52,32 @@ _nscolor_from_palette(unsigned char * palette_color)
                                  alpha:(float)palette_color[3]/255.0];
 }
 
+static MasonScriptingPaletteColor *
+_scripting_color_from_palette(unsigned char * palette_color, id cont, unsigned index)
+{
+    return [[MasonScriptingPaletteColor alloc] initWithScriptingContainer:cont
+                                                                    index:index
+                                                             redComponent:(float)palette_color[0]/255.0
+                                                           greenComponent:(float)palette_color[1]/255.0
+                                                            blueComponent:(float)palette_color[2]/255.0
+                                                           alphaComponent:(float)palette_color[3]/255.0];
+}
+
 @interface MasonBrick ()
 
 - (MasonBrick *)_commonInit:(char *)errorMessage :(NSError **)out_error;
+
+- (unsigned int)countOfScriptingPaletteColors;
+- (MasonScriptingPaletteColor *)objectInScriptingPaletteColorsAtIndex:(unsigned int)index;
+- (void)insertObject:(MasonScriptingPaletteColor *)color inScriptingPaletteColorsAtIndex:(unsigned int)index;
+- (void)removeObjectFromScriptingPaletteColorsAtIndex:(unsigned int)index;
+- (void)replaceObjectInScriptingPaletteColorsAtIndex:(unsigned int)index withObject:(MasonScriptingPaletteColor *)color;
 
 @end
 
 @implementation MasonBrick
 
-@synthesize trixelBrick;
+@synthesize trixelBrick, scriptingContainer;
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
 {
@@ -67,6 +85,12 @@ _nscolor_from_palette(unsigned char * palette_color)
         return NO;
     else
         return [super automaticallyNotifiesObserversForKey:key];
+}
+
++ (void)initialize
+{
+    [self setKeys:[NSArray arrayWithObjects:@"scriptingPaletteColors", nil]
+          triggerChangeNotificationsForDependentKey:@"paletteColors"];
 }
 
 - (MasonBrick *)_commonInit:(char *)errorMessage :(NSError **)out_error
@@ -141,6 +165,7 @@ _nscolor_from_palette(unsigned char * palette_color)
 {
     if(trixelBrick)
         trixel_only_free_brick(trixelBrick);
+    scriptingContainer = nil;
     [super finalize];
 }
 
@@ -199,7 +224,7 @@ _nscolor_from_palette(unsigned char * palette_color)
     if(index == 0)
         return;
 
-    _store_nscolor_in_palette(trixel_insert_brick_palette_color(trixelBrick, index), color);
+    _store_color_in_palette(trixel_insert_brick_palette_color(trixelBrick, index), color);
 
     [self updateTextures];
 }
@@ -216,9 +241,53 @@ _nscolor_from_palette(unsigned char * palette_color)
         return;
 
     unsigned char *palette_color = trixel_brick_palette_color(trixelBrick, index);
-    _store_nscolor_in_palette(palette_color, color);
+    _store_color_in_palette(palette_color, color);
 
     [self updateTextures];
+}
+
+- (unsigned int)countOfScriptingPaletteColors
+{
+    return 256;
+}
+
+- (MasonScriptingPaletteColor *)objectInScriptingPaletteColorsAtIndex:(unsigned int)index
+{
+    unsigned char *palette_color = trixel_brick_palette_color(trixelBrick, index);
+    return _scripting_color_from_palette(palette_color, self, index);
+}
+
+- (void)insertObject:(MasonScriptingPaletteColor *)color inScriptingPaletteColorsAtIndex:(unsigned int)index
+{
+    if(index == 0)
+        return;
+
+    _store_color_in_palette(trixel_insert_brick_palette_color(trixelBrick, index), color);
+
+    [self updateTextures];
+}
+
+- (void)removeObjectFromScriptingPaletteColorsAtIndex:(unsigned int)index
+{
+    trixel_remove_brick_palette_color(trixelBrick, index);
+    [self updateTextures];
+}
+
+- (void)replaceObjectInScriptingPaletteColorsAtIndex:(unsigned int)index withObject:(MasonScriptingPaletteColor *)color
+{
+    if(index == 0)
+        return;
+
+    unsigned char *palette_color = trixel_brick_palette_color(trixelBrick, index);
+    _store_color_in_palette(palette_color, color);
+
+    [self updateTextures];
+}
+
+- (NSScriptObjectSpecifier *)objectSpecifier
+{
+    return [[NSPropertySpecifier alloc] initWithContainerSpecifier:[scriptingContainer objectSpecifier]
+                                                               key:@"brick"];
 }
 
 - (NSData *)voxmap

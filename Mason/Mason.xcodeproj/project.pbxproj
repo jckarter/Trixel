@@ -36,6 +36,11 @@
 		D8D7E1B20CE69A7500FDE860 /* MasonDocument.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E1B00CE69A7500FDE860 /* MasonDocument.xib */; };
 		D8D7E1B50CE69AAE00FDE860 /* ResizeBrick.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E1B40CE69AAE00FDE860 /* ResizeBrick.xib */; };
 		D8D7E1B80CE69AD000FDE860 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E1B60CE69AD000FDE860 /* MainMenu.xib */; };
+		D8DEF4280CFAA12300F84502 /* MasonScriptingPaletteColor.m in Sources */ = {isa = PBXBuildFile; fileRef = D8DEF4270CFAA12300F84502 /* MasonScriptingPaletteColor.m */; };
+		D8DEFE9B0CF9292C00E48FCB /* MasonGetVoxelCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = D8DEFE9A0CF9292C00E48FCB /* MasonGetVoxelCommand.m */; };
+		D8DEFEAD0CF92AF000E48FCB /* Mason.sdef in Resources */ = {isa = PBXBuildFile; fileRef = D8DEFEAC0CF92AF000E48FCB /* Mason.sdef */; };
+		D8DEFEB60CF92EBB00E48FCB /* MasonScriptingSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = D8DEFEB50CF92EBB00E48FCB /* MasonScriptingSupport.m */; };
+		D8DEFEB90CF9307900E48FCB /* MasonSetVoxelCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = D8DEFEB80CF9307900E48FCB /* MasonSetVoxelCommand.m */; };
 		D8EDAF200C7E670E00D0DE3F /* surface.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1C0C7E670E00D0DE3F /* surface.png */; };
 		D8EDAF210C7E670E00D0DE3F /* xslice.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1D0C7E670E00D0DE3F /* xslice.png */; };
 		D8EDAF220C7E670E00D0DE3F /* yslice.png in Resources */ = {isa = PBXBuildFile; fileRef = D8EDAF1E0C7E670E00D0DE3F /* yslice.png */; };
@@ -100,6 +105,15 @@
 		D8D7E0B60CE621DC00FDE860 /* MasonResizeBrickController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonResizeBrickController.m; sourceTree = "<group>"; };
 		D8D7E1B10CE69A7500FDE860 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MasonDocument.xib; sourceTree = "<group>"; };
 		D8D7E1B70CE69AD000FDE860 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		D8DEF4260CFAA12300F84502 /* MasonScriptingPaletteColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonScriptingPaletteColor.h; sourceTree = "<group>"; };
+		D8DEF4270CFAA12300F84502 /* MasonScriptingPaletteColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonScriptingPaletteColor.m; sourceTree = "<group>"; };
+		D8DEFE990CF9292C00E48FCB /* MasonGetVoxelCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonGetVoxelCommand.h; sourceTree = "<group>"; };
+		D8DEFE9A0CF9292C00E48FCB /* MasonGetVoxelCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonGetVoxelCommand.m; sourceTree = "<group>"; };
+		D8DEFEAC0CF92AF000E48FCB /* Mason.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.sdef; path = Mason.sdef; sourceTree = "<group>"; };
+		D8DEFEB40CF92EBB00E48FCB /* MasonScriptingSupport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonScriptingSupport.h; sourceTree = "<group>"; };
+		D8DEFEB50CF92EBB00E48FCB /* MasonScriptingSupport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonScriptingSupport.m; sourceTree = "<group>"; };
+		D8DEFEB70CF9307900E48FCB /* MasonSetVoxelCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonSetVoxelCommand.h; sourceTree = "<group>"; };
+		D8DEFEB80CF9307900E48FCB /* MasonSetVoxelCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonSetVoxelCommand.m; sourceTree = "<group>"; };
 		D8EDAF1C0C7E670E00D0DE3F /* surface.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = surface.png; sourceTree = "<group>"; };
 		D8EDAF1D0C7E670E00D0DE3F /* xslice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = xslice.png; sourceTree = "<group>"; };
 		D8EDAF1E0C7E670E00D0DE3F /* yslice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = yslice.png; sourceTree = "<group>"; };
@@ -203,6 +217,14 @@
 				D8D11C2F0C93102E000E5EF8 /* MasonBrick.m */,
 				D8D7E0B50CE621DC00FDE860 /* MasonResizeBrickController.h */,
 				D8D7E0B60CE621DC00FDE860 /* MasonResizeBrickController.m */,
+				D8DEFE990CF9292C00E48FCB /* MasonGetVoxelCommand.h */,
+				D8DEFE9A0CF9292C00E48FCB /* MasonGetVoxelCommand.m */,
+				D8DEFEB70CF9307900E48FCB /* MasonSetVoxelCommand.h */,
+				D8DEFEB80CF9307900E48FCB /* MasonSetVoxelCommand.m */,
+				D8DEFEB40CF92EBB00E48FCB /* MasonScriptingSupport.h */,
+				D8DEFEB50CF92EBB00E48FCB /* MasonScriptingSupport.m */,
+				D8DEF4260CFAA12300F84502 /* MasonScriptingPaletteColor.h */,
+				D8DEF4270CFAA12300F84502 /* MasonScriptingPaletteColor.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -221,6 +243,7 @@
 		2A37F4B8FDCFA73011CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D8DEFEAC0CF92AF000E48FCB /* Mason.sdef */,
 				D8D7E1B60CE69AD000FDE860 /* MainMenu.xib */,
 				D8D7E1B00CE69A7500FDE860 /* MasonDocument.xib */,
 				D8D7E09B0CE413E800FDE860 /* build.png */,
@@ -320,6 +343,7 @@
 				D8D7E1B20CE69A7500FDE860 /* MasonDocument.xib in Resources */,
 				D8D7E1B80CE69AD000FDE860 /* MainMenu.xib in Resources */,
 				D84E44C60CE8264A008064EE /* light.png in Resources */,
+				D8DEFEAD0CF92AF000E48FCB /* Mason.sdef in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -347,6 +371,10 @@
 				D8D7E0A90CE41C1100FDE860 /* MasonPushTool.m in Sources */,
 				D8D7E0B70CE621DC00FDE860 /* MasonResizeBrickController.m in Sources */,
 				D84E44EF0CE82F7C008064EE /* MasonRotateLightTool.m in Sources */,
+				D8DEFE9B0CF9292C00E48FCB /* MasonGetVoxelCommand.m in Sources */,
+				D8DEFEB60CF92EBB00E48FCB /* MasonScriptingSupport.m in Sources */,
+				D8DEFEB90CF9307900E48FCB /* MasonSetVoxelCommand.m in Sources */,
+				D8DEF4280CFAA12300F84502 /* MasonScriptingPaletteColor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

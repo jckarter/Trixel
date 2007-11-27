@@ -2,12 +2,14 @@
 #import <Cocoa/Cocoa.h>
 #include "trixel.h"
 
-
 @interface MasonBrick : NSObject
 {
     trixel_brick * trixelBrick;
+    
+    id scriptingContainer;
 }
 
+@property id scriptingContainer;
 @property(readonly) NSString * sizeString;
 @property(readonly) unsigned width, height, depth;
 @property(readonly) struct point3 dimensions;

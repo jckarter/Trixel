@@ -44,10 +44,17 @@
 {
     self = [super init];
     if(self) {
-        brick = [self _defaultBrick];
+        self.brick = [self _defaultBrick];
         [self setHasUndoManager:YES];
     }
     return self;
+}
+
+- (void)setBrick:(MasonBrick *)newBrick
+{
+    brick.scriptingContainer = nil;
+    newBrick.scriptingContainer = self;
+    brick = newBrick;
 }
 
 - (NSSegmentedControl *)sliceAxisSelector
@@ -97,7 +104,7 @@
 
 - (NSData *)dataOfType:(NSString *)typeName error:(NSError **)out_error
 {
-    return [brick data];
+    return [self.brick data];
 }
 
 - (BOOL)readFromData:(NSData *)data ofType:(NSString *)typeName error:(NSError **)out_error
