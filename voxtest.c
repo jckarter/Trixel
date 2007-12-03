@@ -6,7 +6,7 @@
 
 static trixel_brick * g_brick;
 
-static const char * g_flags[] = { TRIXEL_LIGHTING, NULL };
+static const char * g_flags[] = { TRIXEL_LIGHTING, TRIXEL_SMOOTH_SHADING, NULL };
 
 static trixel_state
 set_video_mode(int width, int height, char * * out_error_message)
@@ -28,7 +28,7 @@ set_video_mode(int width, int height, char * * out_error_message)
 
     GLfloat ambient[4] = { 0.2, 0.2, 0.2, 1.0 };
     GLfloat diffuse[4] = { 0.8, 0.8, 0.8, 1.0 };
-    GLfloat position[4] = { -32.0, 32.0, 64.0, 1.0 };
+    GLfloat position[4] = { 64.0, 32.0, 64.0, 1.0 };
 
     trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_AMBIENT, ambient);
     trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_DIFFUSE, diffuse);
