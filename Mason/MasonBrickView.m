@@ -52,6 +52,7 @@ slice_set_up_state(void)
 
 @interface MasonBrickView ()
 - (void)_drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber;
+- (void)_drawHover;
 - (void)_drawFramebufferToWindow;
 
 - (void)_generateFramebuffer;
@@ -69,7 +70,7 @@ slice_set_up_state(void)
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
 {
-    if([key isEqualToString:@"hoverPoint"])
+    if([key isEqualToString:@"hoverPoint"] || [key isEqualToString:@"hoverNormal"])
         return NO;
     else
         return [super automaticallyNotifiesObserversForKey:key];
@@ -553,6 +554,8 @@ slice_set_up_state(void)
     glDrawArrays(GL_QUADS, first + count * sliceNumber, count);
     
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
 }
 
 - (void)drawBoundingCubeForBrick:(MasonBrick *)brick
@@ -562,6 +565,7 @@ slice_set_up_state(void)
           depth2  = ((float)[brick depth] ) / 2;
     
     glUseProgram(0);
+    glActiveTexture(GL_TEXTURE0);
     glDisable(GL_TEXTURE_2D);
     
     glBegin(GL_LINES);
@@ -615,6 +619,7 @@ slice_set_up_state(void)
           depth2  = ((float)[brick depth] ) / 2;
     
     glUseProgram(0);
+    glActiveTexture(GL_TEXTURE0);
     glDisable(GL_TEXTURE_2D);
     
     glBegin(GL_LINES);
@@ -667,6 +672,124 @@ slice_set_up_state(void)
     glPopMatrix();    
 }
 
+#define HOVER_PADDING 0.015625
+
+- (void)_drawHover
+{
+    struct point3 hoverPoint = [self hoverPoint];
+    struct point3 hoverNormal = [self hoverNormal];
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
+    
+    if(hoverPoint.x < 0.0)
+        return;
+        
+    switch([[[NSApp toolboxController] currentTool] unit]) {
+    case MasonUnitNone:
+        break;
+
+    case MasonUnitVoxel:
+        {
+            struct point3 hoverStartPoint = add_point3(
+                    hoverPoint,
+                    POINT3(-(float)[o_document brick].width /2-HOVER_PADDING,
+                           -(float)[o_document brick].height/2-HOVER_PADDING,
+                           -(float)[o_document brick].depth /2-HOVER_PADDING)
+            );
+            struct point3 hoverEndPoint = add_point3(
+                    hoverStartPoint,
+                    POINT3(1+(HOVER_PADDING*2),
+                           1+(HOVER_PADDING*2),
+                           1+(HOVER_PADDING*2))
+            );
+
+            glUseProgram(0);
+            glActiveTexture(GL_TEXTURE0);
+            glDisable(GL_TEXTURE_2D);
+        
+            glBegin(GL_LINES);
+
+            glColor4f(0.7, 0.5, 0.7, 1.0);
+            glVertex3f(hoverStartPoint.x, hoverStartPoint.y, hoverStartPoint.z);
+            glVertex3f(hoverStartPoint.x, hoverStartPoint.y,  hoverEndPoint.z);
+
+            glVertex3f(hoverStartPoint.x,  hoverEndPoint.y, hoverStartPoint.z);
+            glVertex3f(hoverStartPoint.x,  hoverEndPoint.y,  hoverEndPoint.z);
+
+            glVertex3f( hoverEndPoint.x,  hoverEndPoint.y, hoverStartPoint.z);
+            glVertex3f( hoverEndPoint.x,  hoverEndPoint.y,  hoverEndPoint.z);
+
+            glVertex3f( hoverEndPoint.x, hoverStartPoint.y, hoverStartPoint.z);
+            glVertex3f( hoverEndPoint.x, hoverStartPoint.y,  hoverEndPoint.z);
+    
+            glVertex3f(hoverStartPoint.x, hoverStartPoint.y, hoverStartPoint.z);
+            glVertex3f(hoverStartPoint.x,  hoverEndPoint.y, hoverStartPoint.z);
+
+            glVertex3f( hoverEndPoint.x, hoverStartPoint.y, hoverStartPoint.z);
+            glVertex3f( hoverEndPoint.x,  hoverEndPoint.y, hoverStartPoint.z);
+
+            glVertex3f( hoverEndPoint.x, hoverStartPoint.y,  hoverEndPoint.z);
+            glVertex3f( hoverEndPoint.x,  hoverEndPoint.y,  hoverEndPoint.z);
+
+            glVertex3f(hoverStartPoint.x, hoverStartPoint.y,  hoverEndPoint.z);
+            glVertex3f(hoverStartPoint.x,  hoverEndPoint.y,  hoverEndPoint.z);
+
+            glVertex3f(hoverStartPoint.x, hoverStartPoint.y, hoverStartPoint.z);
+            glVertex3f( hoverEndPoint.x, hoverStartPoint.y, hoverStartPoint.z);
+
+            glVertex3f(hoverStartPoint.x,  hoverEndPoint.y, hoverStartPoint.z);
+            glVertex3f( hoverEndPoint.x,  hoverEndPoint.y, hoverStartPoint.z);
+
+            glVertex3f(hoverStartPoint.x,  hoverEndPoint.y,  hoverEndPoint.z);
+            glVertex3f( hoverEndPoint.x,  hoverEndPoint.y,  hoverEndPoint.z);
+
+            glVertex3f(hoverStartPoint.x, hoverStartPoint.y,  hoverEndPoint.z);
+            glVertex3f( hoverEndPoint.x, hoverStartPoint.y,  hoverEndPoint.z);
+        
+            glEnd();
+        }
+        break;
+
+    case MasonUnitFace:
+        {
+            struct point3 hoverTranslate = add_point3(
+                hoverPoint,
+                POINT3(0.5 - (float)[o_document brick].width /2,
+                       0.5 - (float)[o_document brick].height/2,
+                       0.5 - (float)[o_document brick].depth /2)
+            );
+            
+            GLfloat hoverOrientMatrix[] = {
+                hoverNormal.x, hoverNormal.y, hoverNormal.z, 0,
+                hoverNormal.y, hoverNormal.z, hoverNormal.x, 0,
+                hoverNormal.z, hoverNormal.x, hoverNormal.y, 0,
+                0,             0,             0,             1
+            };
+            
+            glUseProgram(0);
+            glActiveTexture(GL_TEXTURE0);
+            glDisable(GL_TEXTURE_2D);
+
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
+            glTranslatef(hoverTranslate.x, hoverTranslate.y, hoverTranslate.z);
+            glMultMatrixf(hoverOrientMatrix);
+    
+            glBegin(GL_LINE_LOOP);
+
+            glColor4f(0.7, 0.5, 0.7, 1.0);
+            glVertex3f( 0.5+HOVER_PADDING, -0.5-HOVER_PADDING, -0.5-HOVER_PADDING);
+            glVertex3f( 0.5+HOVER_PADDING,  0.5-HOVER_PADDING, -0.5-HOVER_PADDING);
+            glVertex3f( 0.5+HOVER_PADDING,  0.5-HOVER_PADDING,  0.5-HOVER_PADDING);
+            glVertex3f( 0.5+HOVER_PADDING, -0.5-HOVER_PADDING,  0.5-HOVER_PADDING);
+
+            glEnd();
+            
+            glPopMatrix();
+        }
+        break;
+    }
+}
+
 - (void)drawRect:(NSRect)r
 {
     const GLenum *draw_buffers = (m_toolActive ? g_tool_active_draw_buffers : g_tool_inactive_draw_buffers);
@@ -693,6 +816,8 @@ slice_set_up_state(void)
 
     glDrawBuffers(g_num_draw_buffers, draw_buffers);
     [self _drawBrick:[o_document brick] sliceAxis:[o_document sliceAxis] sliceNumber:[o_document sliceNumber]];
+    glDrawBuffer(draw_buffers[0]);
+    [self _drawHover];
     
     [self _drawFramebufferToWindow];
     
@@ -747,8 +872,12 @@ slice_set_up_state(void)
 - (void)mouseEntered:(NSEvent *)event
 {
     [self willChangeValueForKey:@"hoverPoint"];
+    [self willChangeValueForKey:@"hoverNormal"];
     m_hovering = YES;
     [self didChangeValueForKey:@"hoverPoint"];
+    [self didChangeValueForKey:@"hoverNormal"];
+    [self hoverPoint];
+    [self hoverNormal];
 }
 
 - (void)mouseMoved:(NSEvent *)event
@@ -757,25 +886,41 @@ slice_set_up_state(void)
         return;
 
     [self willChangeValueForKey:@"hoverPoint"];
+    [self willChangeValueForKey:@"hoverNormal"];
     m_hoverPixel = [self convertPoint:[event locationInWindow] fromView:nil];
     [self didChangeValueForKey:@"hoverPoint"];
+    [self didChangeValueForKey:@"hoverNormal"];
+    [self hoverPoint];
+    [self hoverNormal];
 }
 
 - (void)mouseExited:(NSEvent *)event
 {
     [self willChangeValueForKey:@"hoverPoint"];
+    [self willChangeValueForKey:@"hoverNormal"];
     m_hovering = NO;
     [self didChangeValueForKey:@"hoverPoint"];
+    [self didChangeValueForKey:@"hoverNormal"];
+    [self hoverPoint];
+    [self hoverNormal];
 }
 
 - (struct point3)hoverPoint
 {
-    return [self _hoverValueFromBuffer:GL_COLOR_ATTACHMENT1_EXT];
+    static struct point3 prevHoverPoint = { -1, -1, -1 };
+    struct point3 newHoverPoint = [self _hoverValueFromBuffer:GL_COLOR_ATTACHMENT1_EXT];
+    if(!eq_point3(prevHoverPoint, newHoverPoint))
+        [self setNeedsDisplay:YES];
+    return prevHoverPoint = newHoverPoint;
 }
 
 - (struct point3)hoverNormal
 {
-    return [self _hoverValueFromBuffer:GL_COLOR_ATTACHMENT2_EXT];
+    static struct point3 prevHoverNormal = { 0, 0, 0 };
+    struct point3 newHoverNormal = [self _hoverValueFromBuffer:GL_COLOR_ATTACHMENT2_EXT];
+    if(!eq_point3(prevHoverNormal, newHoverNormal))
+        [self setNeedsDisplay:YES];
+    return prevHoverNormal = newHoverNormal;
 }
 
 - (struct point3)_hoverValueFromBuffer:(GLenum)buffer

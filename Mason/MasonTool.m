@@ -18,6 +18,11 @@
     return NO;
 }
 
+- (MasonUnit)unit
+{
+    return MasonUnitNone;
+}
+
 - (void)handleMouseDraggedFrom:(NSPoint)from delta:(NSPoint)delta forDocument:(MasonDocument *)document
 {
     // do nothing

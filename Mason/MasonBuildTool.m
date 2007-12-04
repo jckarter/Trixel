@@ -17,6 +17,11 @@
     return [NSCursor crosshairCursor];
 }
 
+- (MasonUnit)unit
+{
+    return MasonUnitFace;
+}
+
 - (void)handleMouseDraggedFrom:(NSPoint)from delta:(NSPoint)delta forDocument:(MasonDocument *)document
 {
     struct point3 hoverPoint = [[document brickView] hoverPoint],
