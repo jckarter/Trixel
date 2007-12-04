@@ -20,8 +20,8 @@ static const size_t g_num_draw_buffers = 3;
 static const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_COLOR_ATTACHMENT2_EXT };
 static const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                  GL_NONE                  };
 
-static const char * g_surface_flags[] = { TRIXEL_LIGHTING, TRIXEL_SAVE_COORDINATES, NULL };
-static const char * g_slice_flags[] = { TRIXEL_LIGHTING, TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
+static const char * g_surface_flags[] = { TRIXEL_SMOOTH_SHADING, TRIXEL_LIGHTING, TRIXEL_SAVE_COORDINATES, NULL };
+static const char * g_slice_flags[] = { TRIXEL_SMOOTH_SHADING, TRIXEL_LIGHTING, TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
 static const GLshort g_surface_elements[] = {
     0, 1, 2, 3,
     0, 4, 5, 1,
@@ -134,6 +134,7 @@ slice_set_up_state(void)
     [[NSApp toolboxController] addObserver:self forKeyPath:@"showBoundingBox" options:NSKeyValueObservingOptionOld context:NULL];
     [[NSApp toolboxController] addObserver:self forKeyPath:@"showAxes" options:NSKeyValueObservingOptionOld context:NULL];
     [[NSApp toolboxController] addObserver:self forKeyPath:@"showLighting" options:NSKeyValueObservingOptionOld context:NULL];
+    [[NSApp toolboxController] addObserver:self forKeyPath:@"showSmoothShading" options:NSKeyValueObservingOptionOld context:NULL];
     [o_document addObserver:self forKeyPath:@"sliceAxis" options:NSKeyValueObservingOptionOld context:NULL];
     [o_document addObserver:self forKeyPath:@"sliceNumber" options:NSKeyValueObservingOptionOld context:NULL];
     [o_document addObserver:self forKeyPath:@"brick" options:NSKeyValueObservingOptionOld context:NULL];
@@ -152,7 +153,9 @@ slice_set_up_state(void)
 - (char const * *)_trixelFlags
 {
     return m_slice_ops[ [o_document sliceAxis] ].trixel_flags
-        + ([NSApp toolboxController].showLighting ? 0 : 1);
+        + ([NSApp toolboxController].showLighting ? (
+            [NSApp toolboxController].showSmoothShading ? 0 : 1
+        ) : 2);
 }
 
 - (void)_updateLightParams
@@ -204,7 +207,8 @@ slice_set_up_state(void)
         [self setNeedsDisplay:YES];
     }
     else if(((object == o_document && [path isEqualToString:@"sliceAxis"])
-                || (object == [NSApp toolboxController] && [path isEqualToString:@"showLighting"]))
+                || (object == [NSApp toolboxController] && [path isEqualToString:@"showLighting"])
+                || (object == [NSApp toolboxController] && [path isEqualToString:@"showSmoothShading"]))
             && m_t) {
         [self _updateShaders];
         [self setNeedsDisplay:YES];

@@ -11,12 +11,12 @@ static NSArray * g_tools;
 
 @interface MasonToolboxController ()
 @property(readwrite) MasonTool * currentTool;
-@property(readwrite) BOOL showBoundingBox, showAxes, showLighting;
+@property(readwrite) BOOL showBoundingBox, showAxes, showLighting, showSmoothShading;
 @end
 
 @implementation MasonToolboxController
 
-@synthesize currentTool, showBoundingBox, showAxes, showLighting;
+@synthesize currentTool, showBoundingBox, showAxes, showLighting, showSmoothShading;
 
 + (void)initialize
 {
@@ -50,10 +50,16 @@ static NSArray * g_tools;
     [o_showLightingItem setState:(set ? NSOnState : NSOffState)];
 }
 
+- (void)setShowSmoothShading:(BOOL)set
+{
+    showSmoothShading = set;
+    [o_showSmoothShadingItem setState:(set ? NSOnState : NSOffState)];
+}
+
 - (void)awakeFromNib
 {
     self.currentTool = [g_tools objectAtIndex:0];
-    self.showBoundingBox = self.showAxes = self.showLighting = YES;
+    self.showBoundingBox = self.showAxes = self.showLighting = self.showSmoothShading = YES;
 }
 
 - (IBAction)changeCurrentTool:(id)sender
@@ -72,6 +78,10 @@ static NSArray * g_tools;
 - (IBAction)toggleShowLighting:(id)sender
 {
     self.showLighting = !self.showLighting;
+}
+- (IBAction)toggleShowSmoothShading:(id)sender
+{
+    self.showSmoothShading = !self.showSmoothShading;
 }
 
 @end
