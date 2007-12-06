@@ -6,6 +6,11 @@ uniform sampler3D voxmap;
 uniform sampler1D palette;
 uniform vec3 voxmap_size, voxmap_size_inv;
 
+#ifdef TRIXEL_SMOOTH_SHADING
+uniform sampler3D normals;
+uniform vec3 normal_translate, normal_scale;
+#endif
+
 struct light_struct {
     vec4 diffuse, ambient;
     vec4 position;
@@ -41,7 +46,7 @@ voxel(vec3 pt)
 bool
 has_voxel(vec3 pt)
 {
-    return voxel(pt) > 0.0;
+    return pt == clamp(pt, 0.0, 1.0) && voxel(pt) > 0.0;
 }
 
 vec3 cast_pt, world_cast_pt, cast_normal;
@@ -100,40 +105,7 @@ vec3 bias(vec3 v) { return (v + vec3(1)) * vec3(0.5); }
     vec3
     normal()
     {
-        vec3 n = cast_normal*2.0;
-        vec3 uaxis = cast_normal     * voxmap_size_inv,
-             vaxis = cast_normal.yzx * voxmap_size_inv,
-             waxis = cast_normal.zxy * voxmap_size_inv,
-             vaxis_n = cast_normal.yzx,
-             waxis_n = cast_normal.zxy;
-        float slope = 0.0, i;
-
-        for(i = 0.0; i < 3.0; i += 1.0)
-            if(has_voxel(cast_pt + vaxis + uaxis*(1.0-i)))
-                break;
-        slope += i;
-        for(i = 0.0; i < 3.0; i += 1.0)
-            if(has_voxel(cast_pt - vaxis + uaxis*(1.0-i)))
-                break;
-        slope -= i;
-        if(slope ==  3.0) slope =  4.0;
-        if(slope == -3.0) slope = -4.0;
-        n += vaxis_n * slope;
-
-        slope = 0.0;
-        for(i = 0.0; i < 3.0; i += 1.0)
-            if(has_voxel(cast_pt + waxis + uaxis*(1.0-i)))
-                break;
-        slope += i;
-        for(i = 0.0; i < 3.0; i += 1.0)
-            if(has_voxel(cast_pt - waxis + uaxis*(1.0-i)))
-                break;
-        slope -= i;
-        if(slope ==  3.0) slope =  4.0;
-        if(slope == -3.0) slope = -4.0;
-        n += waxis_n * slope;
-
-        return normalize(n);
+        return normalize(texture3D(normals, cast_pt * normal_scale + normal_translate).xyz);
     }
 
 #else

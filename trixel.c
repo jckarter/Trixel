@@ -17,9 +17,10 @@
 
 struct trixel_internal_state {
     char * resource_path;
+	bool has_smooth_shading;
     GLuint voxel_program, voxel_vertex_shader, voxel_fragment_shader;
     struct voxel_program_uniforms {
-        GLint voxmap, palette, voxmap_size, voxmap_size_inv;
+        GLint voxmap, palette, normals, normal_translate, normal_scale, voxmap_size, voxmap_size_inv;
     } voxel_uniforms;
 };
 
@@ -209,6 +210,17 @@ unmake_voxel_program(trixel_state t)
     STATE(t)->voxel_program = 0;
 }
 
+static bool
+_has_flag(char const * flags[], char const * flag_to_find)
+{
+	while(*flags) {
+		if(strcmp(*flags, flag_to_find) == 0)
+			return true;
+		++flags;
+	}
+	return false;
+}
+
 trixel_state
 trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message)
 {
@@ -297,6 +309,8 @@ trixel_update_shaders(trixel_state t, char const *shader_flags[], char * * out_e
     if(!voxel_program)
         goto error_after_fragment_shader;
 
+	STATE(t)->has_smooth_shading = _has_flag(shader_flags, TRIXEL_SMOOTH_SHADING);
+
     if(STATE(t)->voxel_program)
         unmake_voxel_program(t);
     STATE(t)->voxel_vertex_shader = voxel_vertex_shader;
@@ -306,6 +320,12 @@ trixel_update_shaders(trixel_state t, char const *shader_flags[], char * * out_e
     STATE(t)->voxel_uniforms.palette = glGetUniformLocation(STATE(t)->voxel_program, "palette");
     STATE(t)->voxel_uniforms.voxmap_size = glGetUniformLocation(STATE(t)->voxel_program, "voxmap_size");
     STATE(t)->voxel_uniforms.voxmap_size_inv = glGetUniformLocation(STATE(t)->voxel_program, "voxmap_size_inv");
+
+	if(STATE(t)->has_smooth_shading) {
+		STATE(t)->voxel_uniforms.normals = glGetUniformLocation(STATE(t)->voxel_program, "normals");
+		STATE(t)->voxel_uniforms.normal_scale = glGetUniformLocation(STATE(t)->voxel_program, "normal_scale");
+		STATE(t)->voxel_uniforms.normal_translate = glGetUniformLocation(STATE(t)->voxel_program, "normal_translate");
+	}
 
     free(vertex_source);
     free(fragment_source);
@@ -402,6 +422,14 @@ trixel_read_brick(const void * data, size_t data_length, bool prepare, char * * 
     brick->dimensions_inv.y = 1.0 / brick->dimensions.y;
     brick->dimensions_inv.z = 1.0 / brick->dimensions.z;
 
+	brick->normal_translate.x = 0.5 / (brick->dimensions.x + 1);
+	brick->normal_translate.y = 0.5 / (brick->dimensions.y + 1);
+	brick->normal_translate.z = 0.5 / (brick->dimensions.z + 1);
+
+	brick->normal_scale.x = brick->dimensions.x / (brick->dimensions.x + 1);
+	brick->normal_scale.y = brick->dimensions.y / (brick->dimensions.y + 1);
+	brick->normal_scale.z = brick->dimensions.z / (brick->dimensions.z + 1);
+
     brick->palette_data = malloc(256 * 4);
     memset(brick->palette_data, 0, 256 * 4);
     memcpy(brick->palette_data + 4, byte_data + palette_offset, palette_length);
@@ -430,6 +458,14 @@ _trixel_make_brick(int w, int h, int d, bool prepare, bool solid, char * * out_e
     brick->dimensions_inv.x = 1.0 / brick->dimensions.x;
     brick->dimensions_inv.y = 1.0 / brick->dimensions.y;
     brick->dimensions_inv.z = 1.0 / brick->dimensions.z;
+
+	brick->normal_translate.x = 0.5 / (brick->dimensions.x + 1);
+	brick->normal_translate.y = 0.5 / (brick->dimensions.y + 1);
+	brick->normal_translate.z = 0.5 / (brick->dimensions.z + 1);
+
+	brick->normal_scale.x = brick->dimensions.x / (brick->dimensions.x + 1);
+	brick->normal_scale.y = brick->dimensions.y / (brick->dimensions.y + 1);
+	brick->normal_scale.z = brick->dimensions.z / (brick->dimensions.z + 1);
 
     unsigned char fill = solid ? 1 : 0;
 
@@ -506,6 +542,20 @@ trixel_prepare_brick(trixel_brick * brick)
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     _gl_report_error("trixel_prepare_brick palette");
+
+	glGenTextures(1, &brick->normal_texture);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_3D, brick->normal_texture);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
+    glTexImage3D(
+        GL_TEXTURE_3D, 0, GL_RGB16F_ARB,
+        (GLsizei)brick->dimensions.x + 1, (GLsizei)brick->dimensions.y + 1, (GLsizei)brick->dimensions.z + 1,
+        0, GL_RGB, GL_FLOAT, NULL
+    );
 
     trixel_update_brick_textures(brick);
 
@@ -619,6 +669,78 @@ trixel_unprepare_brick(trixel_brick * brick)
     brick->palette_texture = 0;
 }
 
+unsigned char
+_clipped_voxel(trixel_brick * brick, int x, int y, int z)
+{
+	return x >= 0 && y >= 0 && z >= 0
+		&& x < brick->dimensions.x && y < brick->dimensions.y && z < brick->dimensions.z
+			? *trixel_brick_voxel(brick, x, y, z)
+			: 0;
+}
+
+void
+_calculate_normal(trixel_brick * brick, int x, int y, int z, float * out_normal)
+{
+	static const struct point3 neighbors[8] = {
+		{ -1, -1, -1 },
+		{ -1, -1,  1 },
+		{ -1,  1, -1 },
+		{ -1,  1,  1 },
+		{  1, -1, -1 },
+		{  1, -1,  1 },
+		{  1,  1, -1 },
+		{  1,  1,  1 }
+	};
+	static const struct { int x, y, z; } offsets[8] = {
+		{ -1, -1, -1 },
+		{ -1, -1,  0 },
+		{ -1,  0, -1 },
+		{ -1,  0,  0 },
+		{  0, -1, -1 },
+		{  0, -1,  0 },
+		{  0,  0, -1 },
+		{  0,  0,  0 }		
+	};
+	
+	out_normal[0] = 0.0;
+	out_normal[1] = 0.0;
+	out_normal[2] = 0.0;
+	
+	for(int i = 0; i < 8; ++i)
+		if(!_clipped_voxel(brick, x + offsets[i].x, y + offsets[i].y, z + offsets[i].z)) {
+			out_normal[0] += neighbors[i].x;
+			out_normal[1] += neighbors[i].y;
+			out_normal[2] += neighbors[i].z;
+		}
+}
+
+void
+_generate_normal_texture(trixel_brick * brick)
+{
+	int normals_w = brick->dimensions.x + 1,
+		normals_h = brick->dimensions.y + 1,
+		normals_d = brick->dimensions.z + 1;
+	float normal_texture_data[normals_w * normals_h * normals_d * 3];
+	
+	for(int z = 0; z < normals_d; ++z)
+		for(int y = 0; y < normals_h; ++y)
+			for(int x = 0; x < normals_w; ++x)
+				_calculate_normal(
+					brick, x, y, z,
+					normal_texture_data + (x + normals_w * y + normals_w * normals_h * z) * 3
+				);
+	
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_3D, brick->normal_texture);
+    glTexImage3D(
+        GL_TEXTURE_3D, 0, GL_RGB16F_ARB,
+        normals_w, normals_h, normals_d,
+        0, GL_RGB, GL_FLOAT, normal_texture_data
+    );
+
+    _gl_report_error("trixel_update_brick_textures normal");
+}
+
 void
 trixel_update_brick_textures(trixel_brick * brick)
 {
@@ -645,6 +767,8 @@ trixel_update_brick_textures(trixel_brick * brick)
     glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA, GL_UNSIGNED_BYTE, brick->palette_data);
 
     _gl_report_error("trixel_update_brick_textures palette");
+
+	_generate_normal_texture(brick);
 }
 
 void *
@@ -746,12 +870,19 @@ trixel_draw_from_brick(trixel_state t, trixel_brick * brick)
     glBindTexture(GL_TEXTURE_3D, brick->voxmap_texture);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_3D, brick->normal_texture);
 
     glUseProgram(STATE(t)->voxel_program);
     glUniform3fv(STATE(t)->voxel_uniforms.voxmap_size,     1, (GLfloat *)&brick->dimensions);
     glUniform3fv(STATE(t)->voxel_uniforms.voxmap_size_inv, 1, (GLfloat *)&brick->dimensions_inv);
     glUniform1i(STATE(t)->voxel_uniforms.voxmap,  0);
     glUniform1i(STATE(t)->voxel_uniforms.palette, 1);
+	if(STATE(t)->has_smooth_shading) {
+	    glUniform3fv(STATE(t)->voxel_uniforms.normal_scale, 1, (GLfloat *)&brick->normal_scale);
+	    glUniform3fv(STATE(t)->voxel_uniforms.normal_translate, 1, (GLfloat *)&brick->normal_translate);
+    	glUniform1i(STATE(t)->voxel_uniforms.normals, 2);
+	}
 }
 
 void

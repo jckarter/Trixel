@@ -30,10 +30,10 @@ static inline bool eq_point3(struct point3 a, struct point3 b)
     { return a.x == b.x && a.y == b.y && a.z == b.z; }
 
 typedef struct tag_trixel_brick {
-    struct point3 dimensions, dimensions_inv;
+    struct point3 dimensions, dimensions_inv, normal_translate, normal_scale;
     unsigned char * palette_data;
     unsigned char * voxmap_data;
-    GLuint palette_texture, voxmap_texture, vertex_buffer;
+    GLuint palette_texture, voxmap_texture, normal_texture, vertex_buffer;
 } trixel_brick;
 
 typedef void * trixel_state;
