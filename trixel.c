@@ -721,11 +721,11 @@ _calculate_normal(trixel_brick * brick, int x, int y, int z, struct point3 * out
     for(int i = 0; i < 8; ++i)
         if(!_clipped_voxel(brick, x + offsets[i].x, y + offsets[i].y, z + offsets[i].z))
             add_to_point3(out_normal, normalvectors[i]);
-        else
-            out_neighbors[neighbors[i].x]
-                = out_neighbors[neighbors[i].y]
-                = out_neighbors[neighbors[i].z]
-                = true;
+        else {
+            ++out_neighbors[neighbors[i].x];
+            ++out_neighbors[neighbors[i].y];
+            ++out_neighbors[neighbors[i].z];
+        }
 }
 
 void
@@ -805,17 +805,17 @@ _generate_normal_texture(trixel_brick * brick)
     for(int z = 0; z < normals_d; ++z)
         for(int y = 0; y < normals_h; ++y)
             for(int x = 0; x < normals_w; ++x) {
-                if(raw_neighbors[z][y][x][_NEIGHBOR_POSX])
+                if(raw_neighbors[z][y][x][_NEIGHBOR_POSX] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y][x+1]);
-                if(raw_neighbors[z][y][x][_NEIGHBOR_POSY])
+                if(raw_neighbors[z][y][x][_NEIGHBOR_POSY] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y+1][x]);
-                if(raw_neighbors[z][y][x][_NEIGHBOR_POSZ])
+                if(raw_neighbors[z][y][x][_NEIGHBOR_POSZ] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z+1][y][x]);
-                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGX])
+                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGX] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y][x-1]);
-                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGY])
+                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGY] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y-1][x]);
-                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGZ])
+                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGZ] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z-1][y][x]);
             }
 
