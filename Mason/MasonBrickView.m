@@ -21,7 +21,7 @@ static const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT,
 static const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                  GL_NONE                  };
 
 static const char * g_surface_flags[] = { TRIXEL_SMOOTH_SHADING, TRIXEL_LIGHTING, TRIXEL_SAVE_COORDINATES, NULL };
-static const char * g_slice_flags[] = { TRIXEL_SMOOTH_SHADING, TRIXEL_LIGHTING, TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
+static const char * g_slice_flags[] = { "", "", TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
 static const GLshort g_surface_elements[] = {
     0, 1, 2, 3,
     0, 4, 5, 1,

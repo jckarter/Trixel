@@ -17,7 +17,7 @@
 
 struct trixel_internal_state {
     char * resource_path;
-	bool has_smooth_shading;
+    bool has_smooth_shading;
     GLuint voxel_program, voxel_vertex_shader, voxel_fragment_shader;
     struct voxel_program_uniforms {
         GLint voxmap, palette, normals, normal_translate, normal_scale, voxmap_size, voxmap_size_inv;
@@ -92,7 +92,10 @@ _make_shader_flag_sources(char const * flags[], char const * source, size_t *out
 
     char * * flag_sources = malloc((num_flags + 1) * sizeof(char*));
     for(size_t i = 0; i < num_flags; ++i)
-        asprintf(&flag_sources[i], "#define %s 1\n", flags[i]);
+        if(flags[i][0] == 0)
+            asprintf(&flag_sources[i], "");
+        else
+            asprintf(&flag_sources[i], "#define %s 1\n", flags[i]);
 
     flag_sources[num_flags] = strdup(source);
     *out_num_sources = num_flags + 1;
@@ -213,12 +216,12 @@ unmake_voxel_program(trixel_state t)
 static bool
 _has_flag(char const * flags[], char const * flag_to_find)
 {
-	while(*flags) {
-		if(strcmp(*flags, flag_to_find) == 0)
-			return true;
-		++flags;
-	}
-	return false;
+    while(*flags) {
+        if(strcmp(*flags, flag_to_find) == 0)
+            return true;
+        ++flags;
+    }
+    return false;
 }
 
 trixel_state
@@ -309,7 +312,7 @@ trixel_update_shaders(trixel_state t, char const *shader_flags[], char * * out_e
     if(!voxel_program)
         goto error_after_fragment_shader;
 
-	STATE(t)->has_smooth_shading = _has_flag(shader_flags, TRIXEL_SMOOTH_SHADING);
+    STATE(t)->has_smooth_shading = _has_flag(shader_flags, TRIXEL_SMOOTH_SHADING);
 
     if(STATE(t)->voxel_program)
         unmake_voxel_program(t);
@@ -321,11 +324,11 @@ trixel_update_shaders(trixel_state t, char const *shader_flags[], char * * out_e
     STATE(t)->voxel_uniforms.voxmap_size = glGetUniformLocation(STATE(t)->voxel_program, "voxmap_size");
     STATE(t)->voxel_uniforms.voxmap_size_inv = glGetUniformLocation(STATE(t)->voxel_program, "voxmap_size_inv");
 
-	if(STATE(t)->has_smooth_shading) {
-		STATE(t)->voxel_uniforms.normals = glGetUniformLocation(STATE(t)->voxel_program, "normals");
-		STATE(t)->voxel_uniforms.normal_scale = glGetUniformLocation(STATE(t)->voxel_program, "normal_scale");
-		STATE(t)->voxel_uniforms.normal_translate = glGetUniformLocation(STATE(t)->voxel_program, "normal_translate");
-	}
+    if(STATE(t)->has_smooth_shading) {
+        STATE(t)->voxel_uniforms.normals = glGetUniformLocation(STATE(t)->voxel_program, "normals");
+        STATE(t)->voxel_uniforms.normal_scale = glGetUniformLocation(STATE(t)->voxel_program, "normal_scale");
+        STATE(t)->voxel_uniforms.normal_translate = glGetUniformLocation(STATE(t)->voxel_program, "normal_translate");
+    }
 
     free(vertex_source);
     free(fragment_source);
@@ -422,13 +425,13 @@ trixel_read_brick(const void * data, size_t data_length, bool prepare, char * * 
     brick->dimensions_inv.y = 1.0 / brick->dimensions.y;
     brick->dimensions_inv.z = 1.0 / brick->dimensions.z;
 
-	brick->normal_translate.x = 0.5 / (brick->dimensions.x + 1);
-	brick->normal_translate.y = 0.5 / (brick->dimensions.y + 1);
-	brick->normal_translate.z = 0.5 / (brick->dimensions.z + 1);
+    brick->normal_translate.x = 0.5 / (brick->dimensions.x + 1);
+    brick->normal_translate.y = 0.5 / (brick->dimensions.y + 1);
+    brick->normal_translate.z = 0.5 / (brick->dimensions.z + 1);
 
-	brick->normal_scale.x = brick->dimensions.x / (brick->dimensions.x + 1);
-	brick->normal_scale.y = brick->dimensions.y / (brick->dimensions.y + 1);
-	brick->normal_scale.z = brick->dimensions.z / (brick->dimensions.z + 1);
+    brick->normal_scale.x = brick->dimensions.x / (brick->dimensions.x + 1);
+    brick->normal_scale.y = brick->dimensions.y / (brick->dimensions.y + 1);
+    brick->normal_scale.z = brick->dimensions.z / (brick->dimensions.z + 1);
 
     brick->palette_data = malloc(256 * 4);
     memset(brick->palette_data, 0, 256 * 4);
@@ -459,13 +462,13 @@ _trixel_make_brick(int w, int h, int d, bool prepare, bool solid, char * * out_e
     brick->dimensions_inv.y = 1.0 / brick->dimensions.y;
     brick->dimensions_inv.z = 1.0 / brick->dimensions.z;
 
-	brick->normal_translate.x = 0.5 / (brick->dimensions.x + 1);
-	brick->normal_translate.y = 0.5 / (brick->dimensions.y + 1);
-	brick->normal_translate.z = 0.5 / (brick->dimensions.z + 1);
+    brick->normal_translate.x = 0.5 / (brick->dimensions.x + 1);
+    brick->normal_translate.y = 0.5 / (brick->dimensions.y + 1);
+    brick->normal_translate.z = 0.5 / (brick->dimensions.z + 1);
 
-	brick->normal_scale.x = brick->dimensions.x / (brick->dimensions.x + 1);
-	brick->normal_scale.y = brick->dimensions.y / (brick->dimensions.y + 1);
-	brick->normal_scale.z = brick->dimensions.z / (brick->dimensions.z + 1);
+    brick->normal_scale.x = brick->dimensions.x / (brick->dimensions.x + 1);
+    brick->normal_scale.y = brick->dimensions.y / (brick->dimensions.y + 1);
+    brick->normal_scale.z = brick->dimensions.z / (brick->dimensions.z + 1);
 
     unsigned char fill = solid ? 1 : 0;
 
@@ -543,9 +546,9 @@ trixel_prepare_brick(trixel_brick * brick)
 
     _gl_report_error("trixel_prepare_brick palette");
 
-	glGenTextures(1, &brick->normal_texture);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_3D, brick->normal_texture);
+    glGenTextures(1, &brick->normal_texture);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_3D, brick->normal_texture);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -672,70 +675,161 @@ trixel_unprepare_brick(trixel_brick * brick)
 unsigned char
 _clipped_voxel(trixel_brick * brick, int x, int y, int z)
 {
-	return x >= 0 && y >= 0 && z >= 0
-		&& x < brick->dimensions.x && y < brick->dimensions.y && z < brick->dimensions.z
-			? *trixel_brick_voxel(brick, x, y, z)
-			: 0;
+    return x >= 0 && y >= 0 && z >= 0
+        && x < brick->dimensions.x && y < brick->dimensions.y && z < brick->dimensions.z
+            ? *trixel_brick_voxel(brick, x, y, z)
+            : 0;
+}
+
+enum { _NEIGHBOR_POSX = 0, _NEIGHBOR_POSY, _NEIGHBOR_POSZ,
+       _NEIGHBOR_NEGX,     _NEIGHBOR_NEGY, _NEIGHBOR_NEGZ };
+
+void
+_calculate_normal(trixel_brick * brick, int x, int y, int z, struct point3 * out_normal, uint8_t * out_neighbors)
+{
+    static const struct point3 normalvectors[8] = {
+        { -1, -1, -1 },
+        { -1, -1,  1 },
+        { -1,  1, -1 },
+        { -1,  1,  1 },
+        {  1, -1, -1 },
+        {  1, -1,  1 },
+        {  1,  1, -1 },
+        {  1,  1,  1 }
+    };
+    static const struct { int x, y, z; } offsets[8] = {
+        { -1, -1, -1 },
+        { -1, -1,  0 },
+        { -1,  0, -1 },
+        { -1,  0,  0 },
+        {  0, -1, -1 },
+        {  0, -1,  0 },
+        {  0,  0, -1 },
+        {  0,  0,  0 }        
+    };
+    static const struct { uint8_t x, y, z; } neighbors[8] = {
+        { _NEIGHBOR_NEGX, _NEIGHBOR_NEGY, _NEIGHBOR_NEGZ },
+        { _NEIGHBOR_NEGX, _NEIGHBOR_NEGY, _NEIGHBOR_POSZ },
+        { _NEIGHBOR_NEGX, _NEIGHBOR_POSY, _NEIGHBOR_NEGZ },
+        { _NEIGHBOR_NEGX, _NEIGHBOR_POSY, _NEIGHBOR_POSZ },
+        { _NEIGHBOR_POSX, _NEIGHBOR_NEGY, _NEIGHBOR_NEGZ },
+        { _NEIGHBOR_POSX, _NEIGHBOR_NEGY, _NEIGHBOR_POSZ },
+        { _NEIGHBOR_POSX, _NEIGHBOR_POSY, _NEIGHBOR_NEGZ },
+        { _NEIGHBOR_POSX, _NEIGHBOR_POSY, _NEIGHBOR_POSZ }
+    };
+    
+    for(int i = 0; i < 8; ++i)
+        if(!_clipped_voxel(brick, x + offsets[i].x, y + offsets[i].y, z + offsets[i].z))
+            add_to_point3(out_normal, normalvectors[i]);
+        else
+            out_neighbors[neighbors[i].x]
+                = out_neighbors[neighbors[i].y]
+                = out_neighbors[neighbors[i].z]
+                = true;
 }
 
 void
-_calculate_normal(trixel_brick * brick, int x, int y, int z, float * out_normal)
+_log_normal_data(
+    int w, int h, int d,
+    struct point3 raw_normal[d][h][w],
+    uint8_t neighbors[d][h][w][6],
+    struct point3 smooth_normal[d][h][w]
+)
 {
-	static const struct point3 neighbors[8] = {
-		{ -1, -1, -1 },
-		{ -1, -1,  1 },
-		{ -1,  1, -1 },
-		{ -1,  1,  1 },
-		{  1, -1, -1 },
-		{  1, -1,  1 },
-		{  1,  1, -1 },
-		{  1,  1,  1 }
-	};
-	static const struct { int x, y, z; } offsets[8] = {
-		{ -1, -1, -1 },
-		{ -1, -1,  0 },
-		{ -1,  0, -1 },
-		{ -1,  0,  0 },
-		{  0, -1, -1 },
-		{  0, -1,  0 },
-		{  0,  0, -1 },
-		{  0,  0,  0 }		
-	};
-	
-	out_normal[0] = 0.0;
-	out_normal[1] = 0.0;
-	out_normal[2] = 0.0;
-	
-	for(int i = 0; i < 8; ++i)
-		if(!_clipped_voxel(brick, x + offsets[i].x, y + offsets[i].y, z + offsets[i].z)) {
-			out_normal[0] += neighbors[i].x;
-			out_normal[1] += neighbors[i].y;
-			out_normal[2] += neighbors[i].z;
-		}
+    fprintf(stderr, "raw normals:\n  ");
+    for(int z = 0; z < d; ++z) {
+        for(int y = 0; y < h; ++y) {
+            for(int x = 0; x < w; ++x) {
+                fprintf(stderr, "%10.8f,%10.8f,%10.8f ", raw_normal[z][y][x].x,
+                                                         raw_normal[z][y][x].y,
+                                                         raw_normal[z][y][x].z);
+            }
+            fprintf(stderr, "\n  ");
+        }
+        fprintf(stderr, "\n  ");
+    }
+    
+    fprintf(stderr, "neighbors:\n  ");
+    for(int z = 0; z < d; ++z) {
+        for(int y = 0; y < h; ++y) {
+            for(int x = 0; x < w; ++x) {
+                fprintf(stderr, "%d,%d,%d,%d,%d,%d ", neighbors[z][y][x][0],
+                                                      neighbors[z][y][x][1],
+                                                      neighbors[z][y][x][2],
+                                                      neighbors[z][y][x][3],
+                                                      neighbors[z][y][x][4],
+                                                      neighbors[z][y][x][5]);
+            }
+            fprintf(stderr, "\n  ");
+        }
+        fprintf(stderr, "\n  ");
+    }            
+
+    fprintf(stderr, "smooth normals:\n  ");
+    for(int z = 0; z < d; ++z) {
+        for(int y = 0; y < h; ++y) {
+            for(int x = 0; x < w; ++x) {
+                fprintf(stderr, "%10.8f,%10.8f,%10.8f ", smooth_normal[z][y][x].x,
+                                                         smooth_normal[z][y][x].y,
+                                                         smooth_normal[z][y][x].z);
+            }
+            fprintf(stderr, "\n  ");
+        }
+        fprintf(stderr, "\n  ");
+    }
 }
 
 void
 _generate_normal_texture(trixel_brick * brick)
 {
-	int normals_w = brick->dimensions.x + 1,
-		normals_h = brick->dimensions.y + 1,
-		normals_d = brick->dimensions.z + 1;
-	float normal_texture_data[normals_w * normals_h * normals_d * 3];
-	
-	for(int z = 0; z < normals_d; ++z)
-		for(int y = 0; y < normals_h; ++y)
-			for(int x = 0; x < normals_w; ++x)
-				_calculate_normal(
-					brick, x, y, z,
-					normal_texture_data + (x + normals_w * y + normals_w * normals_h * z) * 3
-				);
-	
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_3D, brick->normal_texture);
+    int normals_w = brick->dimensions.x + 1,
+        normals_h = brick->dimensions.y + 1,
+        normals_d = brick->dimensions.z + 1,
+        normals_size = normals_w * normals_h * normals_d;
+    uint8_t raw_neighbors[normals_d][normals_h][normals_w][6];
+    struct point3 raw_normal_texture_data[normals_d][normals_h][normals_w],
+                  normal_texture_data[normals_d][normals_h][normals_w];
+    
+    memset(raw_neighbors, 0, sizeof(uint8_t) * normals_size * 6);
+    memset(raw_normal_texture_data, 0, sizeof(struct point3) * normals_size);
+    
+    for(int z = 0; z < normals_d; ++z)
+        for(int y = 0; y < normals_h; ++y)
+            for(int x = 0; x < normals_w; ++x)
+                _calculate_normal(
+                    brick, x, y, z,
+                    &raw_normal_texture_data[z][y][x],
+                    &raw_neighbors[z][y][x][0]
+                );
+    memcpy(normal_texture_data, raw_normal_texture_data, sizeof(float) * normals_size * 3);
+    for(int z = 0; z < normals_d; ++z)
+        for(int y = 0; y < normals_h; ++y)
+            for(int x = 0; x < normals_w; ++x) {
+                if(raw_neighbors[z][y][x][_NEIGHBOR_POSX])
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y][x+1]);
+                if(raw_neighbors[z][y][x][_NEIGHBOR_POSY])
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y+1][x]);
+                if(raw_neighbors[z][y][x][_NEIGHBOR_POSZ])
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z+1][y][x]);
+                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGX])
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y][x-1]);
+                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGY])
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y-1][x]);
+                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGZ])
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z-1][y][x]);
+            }
+
+    //_log_normal_data(
+    //    normals_w, normals_h, normals_d,
+    //    raw_normal_texture_data, raw_neighbors, normal_texture_data
+    //);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_3D, brick->normal_texture);
     glTexImage3D(
         GL_TEXTURE_3D, 0, GL_RGB16F_ARB,
         normals_w, normals_h, normals_d,
-        0, GL_RGB, GL_FLOAT, normal_texture_data
+        0, GL_RGB, GL_FLOAT, (float*)normal_texture_data
     );
 
     _gl_report_error("trixel_update_brick_textures normal");
@@ -768,7 +862,7 @@ trixel_update_brick_textures(trixel_brick * brick)
 
     _gl_report_error("trixel_update_brick_textures palette");
 
-	_generate_normal_texture(brick);
+    _generate_normal_texture(brick);
 }
 
 void *
@@ -878,11 +972,11 @@ trixel_draw_from_brick(trixel_state t, trixel_brick * brick)
     glUniform3fv(STATE(t)->voxel_uniforms.voxmap_size_inv, 1, (GLfloat *)&brick->dimensions_inv);
     glUniform1i(STATE(t)->voxel_uniforms.voxmap,  0);
     glUniform1i(STATE(t)->voxel_uniforms.palette, 1);
-	if(STATE(t)->has_smooth_shading) {
-	    glUniform3fv(STATE(t)->voxel_uniforms.normal_scale, 1, (GLfloat *)&brick->normal_scale);
-	    glUniform3fv(STATE(t)->voxel_uniforms.normal_translate, 1, (GLfloat *)&brick->normal_translate);
-    	glUniform1i(STATE(t)->voxel_uniforms.normals, 2);
-	}
+    if(STATE(t)->has_smooth_shading) {
+        glUniform3fv(STATE(t)->voxel_uniforms.normal_scale, 1, (GLfloat *)&brick->normal_scale);
+        glUniform3fv(STATE(t)->voxel_uniforms.normal_translate, 1, (GLfloat *)&brick->normal_translate);
+        glUniform1i(STATE(t)->voxel_uniforms.normals, 2);
+    }
 }
 
 void

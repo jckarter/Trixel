@@ -24,6 +24,10 @@ static inline struct point3 add_point3(struct point3 a, struct point3 b)
     { return (struct point3){ a.x + b.x, a.y + b.y, a.z + b.z }; }
 static inline struct point3 sub_point3(struct point3 a, struct point3 b) 
     { return (struct point3){ a.x - b.x, a.y - b.y, a.z - b.z }; }
+static inline void add_to_point3(struct point3 * a, struct point3 b)
+    { a->x += b.x; a->y += b.y; a->z += b.z; }
+static inline void sub_from_point3(struct point3 * a, struct point3 b)
+    { a->x -= b.x; a->y -= b.y; a->z -= b.z; }
 static inline bool in_point3(struct point3 bound, struct point3 p) 
     { return p.x >= 0 && p.y >= 0 && p.z >= 0 && p.x < bound.x && p.y < bound.y && p.z < bound.z; }
 static inline bool eq_point3(struct point3 a, struct point3 b)

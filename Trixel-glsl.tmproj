@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>Mason/MasonBrickView.m</string>
+	<string>Mason/MasonBrick.m</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -152,14 +152,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>12</integer>
+				<integer>45</integer>
 				<key>line</key>
-				<integer>776</integer>
+				<integer>23</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>734</integer>
+			<integer>5</integer>
 		</dict>
 		<key>Mason/MasonBuildTool.h</key>
 		<dict>
@@ -574,14 +574,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>41</integer>
+				<integer>36</integer>
 				<key>line</key>
-				<integer>22</integer>
+				<integer>95</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>29</integer>
+			<integer>63</integer>
 		</dict>
 		<key>trixel.h</key>
 		<dict>
@@ -644,14 +644,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>51</integer>
+				<integer>74</integer>
 				<key>line</key>
 				<integer>8</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>131</integer>
+			<integer>0</integer>
 		</dict>
 	</dict>
 	<key>openDocuments</key>
@@ -703,6 +703,6 @@
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{946, 13}, {673, 878}}</string>
+	<string>{{721, 0}, {673, 878}}</string>
 </dict>
 </plist>

@@ -21,7 +21,7 @@
 
 - (void)handleMouseDraggedFrom:(NSPoint)from delta:(NSPoint)delta forDocument:(MasonDocument *)document
 {
-    [[document brickView] lightYaw:delta.x pitch:delta.y];
+    [[document brickView] lightYaw:-delta.x pitch:delta.y];
 }
 
 @end
