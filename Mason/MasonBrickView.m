@@ -56,6 +56,7 @@ slice_set_up_state(void)
 - (void)_drawFramebufferToWindow;
 
 - (void)_generateFramebuffer;
+- (void)_prepareBrick;
 - (void)_prepareVertexBufferForBrick:(MasonBrick *)brick;
 - (void)_destroyFramebuffer;
 
@@ -108,11 +109,12 @@ slice_set_up_state(void)
     m_framebuffer = m_color_texture = m_hover_renderbuffer = m_depth_renderbuffer = 0;
     
     m_yaw = m_pitch = 0.0;
-    m_lightYaw = 30.0;
+    m_lightYaw = 210.0;
     m_lightPitch = 60.0;
     m_distance = INITIAL_DISTANCE;
     m_hovering = NO;
     m_toolActive = NO;
+    m_brickNeedsPreparing = YES;
     
     NSOpenGLPixelFormat * pf = [[NSOpenGLPixelFormat alloc] initWithAttributes:pfa];
     if(!pf) {
@@ -219,13 +221,16 @@ slice_set_up_state(void)
         [o_document.brick addObserver:self forKeyPath:@"voxmap" options:NSKeyValueObservingOptionOld context:NULL];
         [o_document.brick addObserver:self forKeyPath:@"paletteColors" options:NSKeyValueObservingOptionOld context:NULL];
 
-        [self _prepareVertexBufferForBrick:o_document.brick];
-        [o_document.brick prepare];
+        m_brickNeedsPreparing = YES;
         [self setNeedsDisplay:YES];
     }
-    else if((object == o_document && [path isEqualToString:@"sliceNumber"])
-            || object == [o_document brick])
+    else if(object == o_document && [path isEqualToString:@"sliceNumber"]) {
         [self setNeedsDisplay:YES];
+    }
+    else if(object == [o_document brick]) {
+        m_brickNeedsPreparing = YES;
+        [self setNeedsDisplay:YES];
+    }
     //[super observeValueForKeyPath:path ofObject:object change:change context:context];
 }
 
@@ -235,6 +240,13 @@ slice_set_up_state(void)
         [self addCursorRect:[self bounds] cursor:[[[NSApp toolboxController] currentTool] activeCursor]];
     else
         [self addCursorRect:[self bounds] cursor:[[[NSApp toolboxController] currentTool] inactiveCursor]];
+}
+
+- (void)_prepareBrick
+{
+    [self _prepareVertexBufferForBrick:o_document.brick];
+    [o_document.brick prepare];
+    m_brickNeedsPreparing = NO;
 }
 
 - (void)_prepareVertexBufferForBrick:(MasonBrick *)brick
@@ -448,10 +460,8 @@ slice_set_up_state(void)
     }
 
     glGenBuffers(1, &m_vertex_buffer);    
-    MasonBrick * brick = o_document.brick;
 
-    [self _prepareVertexBufferForBrick:brick];
-    [brick prepare];
+    [self _prepareBrick];
     [self _generateFramebuffer];
     [self _updateLightParams];
 }
@@ -796,6 +806,9 @@ slice_set_up_state(void)
 
 - (void)drawRect:(NSRect)r
 {
+    if(m_brickNeedsPreparing)
+        [self _prepareBrick];
+
     const GLenum *draw_buffers = (m_toolActive ? g_tool_active_draw_buffers : g_tool_inactive_draw_buffers);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_framebuffer);
 

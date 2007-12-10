@@ -30,6 +30,9 @@
 - (IBAction)updateSliceAxis:(id)sender;
 - (IBAction)moveSlice:(id)sender;
 
+- (IBAction)copySlice:(id)sender;
+- (IBAction)projectSlice:(id)sender;
+
 - (IBAction)showResizePanel:(id)sender;
 
 - (IBAction)shiftLeft:(id)sender;
@@ -61,6 +64,7 @@
 - (BOOL)canMoveNextSlice;
 
 - (BOOL)sliceAxisSurface;
+- (BOOL)sliceAxisNotSurface;
 - (BOOL)sliceAxisX;
 - (BOOL)sliceAxisY;
 - (BOOL)sliceAxisZ;

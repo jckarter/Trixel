@@ -1,5 +1,6 @@
 #import "MasonBrick.h"
 #import "MasonScriptingPaletteColor.h"
+#import "MasonDocument.h"
 
 NSString *TrixelErrorDomain = @"TrixelErrorDomain";
 
@@ -61,6 +62,39 @@ _scripting_color_from_palette(unsigned char * palette_color, id cont, unsigned i
                                                            greenComponent:(float)palette_color[1]/255.0
                                                             blueComponent:(float)palette_color[2]/255.0
                                                            alphaComponent:(float)palette_color[3]/255.0];
+}
+
+static void
+_copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int destSliceNumber)
+{
+    int upitch, vpitch, wpitch, ucount, vcount;
+    if(sliceAxis == SLICE_AXIS_XAXIS) {
+        upitch = brick->dimensions.x;
+        vpitch = brick->dimensions.x * brick->dimensions.y;
+        wpitch = 1;
+        ucount = brick->dimensions.y;
+        vcount = brick->dimensions.z;
+    }
+    else if(sliceAxis == SLICE_AXIS_YAXIS) {
+        upitch = 1;
+        vpitch = brick->dimensions.x * brick->dimensions.y;
+        wpitch = brick->dimensions.x;
+        ucount = brick->dimensions.x;
+        vcount = brick->dimensions.z;
+    }
+    else if(sliceAxis == SLICE_AXIS_ZAXIS) {
+        upitch = 1;
+        vpitch = brick->dimensions.x;
+        wpitch = brick->dimensions.x * brick->dimensions.y;
+        ucount = brick->dimensions.x;
+        vcount = brick->dimensions.y;
+    }
+    
+    unsigned char * from = brick->voxmap_data + wpitch * sliceNumber,
+                  * to   = brick->voxmap_data + wpitch * destSliceNumber;
+    for(int v = 0; v < vcount; ++v)
+        for(int u = 0; u < ucount; ++u)
+            to[u * upitch + v * vpitch] = from[u * upitch + v * vpitch];
 }
 
 @interface MasonBrick ()
@@ -378,7 +412,7 @@ _scripting_color_from_palette(unsigned char * palette_color, id cont, unsigned i
         for(unsigned z = 0; z < copy_depth; ++z)
             for(unsigned y = 0; y < copy_height; ++y)
                 for(unsigned x = 0; x < copy_width; ++x) {
-                    int offset = z * self.depth * self.height + y * self.height + x;
+                    int offset = z * self.width * self.height + y * self.width + x;
                     to[offset] = from[offset];
                 }
     }
@@ -450,6 +484,34 @@ _scripting_color_from_palette(unsigned char * palette_color, id cont, unsigned i
                     to[to_xpitch * x + to_ypitch * y + to_zpitch * z]
                         = from[from_xpitch * x + from_ypitch * y + from_zpitch * z];
     }
+    return newBrick;
+}
+
+- (MasonBrick *)brickWithSliceAxis:(NSInteger)sliceAxis
+                sliceNumber:(NSInteger)sliceNumber
+                copiedToSliceNumber:(NSInteger)destSliceNumber
+{
+    MasonBrick * newBrick = [self copy];
+    
+    _copy_brick_slice(newBrick.trixelBrick, sliceAxis, sliceNumber, destSliceNumber);
+    
+    return newBrick;
+}
+
+- (MasonBrick *)brickWithSliceAxis:(NSInteger)sliceAxis
+                sliceNumberProjected:(NSInteger)sliceNumber
+{
+    MasonBrick * newBrick = [self copy];
+    int sliceCount = (sliceAxis == SLICE_AXIS_XAXIS
+        ? [self width]  : sliceAxis == SLICE_AXIS_YAXIS
+        ? [self height]
+        : [self depth]);
+    
+    for(int i = 0; i < sliceCount; ++i)
+        if(i == sliceNumber)
+            continue;
+        else
+            _copy_brick_slice(newBrick.trixelBrick, sliceAxis, sliceNumber, i);
     return newBrick;
 }
 

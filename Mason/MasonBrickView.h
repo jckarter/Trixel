@@ -9,7 +9,7 @@
 {
     IBOutlet MasonDocument *o_document;
 
-    BOOL m_hovering, m_toolActive;
+    BOOL m_hovering, m_toolActive, m_brickNeedsPreparing;
     NSPoint m_hoverPixel;
     float m_yaw, m_pitch, m_distance;
     float m_lightYaw, m_lightPitch;

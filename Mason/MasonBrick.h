@@ -47,4 +47,10 @@
 - (MasonBrick *)mirrored:(struct point3)axis;
 - (MasonBrick *)flipped:(struct point3)axis;
 
+- (MasonBrick *)brickWithSliceAxis:(NSInteger)sliceAxis
+                sliceNumber:(NSInteger)sliceNumber
+                copiedToSliceNumber:(NSInteger)destSliceNumber;
+- (MasonBrick *)brickWithSliceAxis:(NSInteger)sliceAxis
+                sliceNumberProjected:(NSInteger)sliceNumber;
+
 @end

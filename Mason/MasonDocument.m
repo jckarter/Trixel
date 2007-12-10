@@ -67,6 +67,21 @@
     return @"MasonDocument";
 }
 
+- (BOOL)validateMenuItem:(NSMenuItem *)item
+{
+    SEL action = [item action];
+    
+    if(action == @selector(moveSlice:)
+        || action == @selector(copySlice:))
+        return [self canMoveSlice] && ([item tag] == SLICE_MOVE_PREVIOUS
+            ? [self canMovePreviousSlice]
+            : [self canMoveNextSlice]
+        );
+    else if(action == @selector(projectSlice:))
+        return [self canMoveSlice];
+    return [super validateMenuItem:item];
+}
+
 - (void)windowControllerDidLoadNib:(NSWindowController *)aController
 {
     [super windowControllerDidLoadNib:aController];
@@ -213,10 +228,35 @@
     return self.sliceNumber < [self _maxSlice];
 }
 
-- (BOOL)sliceAxisSurface { return sliceAxis == SLICE_AXIS_SURFACE; }
-- (BOOL)sliceAxisX       { return sliceAxis == SLICE_AXIS_XAXIS;   }
-- (BOOL)sliceAxisY       { return sliceAxis == SLICE_AXIS_YAXIS;   }
-- (BOOL)sliceAxisZ       { return sliceAxis == SLICE_AXIS_ZAXIS;   }
+- (IBAction)copySlice:(id)sender
+{
+    if(![self canMoveSlice])
+        return;
+
+    NSInteger destSliceNumber = self.sliceNumber + ([sender tag] == SLICE_MOVE_PREVIOUS
+        ? -1
+        :  1);
+    if(destSliceNumber >= 0 && destSliceNumber <= [self _maxSlice])
+        [self _replaceBrick:[self.brick brickWithSliceAxis:self.sliceAxis
+                                               sliceNumber:self.sliceNumber
+                                       copiedToSliceNumber:destSliceNumber]];
+    [self moveSlice:sender];
+}
+
+- (IBAction)projectSlice:(id)sender
+{
+    if(![self canMoveSlice])
+        return;
+
+    [self _replaceBrick:[self.brick brickWithSliceAxis:self.sliceAxis
+                                  sliceNumberProjected:self.sliceNumber]];
+}
+
+- (BOOL)sliceAxisSurface    { return sliceAxis == SLICE_AXIS_SURFACE; }
+- (BOOL)sliceAxisNotSurface { return sliceAxis != SLICE_AXIS_SURFACE; }
+- (BOOL)sliceAxisX          { return sliceAxis == SLICE_AXIS_XAXIS;   }
+- (BOOL)sliceAxisY          { return sliceAxis == SLICE_AXIS_YAXIS;   }
+- (BOOL)sliceAxisZ          { return sliceAxis == SLICE_AXIS_ZAXIS;   }
 
 - (IBAction)showResizePanel:(id)sender
 {

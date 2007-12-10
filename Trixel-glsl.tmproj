@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>Mason/MasonBrick.m</string>
+	<string>trixel.c</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -21,6 +21,20 @@
 	<integer>249</integer>
 	<key>metaData</key>
 	<dict>
+		<key>Cylinder.log</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>8</integer>
+				<key>line</key>
+				<integer>615</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>596</integer>
+		</dict>
 		<key>Makefile</key>
 		<dict>
 			<key>caret</key>
@@ -131,7 +145,7 @@
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>186</integer>
+			<integer>208</integer>
 		</dict>
 		<key>Mason/MasonBrickView.h</key>
 		<dict>
@@ -401,6 +415,20 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
+		<key>Mason/MasonRotateLightTool.m</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>36</integer>
+				<key>line</key>
+				<integer>23</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
 		<key>Mason/MasonRotateTool.h</key>
 		<dict>
 			<key>caret</key>
@@ -555,6 +583,20 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
+		<key>ok.log</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>46</integer>
+		</dict>
 		<key>rwtest.c</key>
 		<dict>
 			<key>caret</key>
@@ -574,23 +616,23 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>36</integer>
+				<integer>6</integer>
 				<key>line</key>
-				<integer>95</integer>
+				<integer>821</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>63</integer>
+			<integer>778</integer>
 		</dict>
 		<key>trixel.h</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>18</integer>
+				<integer>38</integer>
 				<key>line</key>
-				<integer>28</integer>
+				<integer>29</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -676,6 +718,8 @@
 		<string>voxel.vertex.glsl</string>
 		<string>Mason/build/Mason.build/Debug/Mason.build/Mason.hmap</string>
 		<string>trixel.c</string>
+		<string>Cylinder.log</string>
+		<string>ok.log</string>
 		<string>Mason/MasonToolboxController.m</string>
 		<string>Mason/MasonPushTool.h</string>
 		<string>Mason/MasonPullTool.h</string>
@@ -696,6 +740,7 @@
 		<string>Mason/MasonBrickView.m</string>
 		<string>Mason/MasonBrick.h</string>
 		<string>Mason/MasonBrick.m</string>
+		<string>Mason/MasonRotateLightTool.m</string>
 		<string>Mason/MasonTool.h</string>
 		<string>Mason/MasonSetVoxelCommand.h</string>
 		<string>Mason/MasonApplication.m</string>
@@ -703,6 +748,6 @@
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{721, 0}, {673, 878}}</string>
+	<string>{{493, 0}, {673, 878}}</string>
 </dict>
 </plist>
