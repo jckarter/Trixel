@@ -5,12 +5,12 @@
 @interface MasonResizeBrickController : NSObject
 {
     MasonDocument * document;
-    NSUInteger width, height, depth;
     
     IBOutlet NSWindow * o_resizePanel;
+    IBOutlet NSTextField * o_width, * o_height, * o_depth;
 }
 
-@property NSUInteger width, height, depth;
+@property(readonly) NSUInteger width, height, depth;
 @property MasonDocument * document;
 
 - (MasonResizeBrickController *)initWithDocument:(MasonDocument *)document;

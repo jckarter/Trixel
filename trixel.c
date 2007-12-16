@@ -848,6 +848,7 @@ trixel_update_brick_textures(trixel_brick * brick)
         GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->voxmap_data
     );
     */
+    fprintf(stderr, "%d %d %d\n", (GLsizei)brick->dimensions.x, (GLsizei)brick->dimensions.y, (GLsizei)brick->dimensions.z);
     glTexImage3D(
         GL_TEXTURE_3D, 0, GL_LUMINANCE8,
         (GLsizei)brick->dimensions.x, (GLsizei)brick->dimensions.y, (GLsizei)brick->dimensions.z,

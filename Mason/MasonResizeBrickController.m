@@ -4,15 +4,27 @@
 
 @implementation MasonResizeBrickController
 
-@synthesize width, height, depth, document;
+@synthesize document;
+
+- (NSUInteger)width
+{
+    return [o_width intValue];
+}
+
+- (NSUInteger)height
+{
+    return [o_height intValue];
+}
+
+- (NSUInteger)depth
+{
+    return [o_depth intValue];
+}
 
 - (MasonResizeBrickController *)initWithDocument:(MasonDocument *)doc
 {
     if(self = [super init]) {
         self.document = doc;
-        self.width = doc.brick.width;
-        self.height = doc.brick.height;
-        self.depth = doc.brick.depth;
     }
     return self;
 }
@@ -21,6 +33,10 @@
 {
     if(!o_resizePanel)
         [NSBundle loadNibNamed:@"ResizeBrick" owner:self];
+
+    [o_width setIntValue:self.document.brick.width];
+    [o_height setIntValue:self.document.brick.height];
+    [o_depth setIntValue:self.document.brick.depth];
     
     [NSApp beginSheet:o_resizePanel
        modalForWindow:[self.document windowForSheet]
