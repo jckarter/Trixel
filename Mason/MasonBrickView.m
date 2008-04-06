@@ -148,7 +148,7 @@ slice_set_up_state(void)
 
 - (void)finalize
 {
-    trixel_only_free(m_t);
+    trixel_state_free(m_t);
     [super finalize];
 }
 

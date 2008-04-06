@@ -49,6 +49,7 @@ static inline unsigned char * trixel_brick_palette_color(trixel_brick * b, int c
 static inline size_t trixel_brick_voxmap_size(trixel_brick const * b)
     { return (size_t)b->dimensions.x * (size_t)b->dimensions.y * (size_t)b->dimensions.z; }
 
+trixel_state trixel_state_init(char const * resource_path, char * * out_error_message);
 trixel_state trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message);
 void trixel_reshape(trixel_state t, int viewport_width, int viewport_height);
 int trixel_update_shaders(trixel_state t, char const * shader_flags[], char * * out_error_message);
@@ -86,6 +87,6 @@ void trixel_light_param(trixel_state t, GLuint light, char const * param_name, G
 // These only free the memory used by Trixel structures, without destroying OpenGL objects
 // Use in environments where the GL contexts are managed independent of your code (e.g. GC-enabled Cocoa)
 void trixel_only_free_brick(trixel_brick * brick);
-void trixel_only_free(trixel_state t);
+void trixel_state_free(trixel_state t);
 
 #endif /* _TRIXEL_H_ */

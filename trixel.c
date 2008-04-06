@@ -225,23 +225,33 @@ _has_flag(char const * flags[], char const * flag_to_find)
 }
 
 trixel_state
-trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message)
+trixel_state_init(char const * resource_path, char * * out_error_message)
 {
     trixel_state t = malloc(sizeof(struct trixel_internal_state));
-    
     memset(t, 0, sizeof(struct trixel_internal_state));
+    STATE(t)->resource_path = strdup(resource_path);
+
+    return t;
+}
+
+trixel_state
+trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message)
+{
+    trixel_state t = trixel_state_init(resource_path, out_error_message);
+    if(!t)
+        goto error;
 
     GLenum glew_error = glewInit();
     if(glew_error != GLEW_OK) {
         *out_error_message = strdup((char*)glewGetErrorString(glew_error));
-        goto error;
+        goto error_after_state_init;
     }
 
     if(!GLEW_VERSION_2_0
         || !GLEW_EXT_framebuffer_object
         || !GLEW_ARB_texture_float) {
         *out_error_message = strdup("Your OpenGL implementation doesn't conform to OpenGL 2.0.");
-        goto error;
+        goto error_after_state_init;
     }
 
     glClearColor(0.2, 0.2, 0.2, 1.0);
@@ -252,23 +262,20 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
 
     if(glGetError() != GL_NO_ERROR) {
         *out_error_message = strdup("OpenGL had an error while setting up.");
-        goto error;
+        goto error_after_state_init;
     }
 
     trixel_reshape(t, viewport_width, viewport_height);
 
-    STATE(t)->resource_path = strdup(resource_path);
-
     if(!trixel_update_shaders(t, shader_flags, out_error_message))
-        goto error_after_save_resource_path;
+        goto error_after_state_init;
     
     _gl_report_error("trixel_init_opengl");
 
     return t;
 
 error_after_save_resource_path:
-    free(STATE(t)->resource_path);
-    free(t);
+    trixel_state_free(t);
 error:
     return NULL;
 }
@@ -352,11 +359,11 @@ void
 trixel_finish(trixel_state t)
 {
     unmake_voxel_program(t);
-    trixel_only_free(t);
+    trixel_state_free(t);
 }
 
 void
-trixel_only_free(trixel_state t)
+trixel_state_free(trixel_state t)
 {
     free(STATE(t)->resource_path);
     free(t);    
