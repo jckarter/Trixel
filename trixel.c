@@ -234,6 +234,25 @@ trixel_state_init(char const * resource_path, char * * out_error_message)
     return t;
 }
 
+bool
+trixel_init_glew(char * * out_error_message)
+{
+    GLenum glew_error = glewInit();
+    if(glew_error != GLEW_OK) {
+        *out_error_message = strdup((char*)glewGetErrorString(glew_error));
+        return false;
+    }
+
+    if(!GLEW_VERSION_2_0
+        || !GLEW_EXT_framebuffer_object
+        || !GLEW_ARB_texture_float) {
+        *out_error_message = strdup("Your OpenGL implementation doesn't conform to OpenGL 2.0.");
+        return false;
+    }
+
+    return true;
+}
+
 trixel_state
 trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message)
 {
@@ -241,18 +260,8 @@ trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_
     if(!t)
         goto error;
 
-    GLenum glew_error = glewInit();
-    if(glew_error != GLEW_OK) {
-        *out_error_message = strdup((char*)glewGetErrorString(glew_error));
+    if(!trixel_init_glew(out_error_message))
         goto error_after_state_init;
-    }
-
-    if(!GLEW_VERSION_2_0
-        || !GLEW_EXT_framebuffer_object
-        || !GLEW_ARB_texture_float) {
-        *out_error_message = strdup("Your OpenGL implementation doesn't conform to OpenGL 2.0.");
-        goto error_after_state_init;
-    }
 
     glClearColor(0.2, 0.2, 0.2, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

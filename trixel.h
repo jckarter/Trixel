@@ -50,6 +50,7 @@ static inline size_t trixel_brick_voxmap_size(trixel_brick const * b)
     { return (size_t)b->dimensions.x * (size_t)b->dimensions.y * (size_t)b->dimensions.z; }
 
 trixel_state trixel_state_init(char const * resource_path, char * * out_error_message);
+bool trixel_init_glew(char * * out_error_message);
 trixel_state trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message);
 void trixel_reshape(trixel_state t, int viewport_width, int viewport_height);
 int trixel_update_shaders(trixel_state t, char const * shader_flags[], char * * out_error_message);
