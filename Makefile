@@ -9,5 +9,8 @@ voxtest: voxtest.o trixel.o
 rwtest: rwtest.o trixel.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
+libtrixel.dylib: trixel.o
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) -dynamiclib
+
 clean:
 	rm -f voxtest rwtest *.o

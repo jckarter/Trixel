@@ -1,11 +1,10 @@
-USING: alien alien.syntax kernel opengl.gl ;
+USING: alien alien.syntax kernel opengl.gl system combinators sequences
+libc alien.c-types alien.strings math io.encodings.utf8 ;
 IN: trixel
 
 << "trixel" {
-    { [ macosx? ] [ "libtrixel.dylib" "cdecl" add-library ] }
-    { [ windows? ] [ "trixel.dll" "cdecl" add-library ] }
-    { [ unix? ] [ "libtrixel.so" "cdecl" add-library ] }
-    { [ t ] [ drop ] }
+    { [ os macosx? ] [ "/Users/joe/Documents/Code/Trixel/libtrixel.dylib" "cdecl" add-library ] }
+    { [ t ] [ "Other platforms TBD" throw ] }
 } cond >>
 
 LIBRARY: trixel
@@ -30,6 +29,15 @@ C-STRUCT: trixel_brick
     ;
 
 TYPEDEF: void* trixel_state
+
+: TRIXEL_SAVE_COORDINATES "TRIXEL_SAVE_COORDINATES" ; inline
+: TRIXEL_SURFACE_ONLY "TRIXEL_SURFACE_ONLY" ; inline
+: TRIXEL_LIGHTING "TRIXEL_LIGHTING" ; inline
+: TRIXEL_SMOOTH_SHADING "TRIXEL_SMOOTH_SHADING" ; inline
+
+: TRIXEL_LIGHT_PARAM_POSITION "position" ; inline
+: TRIXEL_LIGHT_PARAM_AMBIENT  "ambient" ; inline
+: TRIXEL_LIGHT_PARAM_DIFFUSE  "diffuse" ; inline
 
 FUNCTION: trixel_state trixel_state_init ( char* resource_path, char** out_error_message ) ;
 FUNCTION: bool trixel_init_glew ( char** out_error_message ) ;
@@ -69,21 +77,23 @@ FUNCTION: void trixel_light_param ( trixel_state t, GLuint light, char* param_na
 FUNCTION: void trixel_only_free_brick ( trixel_brick* brick ) ;
 FUNCTION: void trixel_state_free ( trixel_state t ) ;
 
+: with-trixel-error ( quot -- )
+    f <void*> swap keep *void*
+    [ utf8 alien>string throw ]
+    when* ; inline
+
 : shader-flags ( strings -- alien )
-    [ string>char-alien dup length malloc byte-array>memory ] map
-    f add
+    [ utf8 string>alien dup length malloc [ byte-array>memory ] keep ] map
+    f suffix
     >c-void*-array ;
 
-: free-shader-flags ( flag )
-    free ; ! XXX must free all strings!!
+: free-shader-flags ( flags -- )
+    dup length "void*" heap-size /
+    c-void*-array> [ free ] each ;
 
 : trixel-update-shaders ( t flags -- )
-    shader-flags [ [ trixel_update_shaders ] with-trixel-error ] keep
+    shader-flags [ [ trixel_update_shaders drop ] with-trixel-error ] keep
     free-shader-flags ;
 
-FUNCTION: int trixel_update_shaders ( trixel_state t, char** shader_flags, char** out_error_message ) ;
-
-: with-trixel-error ( quot -- )
-    f <char*> swap keep *char*
-    [ alien>char-string throw ]
-    when* ; inline
+: trixel-light-param ( t light param value -- )
+    >c-float-array trixel_light_param ; inline
