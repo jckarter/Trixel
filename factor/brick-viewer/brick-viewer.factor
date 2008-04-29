@@ -32,8 +32,8 @@ M: brick-viewer-gadget graft* ( gadget -- )
     drop ;
 
 M: brick-viewer-gadget ungraft* ( gadget -- )
-    [ brick>> trixel_free_brick ]
-    [ trixel>> trixel_state_free ] bi ;
+    [ brick>> [ trixel_free_brick ] when* ]
+    [ trixel>> [ trixel_state_free ] when* ] bi ;
     
 M: brick-viewer-gadget pref-dim* ( gadget -- dim )
     drop { 640 480 } ;

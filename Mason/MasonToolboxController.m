@@ -11,12 +11,17 @@ static NSArray * g_tools;
 
 @interface MasonToolboxController ()
 @property(readwrite) MasonTool * currentTool;
-@property(readwrite) BOOL showBoundingBox, showAxes, showLighting, showSmoothShading;
+@property(readwrite) BOOL showBoundingBox, showAxes, showLighting, showSmoothShading, lockViewAngle;
 @end
 
 @implementation MasonToolboxController
 
-@synthesize currentTool, showBoundingBox, showAxes, showLighting, showSmoothShading;
+@synthesize currentTool, showBoundingBox, showAxes, showLighting, showSmoothShading, lockViewAngle;
+
+- (MasonViewAngle *)lockedViewAngle
+{
+    return &m_lockedViewAngle;
+}
 
 + (void)initialize
 {
@@ -56,8 +61,16 @@ static NSArray * g_tools;
     [o_showSmoothShadingItem setState:(set ? NSOnState : NSOffState)];
 }
 
+- (void)setLockViewAngle:(BOOL)set
+{
+    lockViewAngle = set;
+    [o_lockViewAngleItem setState:(set ? NSOnState : NSOffState)];
+}
+
 - (void)awakeFromNib
 {
+    MasonViewAngleInitialize(self.lockedViewAngle);
+    
     self.currentTool = [g_tools objectAtIndex:0];
     self.showBoundingBox = self.showAxes = self.showLighting = self.showSmoothShading = YES;
 }
@@ -82,6 +95,10 @@ static NSArray * g_tools;
 - (IBAction)toggleShowSmoothShading:(id)sender
 {
     self.showSmoothShading = !self.showSmoothShading;
+}
+- (IBAction)toggleLockViewAngle:(id)sender
+{
+    self.lockViewAngle = !self.lockViewAngle;
 }
 
 @end

@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #import <Cocoa/Cocoa.h>
 #include "trixel.h"
+#import "MasonViewAngle.h"
 
 @class MasonDocument;
 @class MasonBrick;
@@ -11,8 +12,7 @@
 
     BOOL m_hovering, m_toolActive, m_brickNeedsPreparing;
     NSPoint m_hoverPixel;
-    float m_yaw, m_pitch, m_distance;
-    float m_lightYaw, m_lightPitch;
+    MasonViewAngle m_viewAngle;
     trixel_state m_t;
     
     GLuint m_vertex_buffer,

@@ -8,14 +8,6 @@
 
 #include "trixel.h"
 
-#define MOUSE_ROTATE_FACTOR 1.0
-#define MOUSE_DISTANCE_FACTOR 1.0
-
-#define INITIAL_DISTANCE 32.0
-
-#define RADIANS (M_PI/180.0)
-#define LIGHT_DISTANCE 500.0
-
 static const size_t g_num_draw_buffers = 3;
 static const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_COLOR_ATTACHMENT2_EXT };
 static const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                  GL_NONE                  };
@@ -30,12 +22,6 @@ static const GLshort g_surface_elements[] = {
     0, 3, 7, 4,
     2, 1, 5, 6
 };
-
-float
-fbound(float x, float mn, float mx)
-{
-    return fmin(fmax(x, mn), mx);
-}
 
 void
 surface_set_up_state(void)
@@ -65,6 +51,12 @@ slice_set_up_state(void)
 - (void)_updateShaders;
 
 - (struct point3)_hoverValueFromBuffer:(GLenum)buffer;
+
+- (MasonViewAngle *)_viewAngle;
+
+- (void)_willRotate;
+- (void)_didRotate;
+
 @end
 
 @implementation MasonBrickView
@@ -81,6 +73,13 @@ slice_set_up_state(void)
 {
     [self setKeys:[NSArray arrayWithObject:@"hoverPoint"]
           triggerChangeNotificationsForDependentKey:@"hoverPointString"];
+}
+
+- (MasonViewAngle *)_viewAngle
+{
+    return [NSApp toolboxController].lockViewAngle
+        ? [NSApp toolboxController].lockedViewAngle
+        : &m_viewAngle;
 }
 
 - (BOOL)isOpaque
@@ -108,10 +107,7 @@ slice_set_up_state(void)
 
     m_framebuffer = m_color_texture = m_hover_renderbuffer = m_depth_renderbuffer = 0;
     
-    m_yaw = m_pitch = 0.0;
-    m_lightYaw = 210.0;
-    m_lightPitch = 60.0;
-    m_distance = INITIAL_DISTANCE;
+    MasonViewAngleInitialize(&m_viewAngle);
     m_hovering = NO;
     m_toolActive = NO;
     m_brickNeedsPreparing = YES;
@@ -131,7 +127,9 @@ slice_set_up_state(void)
                 | NSTrackingInVisibleRect
             owner:self
             userInfo:nil]];
-    
+            
+    [[NSApp toolboxController] addObserver:self forKeyPath:@"lockViewAngle" options:NSKeyValueObservingOptionOld context:NULL];
+    [[NSApp toolboxController] addObserver:self forKeyPath:@"lockedViewAngle" options:NSKeyValueObservingOptionOld context:NULL];
     [[NSApp toolboxController] addObserver:self forKeyPath:@"currentTool" options:NSKeyValueObservingOptionOld context:NULL];
     [[NSApp toolboxController] addObserver:self forKeyPath:@"showBoundingBox" options:NSKeyValueObservingOptionOld context:NULL];
     [[NSApp toolboxController] addObserver:self forKeyPath:@"showAxes" options:NSKeyValueObservingOptionOld context:NULL];
@@ -163,8 +161,10 @@ slice_set_up_state(void)
 - (void)_updateLightParams
 {
     if([NSApp toolboxController].showLighting) {
-        GLfloat cosp = cosf(m_lightPitch * RADIANS), sinp = sinf(m_lightPitch * RADIANS),
-                cosy = cosf(m_lightYaw   * RADIANS), siny = sinf(m_lightYaw   * RADIANS);
+        GLfloat cosp = cosf([self _viewAngle]->light.pitch * RADIANS),
+                sinp = sinf([self _viewAngle]->light.pitch * RADIANS),
+                cosy = cosf([self _viewAngle]->light.yaw   * RADIANS),
+                siny = sinf([self _viewAngle]->light.yaw   * RADIANS);
         
         GLfloat position[4] = {
              cosp * siny * LIGHT_DISTANCE,
@@ -203,6 +203,11 @@ slice_set_up_state(void)
 {
     if(object == [NSApp toolboxController] && [path isEqualToString:@"currentTool"]) {
         [[self window] invalidateCursorRectsForView:self];
+    }
+    else if(object == [NSApp toolboxController]
+            && ([path isEqualToString:@"lockedViewAngle"] || [path isEqualToString:@"lockViewAngle"])) {
+        [self _updateLightParams];
+        [self setNeedsDisplay:YES];
     }
     else if(object == [NSApp toolboxController]
             && ([path isEqualToString:@"showBoundingBox"] || [path isEqualToString:@"showAxes"])) {
@@ -482,19 +487,33 @@ slice_set_up_state(void)
     [self setNeedsDisplay:YES];
 }
 
+- (void)_willRotate
+{
+    if([NSApp toolboxController].lockViewAngle)
+        [[NSApp toolboxController] willChangeValueForKey:@"lockViewAngle"];
+}
+
+- (void)_didRotate
+{
+    if([NSApp toolboxController].lockViewAngle)
+        [[NSApp toolboxController] didChangeValueForKey:@"lockViewAngle"];
+}
+
 - (void)yaw:(float)yoffset pitch:(float)poffset
 {
-    m_yaw += yoffset * MOUSE_ROTATE_FACTOR;
-    m_pitch = fbound(m_pitch + poffset * MOUSE_ROTATE_FACTOR, -90.0, 90.0);
+    [self _willRotate];
+    MasonViewRotationYawPitch(&[self _viewAngle]->eye, yoffset, poffset);
     [self setNeedsDisplay:YES];
+    [self _didRotate];
 }
 
 - (void)lightYaw:(float)yoffset pitch:(float)poffset
 {
-    m_lightYaw += yoffset * MOUSE_ROTATE_FACTOR;
-    m_lightPitch = fbound(m_lightPitch - poffset * MOUSE_ROTATE_FACTOR, -90.0, 90.0);
+    [self _willRotate];
+    MasonViewRotationYawPitch(&[self _viewAngle]->light, yoffset, -poffset);
     [self _updateLightParams];
     [self setNeedsDisplay:YES];
+    [self _didRotate];
 }
 
 - (void)_generateFramebuffer
@@ -822,9 +841,12 @@ slice_set_up_state(void)
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glTranslatef(0.0, 0.0, -m_distance);
-    glRotatef(m_pitch, 1.0, 0.0, 0.0);
-    glRotatef(m_yaw,   0.0, 1.0, 0.0);
+    
+    MasonViewAngle * viewAngle = [self _viewAngle];
+    
+    glTranslatef(0.0, 0.0, -viewAngle->distance);
+    glRotatef(viewAngle->eye.pitch, 1.0, 0.0, 0.0);
+    glRotatef(viewAngle->eye.yaw,   0.0, 1.0, 0.0);
 
     if([[NSApp toolboxController] showBoundingBox])
         [self drawBoundingCubeForBrick:[o_document brick]];
@@ -881,7 +903,9 @@ slice_set_up_state(void)
 
 - (void)scrollWheel:(NSEvent *)event
 {
-    m_distance = fmax(m_distance - [event deltaY], 0.0);
+    [self _willRotate];
+    [self _viewAngle]->distance = fmax([self _viewAngle]->distance - [event deltaY], 0.0);
+    [self _didRotate];
     
     [self setNeedsDisplay:YES];
 }

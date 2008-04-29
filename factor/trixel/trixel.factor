@@ -1,11 +1,6 @@
 USING: alien alien.syntax kernel opengl.gl system combinators sequences
-libc alien.c-types alien.strings math io.encodings.utf8 ;
+libc alien.c-types alien.strings math io.encodings.utf8 trixel.lib ;
 IN: trixel
-
-<< "trixel" {
-    { [ os macosx? ] [ "/Users/joe/Documents/Code/Trixel/libtrixel.dylib" "cdecl" add-library ] }
-    { [ t ] [ "Other platforms TBD" throw ] }
-} cond >>
 
 LIBRARY: trixel
 
