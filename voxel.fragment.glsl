@@ -125,7 +125,7 @@ vec3 bias(vec3 v) { return (v + vec3(1)) * vec3(0.5); }
     {
         vec4 lit_color = vec4(0.0);
         for(int light = 0; light < num_lights; ++light) {
-            vec3 light_direction = normalize(lights[light].position.xyz - world_cast_pt);
+            vec3 light_direction = normalize((gl_ModelViewMatrixInverse * lights[light].position).xyz - world_cast_pt);
             lit_color += (
                 lights[light].ambient
                 + lights[light].diffuse * clamp(dot(light_direction, normal()), 0.0, 1.0)
