@@ -1,5 +1,5 @@
 USING: opengl.demo-support opengl.gl trixel accessors kernel ui.gadgets ui.render
-sequences ui math combinators ;
+sequences ui math combinators ui.gestures ;
 IN: brick-viewer
 
 TUPLE: brick-viewer-gadget brick-path trixel brick ;
@@ -17,16 +17,18 @@ M: brick-viewer-gadget distance-step ( gadget -- dz )
         set-delegate
     } brick-viewer-gadget construct ;
 
-M: brick-viewer-gadget graft* ( gadget -- )
-    [ trixel_init_glew drop ] with-trixel-error
-    "/Users/joe/Documents/Code/Trixel" [ trixel_state_init ] with-trixel-error
-    dup {
+: (update-shaders) ( trixel -- )
+    {
         [ { "TRIXEL_SMOOTH_SHADING" "TRIXEL_LIGHTING" } trixel-update-shaders ]
         [ 0 TRIXEL_LIGHT_PARAM_POSITION { 64.0 32.0 64.0 1.0 } trixel-light-param ]
         [ 0 TRIXEL_LIGHT_PARAM_AMBIENT  {  0.2  0.2  0.2 1.0 } trixel-light-param ]
         [ 0 TRIXEL_LIGHT_PARAM_DIFFUSE  {  0.8  0.8  0.8 1.0 } trixel-light-param ]
-    } cleave
-    >>trixel
+    } cleave ;
+    
+M: brick-viewer-gadget graft* ( gadget -- )
+    [ trixel_init_glew drop ] with-trixel-error
+    "/Users/joe/Documents/Code/Trixel" [ trixel_state_init ] with-trixel-error
+    dup (update-shaders) >>trixel
     dup brick-path>> t [ trixel_read_brick_from_filename ]
     with-trixel-error >>brick
     drop ;
@@ -53,6 +55,10 @@ M: brick-viewer-gadget draw-gadget* ( gadget -- )
     ] bi
     (reset-opengl-state)
     glGetError drop ;
+
+brick-viewer-gadget H{
+    { T{ key-down f f "r" } [ trixel>> (update-shaders) ] }
+} set-gestures
 
 : brick-viewer-window ( path -- )
     [ [ <brick-viewer-gadget> ] keep open-window ] with-ui ;

@@ -71,18 +71,17 @@ vec3 bias(vec3 v) { return (v + vec3(1)) * vec3(0.5); }
     void
     cast_ray()
     {
-        vec3 rayinv = vec3(1.0)/ray;
-        vec3 raysign = step(0.0, ray);
-        vec3 bound = raysign * voxmap_size,
-             tv = abs(raysign - fract(p0));
+        vec3 rayinv = vec3(1.0)/ray,
+             absrayinv = abs(rayinv),
+             raysign = step(0.0, ray),
+             bound = raysign * voxmap_size,
+             tv = abs(raysign - fract(p0)),
+             tvr = tv * absrayinv;
+        
         float t = 0.0, lastt = 0.0,
               maxt = minelt((bound - p0) * rayinv);
 
-        vec3 absrayinv = abs(rayinv);
-
         do {
-            vec3 tvr = tv * absrayinv;
-            
             cast_pt = p0scaled + rayscaled*(0.5*(t+lastt) + tbias);
             world_cast_pt = (cast_pt - vec3(0.5)) * voxmap_size;
             cast_index = voxel(cast_pt);
@@ -96,6 +95,7 @@ vec3 bias(vec3 v) { return (v + vec3(1)) * vec3(0.5); }
             tv += step(-t, -tvr);
             lastt = t;
             t = minelt(tvr);
+            tvr = tv * absrayinv;
         } while(t < maxt);
 
         discard;
