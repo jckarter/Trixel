@@ -74,25 +74,28 @@ vec3 bias(vec3 v) { return (v + vec3(1)) * vec3(0.5); }
         vec3 rayinv = vec3(1.0)/ray;
         vec3 raysign = step(0.0, ray);
         vec3 bound = raysign * voxmap_size,
-             tv  = (raysign - fract(p0)) * rayinv + vec3(tbias);
-        float t = tbias,
+             tv = abs(raysign - fract(p0));
+        float t = 0.0, lastt = 0.0,
               maxt = minelt((bound - p0) * rayinv);
 
         vec3 absrayinv = abs(rayinv);
 
         do {
-            cast_pt = p0scaled + rayscaled*t;
+            vec3 tvr = tv * absrayinv;
+            
+            cast_pt = p0scaled + rayscaled*(0.5*(t+lastt) + tbias);
             world_cast_pt = (cast_pt - vec3(0.5)) * voxmap_size;
             cast_index = voxel(cast_pt);
             if(cast_index != 0.0) {
-                cast_normal = t == tbias
+                cast_normal = t == 0.0
                     ? surface_normal
-                    : -step(-t, -tv) * unbias(raysign);
+                    : (-step(-t, -tvr)) * unbias(raysign);
                 return;
             }
 
-            tv += absrayinv * step(-t, -tv);
-            t = minelt(tv);
+            tv += step(-t, -tvr);
+            lastt = t;
+            t = minelt(tvr);
         } while(t < maxt);
 
         discard;
