@@ -1,5 +1,6 @@
 #import "MasonDocument.h"
 #import "MasonColorCell.h"
+#import "MasonCubeSelection.h"
 #import "MasonBrick.h"
 #import "MasonBrickView.h"
 #import "MasonResizeBrickController.h"
@@ -19,7 +20,7 @@
 
 @implementation MasonDocument
 
-@synthesize brick, currentPaletteColor, sliceAxis, sliceNumber;
+@synthesize brick, currentPaletteColor, sliceAxis, sliceNumber, selection;
 
 + (void)initialize
 {
@@ -44,6 +45,7 @@
 {
     self = [super init];
     if(self) {
+        selection = [MasonCubeSelection new];
         self.brick = [self _defaultBrick];
         [self setHasUndoManager:YES];
     }
@@ -55,6 +57,36 @@
     brick.scriptingContainer = nil;
     newBrick.scriptingContainer = self;
     brick = newBrick;
+    
+    [self selectAll:self];
+}
+
+- (IBAction)selectAll:(id)sender
+{
+    [self willChangeValueForKey:@"selection"];
+    selection.minx = selection.miny = selection.minz = 0;
+    selection.maxx = brick.width;
+    selection.maxy = brick.height;
+    selection.maxz = brick.depth;
+    [self didChangeValueForKey:@"selection"];
+}
+
+- (void)setLowSelectionPoint:(struct point3)pt
+{
+    [self willChangeValueForKey:@"selection"];
+    selection.minx = pt.x;
+    selection.miny = pt.y;
+    selection.minz = pt.z;
+    [self didChangeValueForKey:@"selection"];
+}
+
+- (void)setHighSelectionPoint:(struct point3)pt
+{
+    [self willChangeValueForKey:@"selection"];
+    selection.maxx = pt.x+1;
+    selection.maxy = pt.y+1;
+    selection.maxz = pt.z+1;
+    [self didChangeValueForKey:@"selection"];
 }
 
 - (NSSegmentedControl *)sliceAxisSelector

@@ -6,6 +6,8 @@
 #import "MasonEraseTool.h"
 #import "MasonPushTool.h"
 #import "MasonPullTool.h"
+#import "MasonLowSelectionTool.h"
+#import "MasonHighSelectionTool.h"
 
 static NSArray * g_tools;
 
@@ -32,6 +34,8 @@ static NSArray * g_tools;
         [[MasonEraseTool  alloc] init],
         [[MasonPushTool   alloc] init],
         [[MasonPullTool   alloc] init],
+        [[MasonLowSelectionTool  alloc] init],
+        [[MasonHighSelectionTool alloc] init],
         [[MasonBuildTool  alloc] init],
         NULL
     ];

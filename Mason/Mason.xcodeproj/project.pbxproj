@@ -25,6 +25,11 @@
 		D84AFD9A0C826E12008A8770 /* default.brick in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD990C826E12008A8770 /* default.brick */; };
 		D84E44C60CE8264A008064EE /* light.png in Resources */ = {isa = PBXBuildFile; fileRef = D84E44C50CE8264A008064EE /* light.png */; };
 		D84E44EF0CE82F7C008064EE /* MasonRotateLightTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D84E44EE0CE82F7C008064EE /* MasonRotateLightTool.m */; };
+		D8BC59EC0DC97B1700FB1978 /* MasonCubeSelection.m in Sources */ = {isa = PBXBuildFile; fileRef = D8BC59EB0DC97B1700FB1978 /* MasonCubeSelection.m */; };
+		D8BC59F60DC9811E00FB1978 /* lowselect.png in Resources */ = {isa = PBXBuildFile; fileRef = D8BC59F40DC9811E00FB1978 /* lowselect.png */; };
+		D8BC59F70DC9811E00FB1978 /* highselect.png in Resources */ = {isa = PBXBuildFile; fileRef = D8BC59F50DC9811E00FB1978 /* highselect.png */; };
+		D8BC59FC0DC9845400FB1978 /* MasonLowSelectionTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D8BC59FB0DC9845400FB1978 /* MasonLowSelectionTool.m */; };
+		D8BC59FF0DC9859E00FB1978 /* MasonHighSelectionTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D8BC59FE0DC9859E00FB1978 /* MasonHighSelectionTool.m */; };
 		D8D11C300C93102E000E5EF8 /* MasonBrick.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D11C2F0C93102E000E5EF8 /* MasonBrick.m */; };
 		D8D7E09E0CE413E800FDE860 /* build.png in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E09B0CE413E800FDE860 /* build.png */; };
 		D8D7E09F0CE413E800FDE860 /* pull.png in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E09C0CE413E800FDE860 /* pull.png */; };
@@ -89,6 +94,14 @@
 		D84E44C50CE8264A008064EE /* light.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = light.png; sourceTree = "<group>"; };
 		D84E44ED0CE82F7C008064EE /* MasonRotateLightTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonRotateLightTool.h; sourceTree = "<group>"; };
 		D84E44EE0CE82F7C008064EE /* MasonRotateLightTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonRotateLightTool.m; sourceTree = "<group>"; };
+		D8BC59EA0DC97B1700FB1978 /* MasonCubeSelection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonCubeSelection.h; sourceTree = "<group>"; };
+		D8BC59EB0DC97B1700FB1978 /* MasonCubeSelection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonCubeSelection.m; sourceTree = "<group>"; };
+		D8BC59F40DC9811E00FB1978 /* lowselect.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lowselect.png; sourceTree = "<group>"; };
+		D8BC59F50DC9811E00FB1978 /* highselect.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = highselect.png; sourceTree = "<group>"; };
+		D8BC59FA0DC9845400FB1978 /* MasonLowSelectionTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonLowSelectionTool.h; sourceTree = "<group>"; };
+		D8BC59FB0DC9845400FB1978 /* MasonLowSelectionTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonLowSelectionTool.m; sourceTree = "<group>"; };
+		D8BC59FD0DC9859E00FB1978 /* MasonHighSelectionTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonHighSelectionTool.h; sourceTree = "<group>"; };
+		D8BC59FE0DC9859E00FB1978 /* MasonHighSelectionTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonHighSelectionTool.m; sourceTree = "<group>"; };
 		D8D11C2E0C93102E000E5EF8 /* MasonBrick.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonBrick.h; sourceTree = "<group>"; };
 		D8D11C2F0C93102E000E5EF8 /* MasonBrick.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonBrick.m; sourceTree = "<group>"; };
 		D8D7E09B0CE413E800FDE860 /* build.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = build.png; sourceTree = "<group>"; };
@@ -187,6 +200,12 @@
 		2A37F4ABFDCFA73011CA2CEA /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				D8BC59FD0DC9859E00FB1978 /* MasonHighSelectionTool.h */,
+				D8BC59FE0DC9859E00FB1978 /* MasonHighSelectionTool.m */,
+				D8BC59FA0DC9845400FB1978 /* MasonLowSelectionTool.h */,
+				D8BC59FB0DC9845400FB1978 /* MasonLowSelectionTool.m */,
+				D8BC59EA0DC97B1700FB1978 /* MasonCubeSelection.h */,
+				D8BC59EB0DC97B1700FB1978 /* MasonCubeSelection.m */,
 				D8D7E0A10CE41BD800FDE860 /* MasonBuildTool.h */,
 				D8D7E0A20CE41BD800FDE860 /* MasonBuildTool.m */,
 				D800AE580C8905B100A38A34 /* MasonDrawTool.h */,
@@ -258,6 +277,8 @@
 				D84AFD740C82387D008A8770 /* voxel.vertex.glsl */,
 				D84AFD660C813D5E008A8770 /* BrickDocument.icns */,
 				D8EDAF3D0C7E94FB00D0DE3F /* Mason.icns */,
+				D8BC59F40DC9811E00FB1978 /* lowselect.png */,
+				D8BC59F50DC9811E00FB1978 /* highselect.png */,
 				D8EDAF1C0C7E670E00D0DE3F /* surface.png */,
 				D8EDAF1D0C7E670E00D0DE3F /* xslice.png */,
 				D8EDAF1E0C7E670E00D0DE3F /* yslice.png */,
@@ -344,6 +365,8 @@
 				D8D7E1B80CE69AD000FDE860 /* MainMenu.xib in Resources */,
 				D84E44C60CE8264A008064EE /* light.png in Resources */,
 				D8DEFEAD0CF92AF000E48FCB /* Mason.sdef in Resources */,
+				D8BC59F60DC9811E00FB1978 /* lowselect.png in Resources */,
+				D8BC59F70DC9811E00FB1978 /* highselect.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -375,6 +398,9 @@
 				D8DEFEB60CF92EBB00E48FCB /* MasonScriptingSupport.m in Sources */,
 				D8DEFEB90CF9307900E48FCB /* MasonSetVoxelCommand.m in Sources */,
 				D8DEF4280CFAA12300F84502 /* MasonScriptingPaletteColor.m in Sources */,
+				D8BC59EC0DC97B1700FB1978 /* MasonCubeSelection.m in Sources */,
+				D8BC59FC0DC9845400FB1978 /* MasonLowSelectionTool.m in Sources */,
+				D8BC59FF0DC9859E00FB1978 /* MasonHighSelectionTool.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

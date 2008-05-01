@@ -76,6 +76,7 @@ vec3 bias(vec3 v) { return (v + vec3(1)) * vec3(0.5); }
              raysign = step(0.0, ray),
              bound = raysign * voxmap_size,
              tv = abs(raysign - fract(p0)),
+             dtv = vec3(0.0),
              tvr = tv * absrayinv;
         
         float t = 0.0, lastt = 0.0,
@@ -88,11 +89,11 @@ vec3 bias(vec3 v) { return (v + vec3(1)) * vec3(0.5); }
             if(cast_index != 0.0) {
                 cast_normal = t == 0.0
                     ? surface_normal
-                    : (-step(-t, -tvr)) * unbias(raysign);
+                    : -dtv * unbias(raysign);
                 return;
             }
 
-            tv += step(-t, -tvr);
+            tv += (dtv = step(-t, -tvr));
             lastt = t;
             t = minelt(tvr);
             tvr = tv * absrayinv;

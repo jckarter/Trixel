@@ -4,6 +4,7 @@
 #import "MasonToolboxController.h"
 #import "MasonTool.h"
 #import "MasonBrick.h"
+#import "MasonCubeSelection.h"
 #include <math.h>
 
 #include "trixel.h"
@@ -136,6 +137,7 @@ slice_set_up_state(void)
     [[NSApp toolboxController] addObserver:self forKeyPath:@"showLighting" options:NSKeyValueObservingOptionOld context:NULL];
     [[NSApp toolboxController] addObserver:self forKeyPath:@"showSmoothShading" options:NSKeyValueObservingOptionOld context:NULL];
     [o_document addObserver:self forKeyPath:@"sliceAxis" options:NSKeyValueObservingOptionOld context:NULL];
+    [o_document addObserver:self forKeyPath:@"selection" options:NSKeyValueObservingOptionOld context:NULL];
     [o_document addObserver:self forKeyPath:@"sliceNumber" options:NSKeyValueObservingOptionOld context:NULL];
     [o_document addObserver:self forKeyPath:@"brick" options:NSKeyValueObservingOptionOld context:NULL];
     [[o_document brick] addObserver:self forKeyPath:@"voxmap" options:NSKeyValueObservingOptionOld context:NULL];
@@ -229,7 +231,8 @@ slice_set_up_state(void)
         m_brickNeedsPreparing = YES;
         [self setNeedsDisplay:YES];
     }
-    else if(object == o_document && [path isEqualToString:@"sliceNumber"]) {
+    else if(object == o_document
+            && ([path isEqualToString:@"sliceNumber"] || [path isEqualToString:@"selection"])) {
         [self setNeedsDisplay:YES];
     }
     else if(object == [o_document brick]) {
@@ -595,7 +598,13 @@ slice_set_up_state(void)
 {
     float width2  = ((float)[brick width] ) / 2,
           height2 = ((float)[brick height]) / 2,
-          depth2  = ((float)[brick depth] ) / 2;
+          depth2  = ((float)[brick depth] ) / 2,
+          minx = -width2  + (float)o_document.selection.minx,
+          miny = -height2 + (float)o_document.selection.miny,
+          minz = -depth2  + (float)o_document.selection.minz,
+          maxx = -width2  + (float)o_document.selection.maxx,
+          maxy = -height2 + (float)o_document.selection.maxy,
+          maxz = -depth2  + (float)o_document.selection.maxz;
     
     glUseProgram(0);
     glActiveTexture(GL_TEXTURE0);
@@ -604,43 +613,43 @@ slice_set_up_state(void)
     glBegin(GL_LINES);
 
     glColor4f(0.5, 0.4, 0.4, 1.0);
-    glVertex3f(-width2, -height2, -depth2);
-    glVertex3f(-width2, -height2,  depth2);
+    glVertex3f(minx, miny, minz);
+    glVertex3f(minx, miny, maxz);
 
-    glVertex3f(-width2,  height2, -depth2);
-    glVertex3f(-width2,  height2,  depth2);
+    glVertex3f(minx, maxy, minz);
+    glVertex3f(minx, maxy, maxz);
 
-    glVertex3f( width2,  height2, -depth2);
-    glVertex3f( width2,  height2,  depth2);
+    glVertex3f( maxx,  maxy, minz);
+    glVertex3f( maxx,  maxy,  maxz);
 
-    glVertex3f( width2, -height2, -depth2);
-    glVertex3f( width2, -height2,  depth2);
+    glVertex3f( maxx, miny, minz);
+    glVertex3f( maxx, miny,  maxz);
     
     glColor4f(0.4, 0.5, 0.4, 1.0);
-    glVertex3f(-width2, -height2, -depth2);
-    glVertex3f(-width2,  height2, -depth2);
+    glVertex3f(minx, miny, minz);
+    glVertex3f(minx,  maxy, minz);
 
-    glVertex3f( width2, -height2, -depth2);
-    glVertex3f( width2,  height2, -depth2);
+    glVertex3f( maxx, miny, minz);
+    glVertex3f( maxx,  maxy, minz);
 
-    glVertex3f( width2, -height2,  depth2);
-    glVertex3f( width2,  height2,  depth2);
+    glVertex3f( maxx, miny,  maxz);
+    glVertex3f( maxx,  maxy,  maxz);
 
-    glVertex3f(-width2, -height2,  depth2);
-    glVertex3f(-width2,  height2,  depth2);
+    glVertex3f(minx, miny,  maxz);
+    glVertex3f(minx,  maxy,  maxz);
 
     glColor4f(0.4, 0.4, 0.5, 1.0);
-    glVertex3f(-width2, -height2, -depth2);
-    glVertex3f( width2, -height2, -depth2);
+    glVertex3f(minx, miny, minz);
+    glVertex3f( maxx, miny, minz);
 
-    glVertex3f(-width2,  height2, -depth2);
-    glVertex3f( width2,  height2, -depth2);
+    glVertex3f(minx,  maxy, minz);
+    glVertex3f( maxx,  maxy, minz);
 
-    glVertex3f(-width2,  height2,  depth2);
-    glVertex3f( width2,  height2,  depth2);
+    glVertex3f(minx,  maxy,  maxz);
+    glVertex3f( maxx,  maxy,  maxz);
 
-    glVertex3f(-width2, -height2,  depth2);
-    glVertex3f( width2, -height2,  depth2);
+    glVertex3f(minx, miny,  maxz);
+    glVertex3f( maxx, miny,  maxz);
 
     glEnd();
 }

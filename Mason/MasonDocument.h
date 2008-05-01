@@ -2,9 +2,9 @@
 #import <Cocoa/Cocoa.h>
 #include "trixel.h"
 
-
 @class MasonBrickView;
 @class MasonBrick;
+@class MasonCubeSelection;
 
 @interface MasonDocument : NSDocument
 {
@@ -16,11 +16,14 @@
     MasonBrick * brick;
     NSUInteger currentPaletteColor;
     NSInteger sliceAxis, sliceNumber;
+
+    MasonCubeSelection * selection;
 }
 
 @property(readonly) MasonBrick * brick;
 @property(readonly) NSUInteger currentPaletteColor;
 @property(readonly) NSInteger sliceAxis, sliceNumber;
+@property(readonly) MasonCubeSelection * selection;
 
 - (MasonBrickView *)brickView;
 
@@ -49,9 +52,14 @@
 - (IBAction)mirrorOut:(id)sender;
 - (IBAction)mirrorIn:(id)sender;
 
+- (IBAction)selectAll:(id)sender;
+
 - (IBAction)flipX:(id)sender;
 - (IBAction)flipY:(id)sender;
 - (IBAction)flipZ:(id)sender;
+
+- (void)setLowSelectionPoint:(struct point3)pt;
+- (void)setHighSelectionPoint:(struct point3)pt;
 
 - (void)updatePaletteIndex:(NSUInteger)index withColor:(NSColor *)color;
 
