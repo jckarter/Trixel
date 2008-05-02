@@ -47,6 +47,7 @@
     if(self) {
         selection = [MasonCubeSelection new];
         self.brick = [self _defaultBrick];
+        [self selectAll:self];
         [self setHasUndoManager:YES];
     }
     return self;
@@ -57,8 +58,6 @@
     brick.scriptingContainer = nil;
     newBrick.scriptingContainer = self;
     brick = newBrick;
-    
-    [self selectAll:self];
 }
 
 - (IBAction)selectAll:(id)sender
@@ -69,6 +68,40 @@
     selection.maxy = brick.height;
     selection.maxz = brick.depth;
     [self didChangeValueForKey:@"selection"];
+}
+
+- (IBAction)copy:(id)sender
+{
+    MasonBrick * pasteboardBrick = [self.brick selectedArea:self.selection];
+    
+    [[NSPasteboard generalPasteboard] declareTypes:[NSArray arrayWithObject:MasonBrickPboardType]
+                                      owner:nil];
+    [[NSPasteboard generalPasteboard] setData:[pasteboardBrick data] forType:MasonBrickPboardType];
+}
+
+- (IBAction)delete:(id)sender
+{
+    [self _replaceBrick:[self.brick clearingSelectedArea:self.selection]];
+}
+
+- (IBAction)cut:(id)sender
+{
+    [self copy:sender];
+    [self delete:sender];
+}
+
+- (IBAction)paste:(id)sender
+{
+    if(![[[NSPasteboard generalPasteboard] types] containsObject:MasonBrickPboardType])
+        return;
+
+    NSData * pasteboardBrickData = [[NSPasteboard generalPasteboard] dataForType:MasonBrickPboardType];
+    if(pasteboardBrickData) {
+        NSError * error;
+        MasonBrick * pasteboardBrick = [[MasonBrick alloc] initWithData:pasteboardBrickData withError:&error];
+        if(pasteboardBrick)
+            [self _replaceBrick:[self.brick replacingSelectedArea:self.selection withBrick:pasteboardBrick]];
+    }
 }
 
 - (void)setLowSelectionPoint:(struct point3)pt
@@ -111,6 +144,8 @@
         );
     else if(action == @selector(projectSlice:))
         return [self canMoveSlice];
+    else if(action == @selector(paste:))
+        return [[[NSPasteboard generalPasteboard] types] containsObject:MasonBrickPboardType];
     return [super validateMenuItem:item];
 }
 
@@ -157,6 +192,7 @@
 - (BOOL)readFromData:(NSData *)data ofType:(NSString *)typeName error:(NSError **)out_error
 {
     self.brick = [[MasonBrick alloc] initWithData:data withError:out_error];
+    [self selectAll:self];
     return !!brick;
 }
 
@@ -337,40 +373,40 @@
 
 - (IBAction)mirrorLeft:(id)sender
 {
-    [self _replaceBrick:[self.brick mirrored:POINT3(-1,  0,  0)]];
+    [self _replaceBrick:[self.brick mirroringSelectedArea:self.selection acrossAxis:POINT3(-1,  0,  0)]];
 }
 - (IBAction)mirrorRight:(id)sender
 {
-    [self _replaceBrick:[self.brick mirrored:POINT3( 1,  0,  0)]];
+    [self _replaceBrick:[self.brick mirroringSelectedArea:self.selection acrossAxis:POINT3( 1,  0,  0)]];
 }
 - (IBAction)mirrorDown:(id)sender
 {
-    [self _replaceBrick:[self.brick mirrored:POINT3( 0, -1,  0)]];
+    [self _replaceBrick:[self.brick mirroringSelectedArea:self.selection acrossAxis:POINT3( 0, -1,  0)]];
 }
 - (IBAction)mirrorUp:(id)sender
 {
-    [self _replaceBrick:[self.brick mirrored:POINT3( 0,  1,  0)]];
+    [self _replaceBrick:[self.brick mirroringSelectedArea:self.selection acrossAxis:POINT3( 0,  1,  0)]];
 }
 - (IBAction)mirrorOut:(id)sender
 {
-    [self _replaceBrick:[self.brick mirrored:POINT3( 0,  0, -1)]];
+    [self _replaceBrick:[self.brick mirroringSelectedArea:self.selection acrossAxis:POINT3( 0,  0, -1)]];
 }
 - (IBAction)mirrorIn:(id)sender
 {
-    [self _replaceBrick:[self.brick mirrored:POINT3( 0,  0,  1)]];
+    [self _replaceBrick:[self.brick mirroringSelectedArea:self.selection acrossAxis:POINT3( 0,  0,  1)]];
 }
 
 - (IBAction)flipX:(id)sender
 {
-    [self _replaceBrick:[self.brick flipped:POINT3(1, 0, 0)]];
+    [self _replaceBrick:[self.brick flippingSelectedArea:self.selection acrossAxis:POINT3(1, 0, 0)]];
 }
 - (IBAction)flipY:(id)sender
 {
-    [self _replaceBrick:[self.brick flipped:POINT3(0, 1, 0)]];
+    [self _replaceBrick:[self.brick flippingSelectedArea:self.selection acrossAxis:POINT3(0, 1, 0)]];
 }
 - (IBAction)flipZ:(id)sender
 {
-    [self _replaceBrick:[self.brick flipped:POINT3(0, 0, 1)]];
+    [self _replaceBrick:[self.brick flippingSelectedArea:self.selection acrossAxis:POINT3(0, 0, 1)]];
 }
 
 @end

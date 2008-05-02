@@ -2,6 +2,8 @@
 #import <Cocoa/Cocoa.h>
 #include "trixel.h"
 
+@class MasonCubeSelection;
+
 @interface MasonBrick : NSObject
 {
     trixel_brick * trixelBrick;
@@ -44,8 +46,12 @@
 
 - (MasonBrick *)resizedToWidth:(unsigned)width height:(unsigned)height depth:(unsigned)depth;
 - (MasonBrick *)shifted:(struct point3)distance;
-- (MasonBrick *)mirrored:(struct point3)axis;
-- (MasonBrick *)flipped:(struct point3)axis;
+- (MasonBrick *)mirroringSelectedArea:(MasonCubeSelection *)selection acrossAxis:(struct point3)axis;
+- (MasonBrick *)flippingSelectedArea:(MasonCubeSelection *)selection acrossAxis:(struct point3)axis;
+
+- (MasonBrick *)selectedArea:(MasonCubeSelection *)selection;
+- (MasonBrick *)clearingSelectedArea:(MasonCubeSelection *)selection;
+- (MasonBrick *)replacingSelectedArea:(MasonCubeSelection *)selection withBrick:(MasonBrick *)subbrick;
 
 - (MasonBrick *)brickWithSliceAxis:(NSInteger)sliceAxis
                 sliceNumber:(NSInteger)sliceNumber

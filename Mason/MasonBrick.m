@@ -1,6 +1,7 @@
 #import "MasonBrick.h"
 #import "MasonScriptingPaletteColor.h"
 #import "MasonDocument.h"
+#import "MasonCubeSelection.h"
 
 NSString *TrixelErrorDomain = @"TrixelErrorDomain";
 
@@ -419,33 +420,35 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
     return newBrick;
 }
 
-- (MasonBrick *)flipped:(struct point3)axis
+- (MasonBrick *)flippingSelectedArea:(MasonCubeSelection *)selection acrossAxis:(struct point3)axis
 {
-    NSError * error;
-    MasonBrick * newBrick = [[MasonBrick alloc] initEmptyWithWidth:self.width height:self.height depth:self.depth withError:&error];
+    MasonBrick * newBrick = [self copy];
     
     if(newBrick) {
-        memcpy(newBrick.trixelBrick->palette_data, self.trixelBrick->palette_data, 256*4);
-        
         unsigned char * to = trixel_brick_voxel(
                                  newBrick.trixelBrick, 
-                                 (axis.x ? self.width -1 : 0),
-                                 (axis.y ? self.height-1 : 0),
-                                 (axis.z ? self.depth -1 : 0)
+                                 (axis.x ? selection.maxx-1 : selection.minx),
+                                 (axis.y ? selection.maxy-1 : selection.miny),
+                                 (axis.z ? selection.maxz-1 : selection.minz)
                              );
         int xpitch = axis.x ? -1 : 1;
         int ypitch = axis.y ? -self.width : self.width;
         int zpitch = axis.z ? -self.width * self.height : self.width * self.height;
         
-        for(unsigned z = 0; z < self.depth; ++z)
-            for(unsigned y = 0; y < self.height; ++y)
-                for(unsigned x = 0; x < self.width; ++x)
-                    to[xpitch * x + ypitch * y + zpitch * z] = *trixel_brick_voxel(self.trixelBrick, x, y, z);
+        for(unsigned z = 0; z < selection.depth; ++z)
+            for(unsigned y = 0; y < selection.height; ++y)
+                for(unsigned x = 0; x < selection.width; ++x)
+                    to[xpitch * x + ypitch * y + zpitch * z] = *trixel_brick_voxel(
+                        self.trixelBrick,
+                        x+selection.minx,
+                        y+selection.miny,
+                        z+selection.minz
+                    );
     }
     return newBrick;
 }
 
-- (MasonBrick *)mirrored:(struct point3)axis
+- (MasonBrick *)mirroringSelectedArea:(MasonCubeSelection *)selection acrossAxis:(struct point3)axis
 {
     MasonBrick * newBrick = [self copy];
     
@@ -484,6 +487,61 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
                     to[to_xpitch * x + to_ypitch * y + to_zpitch * z]
                         = from[from_xpitch * x + from_ypitch * y + from_zpitch * z];
     }
+    return newBrick;
+}
+
+- (MasonBrick *)selectedArea:(MasonCubeSelection *)selection
+{
+    NSError * error;
+    MasonBrick * newBrick = [[MasonBrick alloc] initEmptyWithWidth:selection.width
+                                                height:selection.height
+                                                depth:selection.depth
+                                                withError:&error];
+    
+    if(newBrick) {
+        memcpy(newBrick.trixelBrick->palette_data, self.trixelBrick->palette_data, 256*4);
+    
+        for(unsigned z = selection.minz; z < selection.maxz; ++z)
+            for(unsigned y = selection.miny; y < selection.maxy; ++y)
+                for(unsigned x = selection.minx; x < selection.maxx; ++x)
+                    *trixel_brick_voxel(
+                        newBrick.trixelBrick,
+                        x - selection.minx,
+                        y - selection.miny,
+                        z - selection.minz
+                    ) = *trixel_brick_voxel(self.trixelBrick, x, y, z);
+    }
+    return newBrick;
+}
+
+- (MasonBrick *)replacingSelectedArea:(MasonCubeSelection *)selection withBrick:(MasonBrick *)subbrick
+{
+    unsigned maxx = umin(selection.minx + subbrick.width,  self.width),
+             maxy = umin(selection.miny + subbrick.height, self.height),
+             maxz = umin(selection.minz + subbrick.depth,  self.depth);
+    
+    MasonBrick * newBrick = [self copy];
+    
+    for(unsigned z = selection.minz; z < maxz; ++z)
+        for(unsigned y = selection.miny; y < maxy; ++y)
+            for(unsigned x = selection.minx; x < maxx; ++x)
+                    *trixel_brick_voxel(newBrick.trixelBrick, x, y, z) = *trixel_brick_voxel(
+                        subbrick.trixelBrick,
+                        x - selection.minx,
+                        y - selection.miny,
+                        z - selection.minz
+                    );
+    return newBrick;
+}
+
+- (MasonBrick *)clearingSelectedArea:(MasonCubeSelection *)selection
+{
+    MasonBrick * newBrick = [self copy];
+
+    for(unsigned z = selection.minz; z < selection.maxz; ++z)
+        for(unsigned y = selection.miny; y < selection.maxy; ++y)
+            for(unsigned x = selection.minx; x < selection.maxx; ++x)
+                    *trixel_brick_voxel(newBrick.trixelBrick, x, y, z) = 0;
     return newBrick;
 }
 

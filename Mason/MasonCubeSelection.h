@@ -10,5 +10,6 @@
 
 @property(readwrite) int minx, miny, minz,
                          maxx, maxy, maxz;
+@property(readonly) int width, height, depth;
 
 @end

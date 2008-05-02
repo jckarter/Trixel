@@ -52,6 +52,10 @@
 - (IBAction)mirrorOut:(id)sender;
 - (IBAction)mirrorIn:(id)sender;
 
+- (IBAction)cut:(id)sender;
+- (IBAction)copy:(id)sender;
+- (IBAction)paste:(id)sender;
+- (IBAction)delete:(id)sender;
 - (IBAction)selectAll:(id)sender;
 
 - (IBAction)flipX:(id)sender;
@@ -86,3 +90,5 @@
 
 #define SLICE_MOVE_PREVIOUS 0
 #define SLICE_MOVE_NEXT     1
+
+#define MasonBrickPboardType @"es.halv.Mason.MasonBrick"
