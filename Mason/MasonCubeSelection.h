@@ -12,4 +12,6 @@
                          maxx, maxy, maxz;
 @property(readonly) int width, height, depth;
 
+- (void)clipToX:(int)xlimit y:(int)ylimit z:(int)zlimit;
+
 @end

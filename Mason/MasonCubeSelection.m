@@ -41,4 +41,14 @@
     return maxz - minz;
 }
 
+- (void)clipToX:(int)xlimit y:(int)ylimit z:(int)zlimit
+{
+    if (minx < 0) minx = 0;
+    if (miny < 0) miny = 0;
+    if (minz < 0) minz = 0;
+    if (maxx > xlimit) maxx = xlimit;
+    if (maxy > ylimit) maxy = ylimit;
+    if (maxz > zlimit) maxz = zlimit;
+}
+
 @end

@@ -453,13 +453,13 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
     MasonBrick * newBrick = [self copy];
     
     if(newBrick) {
-        unsigned from_x = (axis.x > 0 ? self.width -1 : 0),
-                 from_y = (axis.y > 0 ? self.height-1 : 0),
-                 from_z = (axis.z > 0 ? self.depth -1 : 0);
+        unsigned from_x = (axis.x > 0 ? selection.maxx-1 : selection.minx),
+                 from_y = (axis.y > 0 ? selection.maxy-1 : selection.miny),
+                 from_z = (axis.z > 0 ? selection.maxz-1 : selection.minz);
         
-        unsigned to_x = (axis.x ? self.width -1 - from_x : from_x),
-                 to_y = (axis.y ? self.height-1 - from_y : from_y),
-                 to_z = (axis.z ? self.depth -1 - from_z : from_z);
+        unsigned to_x = (axis.x ? selection.maxx-1 - (from_x - selection.minx) : from_x),
+                 to_y = (axis.y ? selection.maxy-1 - (from_y - selection.miny) : from_y),
+                 to_z = (axis.z ? selection.maxz-1 - (from_z - selection.minz) : from_z);
     
         unsigned char * from = trixel_brick_voxel(
                                    newBrick.trixelBrick,
@@ -469,9 +469,9 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
                                    newBrick.trixelBrick,
                                    to_x, to_y, to_z
                                );
-        int copy_width  = axis.x ? self.width /2 : self.width ,
-            copy_height = axis.y ? self.height/2 : self.height,
-            copy_depth  = axis.z ? self.depth /2 : self.depth ;
+        int copy_width  = axis.x ? selection.width /2 : selection.width ,
+            copy_height = axis.y ? selection.height/2 : selection.height,
+            copy_depth  = axis.z ? selection.depth /2 : selection.depth ;
 
         int from_xpitch = axis.x > 0 ? -1                        : 1,
             from_ypitch = axis.y > 0 ? -self.width               : self.width,
