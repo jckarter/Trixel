@@ -396,27 +396,20 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
     return newBrick;
 }
 
-- (MasonBrick *)shifted:(struct point3)distance
+- (MasonBrick *)shiftingSelectedArea:(MasonCubeSelection *)selection distance:(struct point3)distance
 {
-    NSError * error;
-    MasonBrick * newBrick = [[MasonBrick alloc] initEmptyWithWidth:self.width height:self.height depth:self.depth withError:&error];
+    MasonBrick * selectedArea = [self selectedArea:selection];
     
-    if(newBrick) {
-        memcpy(newBrick.trixelBrick->palette_data, self.trixelBrick->palette_data, 256*4);
-        
-        unsigned copy_width  = self.width  - abs(distance.x),
-                 copy_height = self.height - abs(distance.y),
-                 copy_depth  = self.depth  - abs(distance.z);
-        unsigned char * from = trixel_brick_voxel(self.trixelBrick, -clamp_pos(distance.x), -clamp_pos(distance.y), -clamp_pos(distance.z)),
-                      * to   = trixel_brick_voxel(newBrick.trixelBrick,  clamp_neg(distance.x),  clamp_neg(distance.y),  clamp_neg(distance.z));
-        
-        for(unsigned z = 0; z < copy_depth; ++z)
-            for(unsigned y = 0; y < copy_height; ++y)
-                for(unsigned x = 0; x < copy_width; ++x) {
-                    int offset = z * self.width * self.height + y * self.width + x;
-                    to[offset] = from[offset];
-                }
-    }
+    MasonCubeSelection * oldSelection = [selection copy];
+    selection.minx += distance.x;
+    selection.miny += distance.y;
+    selection.minz += distance.z;
+    selection.maxx += distance.x;
+    selection.maxy += distance.y;
+    selection.maxz += distance.z;
+    
+    MasonBrick * newBrick = [[self clearingSelectedArea:oldSelection] replacingSelectedArea:selection withBrick:selectedArea];
+    [selection clipToX:self.width y:self.height z:self.depth];
     return newBrick;
 }
 
@@ -516,15 +509,14 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
 
 - (MasonBrick *)replacingSelectedArea:(MasonCubeSelection *)selection withBrick:(MasonBrick *)subbrick
 {
-    unsigned maxx = umin(selection.minx + subbrick.width,  self.width),
-             maxy = umin(selection.miny + subbrick.height, self.height),
-             maxz = umin(selection.minz + subbrick.depth,  self.depth);
+    MasonCubeSelection * clippedSelection = [selection copy];
+    [clippedSelection clipToX:self.width y:self.height z:self.depth];
     
     MasonBrick * newBrick = [self copy];
     
-    for(unsigned z = selection.minz; z < maxz; ++z)
-        for(unsigned y = selection.miny; y < maxy; ++y)
-            for(unsigned x = selection.minx; x < maxx; ++x)
+    for(unsigned z = clippedSelection.minz; z < clippedSelection.maxz; ++z)
+        for(unsigned y = clippedSelection.miny; y < clippedSelection.maxy; ++y)
+            for(unsigned x = clippedSelection.minx; x < clippedSelection.maxx; ++x)
                     *trixel_brick_voxel(newBrick.trixelBrick, x, y, z) = *trixel_brick_voxel(
                         subbrick.trixelBrick,
                         x - selection.minx,

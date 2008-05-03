@@ -51,4 +51,17 @@
     if (maxz > zlimit) maxz = zlimit;
 }
 
+- (MasonCubeSelection *)copyWithZone:(NSZone*)zone
+{
+    MasonCubeSelection * copy = [[MasonCubeSelection allocWithZone:zone] init];
+    copy.minx = minx;
+    copy.miny = miny;
+    copy.minz = minz;
+    copy.maxx = maxx;
+    copy.maxy = maxy;
+    copy.maxz = maxz;
+    
+    return copy;
+}
+
 @end

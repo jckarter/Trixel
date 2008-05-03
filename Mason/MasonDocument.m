@@ -348,27 +348,27 @@
 
 - (IBAction)shiftLeft:(id)sender
 {
-    [self _replaceBrick:[self.brick shifted:POINT3(-1,  0,  0)]];
+    [self _replaceBrick:[self.brick shiftingSelectedArea:self.selection distance:POINT3(-1,  0,  0)]];
 }
 - (IBAction)shiftRight:(id)sender
 {
-    [self _replaceBrick:[self.brick shifted:POINT3( 1,  0,  0)]];
+    [self _replaceBrick:[self.brick shiftingSelectedArea:self.selection distance:POINT3( 1,  0,  0)]];
 }
 - (IBAction)shiftDown:(id)sender
 {
-    [self _replaceBrick:[self.brick shifted:POINT3( 0, -1,  0)]];
+    [self _replaceBrick:[self.brick shiftingSelectedArea:self.selection distance:POINT3( 0, -1,  0)]];
 }
 - (IBAction)shiftUp:(id)sender
 {
-    [self _replaceBrick:[self.brick shifted:POINT3( 0,  1,  0)]];
+    [self _replaceBrick:[self.brick shiftingSelectedArea:self.selection distance:POINT3( 0,  1,  0)]];
 }
 - (IBAction)shiftOut:(id)sender
 {
-    [self _replaceBrick:[self.brick shifted:POINT3( 0,  0, -1)]];
+    [self _replaceBrick:[self.brick shiftingSelectedArea:self.selection distance:POINT3( 0,  0, -1)]];
 }
 - (IBAction)shiftIn:(id)sender
 {
-    [self _replaceBrick:[self.brick shifted:POINT3( 0,  0,  1)]];
+    [self _replaceBrick:[self.brick shiftingSelectedArea:self.selection distance:POINT3( 0,  0,  1)]];
 }
 
 - (IBAction)mirrorLeft:(id)sender

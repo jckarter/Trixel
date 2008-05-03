@@ -45,7 +45,8 @@
 - (void)setVoxel:(unsigned)index x:(unsigned)x y:(unsigned)y z:(unsigned)z;
 
 - (MasonBrick *)resizedToWidth:(unsigned)width height:(unsigned)height depth:(unsigned)depth;
-- (MasonBrick *)shifted:(struct point3)distance;
+
+- (MasonBrick *)shiftingSelectedArea:(MasonCubeSelection *)selection distance:(struct point3)distance;
 - (MasonBrick *)mirroringSelectedArea:(MasonCubeSelection *)selection acrossAxis:(struct point3)axis;
 - (MasonBrick *)flippingSelectedArea:(MasonCubeSelection *)selection acrossAxis:(struct point3)axis;
 
