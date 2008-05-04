@@ -14,11 +14,13 @@ static NSArray * g_tools;
 @interface MasonToolboxController ()
 @property(readwrite) MasonTool * currentTool;
 @property(readwrite) BOOL showBoundingBox, showAxes, showLighting, showSmoothShading, lockViewAngle;
+@property(readwrite) BOOL lockSelectionX, lockSelectionY, lockSelectionZ;
 @end
 
 @implementation MasonToolboxController
 
 @synthesize currentTool, showBoundingBox, showAxes, showLighting, showSmoothShading, lockViewAngle;
+@synthesize lockSelectionX, lockSelectionY, lockSelectionZ;
 
 - (MasonViewAngle *)lockedViewAngle
 {
@@ -81,7 +83,13 @@ static NSArray * g_tools;
 
 - (IBAction)changeCurrentTool:(id)sender
 {
-    self.currentTool = [g_tools objectAtIndex:[sender selectedTag]];
+    MasonTool * newTool = [g_tools objectAtIndex:[sender selectedTag]];
+    if([newTool settingsDrawer] != [self.currentTool settingsDrawer])
+    {
+        [[self.currentTool settingsDrawer] close];
+        [[newTool settingsDrawer] open];
+    }
+    self.currentTool = newTool;
 }
 
 - (IBAction)toggleShowBoundingBox:(id)sender
@@ -103,6 +111,11 @@ static NSArray * g_tools;
 - (IBAction)toggleLockViewAngle:(id)sender
 {
     self.lockViewAngle = !self.lockViewAngle;
+}
+
+- (NSDrawer *)selectionDrawer
+{
+    return o_selectionDrawer;
 }
 
 @end

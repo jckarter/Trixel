@@ -22,4 +22,6 @@ typedef enum {
 
 - (void)handleMouseDraggedFrom:(NSPoint)from delta:(NSPoint)delta forDocument:(MasonDocument *)document;
 
+- (NSDrawer *)settingsDrawer;
+
 @end

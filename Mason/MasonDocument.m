@@ -4,6 +4,8 @@
 #import "MasonBrick.h"
 #import "MasonBrickView.h"
 #import "MasonResizeBrickController.h"
+#import "MasonApplication.h"
+#import "MasonToolboxController.h"
 #include <stdlib.h>
 
 @interface MasonDocument ()
@@ -107,18 +109,18 @@
 - (void)setLowSelectionPoint:(struct point3)pt
 {
     [self willChangeValueForKey:@"selection"];
-    selection.minx = pt.x;
-    selection.miny = pt.y;
-    selection.minz = pt.z;
+    if(![NSApp toolboxController].lockSelectionX) selection.minx = pt.x;
+    if(![NSApp toolboxController].lockSelectionY) selection.miny = pt.y;
+    if(![NSApp toolboxController].lockSelectionZ) selection.minz = pt.z;
     [self didChangeValueForKey:@"selection"];
 }
 
 - (void)setHighSelectionPoint:(struct point3)pt
 {
     [self willChangeValueForKey:@"selection"];
-    selection.maxx = pt.x+1;
-    selection.maxy = pt.y+1;
-    selection.maxz = pt.z+1;
+    if(![NSApp toolboxController].lockSelectionX) selection.maxx = pt.x+1;
+    if(![NSApp toolboxController].lockSelectionY) selection.maxy = pt.y+1;
+    if(![NSApp toolboxController].lockSelectionZ) selection.maxz = pt.z+1;
     [self didChangeValueForKey:@"selection"];
 }
 

@@ -28,5 +28,10 @@
     // do nothing
 }
 
+- (NSDrawer *)settingsDrawer
+{
+    return nil;
+}
+
 @end
 

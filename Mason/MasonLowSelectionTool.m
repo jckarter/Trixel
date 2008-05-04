@@ -2,6 +2,8 @@
 #import "MasonDocument.h"
 #import "MasonBrickView.h"
 #import "MasonBrick.h"
+#import "MasonApplication.h"
+#import "MasonToolboxController.h"
 
 #include "trixel.h"
 
@@ -27,6 +29,11 @@
     struct point3 hoverPoint = [[document brickView] hoverPoint];
     if(hoverPoint.x == -1) return;
     [document setLowSelectionPoint:hoverPoint];
+}
+
+- (NSDrawer *)settingsDrawer
+{
+    return [[NSApp toolboxController] selectionDrawer];
 }
 
 @end

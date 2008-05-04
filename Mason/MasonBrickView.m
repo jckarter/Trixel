@@ -223,8 +223,10 @@ slice_set_up_state(void)
         [self setNeedsDisplay:YES];
     }
     else if(object == o_document && [path isEqualToString:@"brick"]) {
-        [[change objectForKey:NSKeyValueChangeOldKey] removeObserver:self forKeyPath:@"voxmap"];
-        [[change objectForKey:NSKeyValueChangeOldKey] removeObserver:self forKeyPath:@"paletteColors"];
+        MasonBrick * oldBrick = [change objectForKey:NSKeyValueChangeOldKey];
+        [oldBrick removeObserver:self forKeyPath:@"voxmap"];
+        [oldBrick removeObserver:self forKeyPath:@"paletteColors"];
+        [oldBrick unprepare];
         [o_document.brick addObserver:self forKeyPath:@"voxmap" options:NSKeyValueObservingOptionOld context:NULL];
         [o_document.brick addObserver:self forKeyPath:@"paletteColors" options:NSKeyValueObservingOptionOld context:NULL];
 

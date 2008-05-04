@@ -29,4 +29,9 @@
     [document setHighSelectionPoint:hoverPoint];
 }
 
+- (NSDrawer *)settingsDrawer
+{
+    return [[NSApp toolboxController] selectionDrawer];
+}
+
 @end
