@@ -2,6 +2,8 @@
 #import "MasonDocument.h"
 #import "MasonBrickView.h"
 #import "MasonBrick.h"
+#import "MasonApplication.h"
+#import "MasonToolboxController.h"
 
 #include "trixel.h"
 
