@@ -263,14 +263,14 @@ slice_set_up_state(void)
 {
     int width = brick.width, height = brick.height, depth = brick.depth;
         
-    int width_elt_offset = 24,
+    int width_elt_offset = 0,
         height_elt_offset = width_elt_offset + width * 8,
         depth_elt_offset = height_elt_offset + height * 8;
     
     int width_offset = width_elt_offset * 3,
         height_offset = height_elt_offset * 3,
         depth_offset = depth_elt_offset * 3;
-    size_t vertex_count = (24 + (width + height + depth) * 8) * 12;
+    size_t vertex_count = ((width + height + depth) * 8) * 12;
     
     GLbyte buffer[vertex_count * (sizeof(GLfloat) + sizeof(GLbyte))];
 
@@ -279,66 +279,6 @@ slice_set_up_state(void)
     GLfloat * vertices = (GLfloat *)buffer;
     GLbyte  * normals  = buffer + m_normals_offset;
     
-    vertices[ 0] = -width/2; vertices[ 1] = -height/2; vertices[ 2] = -depth/2;
-    vertices[ 3] = -width/2; vertices[ 4] =  height/2; vertices[ 5] = -depth/2;
-    vertices[ 6] =  width/2; vertices[ 7] =  height/2; vertices[ 8] = -depth/2;
-    vertices[ 9] =  width/2; vertices[10] = -height/2; vertices[11] = -depth/2;
-        
-    vertices[12] =  width/2; vertices[13] = -height/2; vertices[14] = -depth/2;
-    vertices[15] =  width/2; vertices[16] =  height/2; vertices[17] = -depth/2;
-    vertices[18] =  width/2; vertices[19] =  height/2; vertices[20] =  depth/2;
-    vertices[21] =  width/2; vertices[22] = -height/2; vertices[23] =  depth/2;
-        
-    vertices[24] =  width/2; vertices[25] = -height/2; vertices[26] =  depth/2;
-    vertices[27] =  width/2; vertices[28] =  height/2; vertices[29] =  depth/2;
-    vertices[30] = -width/2; vertices[31] =  height/2; vertices[32] =  depth/2;
-    vertices[33] = -width/2; vertices[34] = -height/2; vertices[35] =  depth/2;
-        
-    vertices[36] = -width/2; vertices[37] = -height/2; vertices[38] =  depth/2;
-    vertices[39] = -width/2; vertices[40] =  height/2; vertices[41] =  depth/2;
-    vertices[42] = -width/2; vertices[43] =  height/2; vertices[44] = -depth/2;
-    vertices[45] = -width/2; vertices[46] = -height/2; vertices[47] = -depth/2;
-
-    vertices[48] =  width/2; vertices[49] =  height/2; vertices[50] =  depth/2;
-    vertices[51] =  width/2; vertices[52] =  height/2; vertices[53] = -depth/2;
-    vertices[54] = -width/2; vertices[55] =  height/2; vertices[56] = -depth/2;
-    vertices[57] = -width/2; vertices[58] =  height/2; vertices[59] =  depth/2;
-
-    vertices[60] = -width/2; vertices[61] = -height/2; vertices[62] =  depth/2;
-    vertices[63] = -width/2; vertices[64] = -height/2; vertices[65] = -depth/2;
-    vertices[66] =  width/2; vertices[67] = -height/2; vertices[68] = -depth/2;
-    vertices[69] =  width/2; vertices[70] = -height/2; vertices[71] =  depth/2;
-
-    normals[ 0] = 0; normals[ 1] = 0; normals[ 2] = -128;
-    normals[ 3] = 0; normals[ 4] = 0; normals[ 5] = -128;
-    normals[ 6] = 0; normals[ 7] = 0; normals[ 8] = -128;
-    normals[ 9] = 0; normals[10] = 0; normals[11] = -128;
-        
-    normals[12] = 127; normals[13] = 0; normals[14] = 0;
-    normals[15] = 127; normals[16] = 0; normals[17] = 0;
-    normals[18] = 127; normals[19] = 0; normals[20] = 0;
-    normals[21] = 127; normals[22] = 0; normals[23] = 0;
-        
-    normals[24] = 0; normals[25] = 0; normals[26] = 127;
-    normals[27] = 0; normals[28] = 0; normals[29] = 127;
-    normals[30] = 0; normals[31] = 0; normals[32] = 127;
-    normals[33] = 0; normals[34] = 0; normals[35] = 127;
-        
-    normals[36] = -128; normals[37] = 0; normals[38] = 0;
-    normals[39] = -128; normals[40] = 0; normals[41] = 0;
-    normals[42] = -128; normals[43] = 0; normals[44] = 0;
-    normals[45] = -128; normals[46] = 0; normals[47] = 0;
-
-    normals[48] = 0; normals[49] = 127; normals[50] = 0;
-    normals[51] = 0; normals[52] = 127; normals[53] = 0;
-    normals[54] = 0; normals[55] = 127; normals[56] = 0;
-    normals[57] = 0; normals[58] = 127; normals[59] = 0;
-
-    normals[60] = 0; normals[61] = -128; normals[62] = 0;
-    normals[63] = 0; normals[64] = -128; normals[65] = 0;
-    normals[66] = 0; normals[67] = -128; normals[68] = 0;
-    normals[69] = 0; normals[70] = -128; normals[71] = 0;
-
     unsigned i;
     for(i = 0; i < width; ++i) {
         GLfloat w = (GLfloat)i + 0.5 - width/2;
@@ -429,8 +369,8 @@ slice_set_up_state(void)
     glBufferData(GL_ARRAY_BUFFER, vertex_count * (sizeof(GLfloat)+sizeof(GLbyte)), buffer, GL_STATIC_DRAW);
 
     m_slice_ops[SLICE_AXIS_SURFACE].trixel_flags = g_surface_flags;
-    m_slice_ops[SLICE_AXIS_SURFACE].buffer_first = 0;
-    m_slice_ops[SLICE_AXIS_SURFACE].buffer_count = 24;    
+    m_slice_ops[SLICE_AXIS_SURFACE].buffer_first = -1;
+    m_slice_ops[SLICE_AXIS_SURFACE].buffer_count = -1;    
     m_slice_ops[SLICE_AXIS_SURFACE].set_up_state_func = surface_set_up_state;
 
     m_slice_ops[SLICE_AXIS_XAXIS].trixel_flags = g_slice_flags;
@@ -577,23 +517,28 @@ slice_set_up_state(void)
 
 - (void)_drawBrick:(MasonBrick *)brick sliceAxis:(NSInteger)axis sliceNumber:(NSInteger)sliceNumber
 {
-    [brick useForDrawing:m_t];
+    if (m_slice_ops[axis].buffer_first == (unsigned)-1)
+    {
+        [brick draw:m_t];
+    } else {
+        [brick useForDrawing:m_t];
 
-    GLint first = m_slice_ops[axis].buffer_first;
-    GLsizei count = m_slice_ops[axis].buffer_count;
+        GLint first = m_slice_ops[axis].buffer_first;
+        GLsizei count = m_slice_ops[axis].buffer_count;
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
-    glVertexPointer(3, GL_FLOAT, 0, 0);
-    glNormalPointer(GL_BYTE, 0, (void*)m_normals_offset);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
+        glVertexPointer(3, GL_FLOAT, 0, 0);
+        glNormalPointer(GL_BYTE, 0, (void*)m_normals_offset);
 
-    glDrawArrays(GL_QUADS, first + count * sliceNumber, count);
+        glDrawArrays(GL_QUADS, first + count * sliceNumber, count);
     
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_NORMAL_ARRAY);
+    }
 }
 
 - (void)drawBoundingCubeForBrick:(MasonBrick *)brick
