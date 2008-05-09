@@ -1,8 +1,10 @@
 USING: opengl.demo-support opengl.gl trixel accessors kernel ui.gadgets ui.render
-sequences ui math combinators ui.gestures ;
+sequences ui math combinators ui.gestures alarms calendar ;
 IN: brick-viewer
 
-TUPLE: brick-viewer-gadget brick-path trixel brick ;
+TUPLE: brick-viewer-gadget brick-paths trixel bricks brickn tick ;
+
+: frame-rate 30.0 4.0 / ; inline
 
 M: brick-viewer-gadget near-plane ( gadget -- z )
     drop 4.0 ;
@@ -13,9 +15,10 @@ M: brick-viewer-gadget distance-step ( gadget -- dz )
 
 : <brick-viewer-gadget> ( brick-path -- brick-viewer-gadget )
     0.0 0.0 40.0 <demo-gadget> {
-        (>>brick-path)
+        (>>brick-paths)
         set-delegate
-    } brick-viewer-gadget construct ;
+    } brick-viewer-gadget construct
+    0 >>brickn ;
 
 : (update-shaders) ( trixel -- )
     {
@@ -24,18 +27,24 @@ M: brick-viewer-gadget distance-step ( gadget -- dz )
         [ 0 TRIXEL_LIGHT_PARAM_AMBIENT  {  0.2  0.2  0.2 1.0 } trixel-light-param ]
         [ 0 TRIXEL_LIGHT_PARAM_DIFFUSE  {  0.8  0.8  0.8 1.0 } trixel-light-param ]
     } cleave ;
-    
+
+: (next-frame) ( gadget -- )
+    [ bricks>> length ]
+    [ [ 1+ swap mod ] change-brickn relayout-1 ] bi ;
+
 M: brick-viewer-gadget graft* ( gadget -- )
     [ trixel_init_glew drop ] with-trixel-error
     "/Users/joe/Documents/Code/Trixel" [ trixel_state_init ] with-trixel-error
     dup (update-shaders) >>trixel
-    dup brick-path>> t [ trixel_read_brick_from_filename ]
-    with-trixel-error >>brick
+    dup brick-paths>>
+    [ t [ trixel_read_brick_from_filename ] with-trixel-error ] map >>bricks
+    dup [ (next-frame) ] curry 1.0 frame-rate / seconds every >>tick
     drop ;
 
 M: brick-viewer-gadget ungraft* ( gadget -- )
-    [ brick>> [ trixel_free_brick ] when* ]
-    [ trixel>> [ trixel_state_free ] when* ] bi ;
+    [ bricks>> [ [ trixel_free_brick ] each ] when* ]
+    [ trixel>> [ trixel_state_free ] when* ] 
+    [ tick>> [ cancel-alarm ] when* ] tri ;
     
 M: brick-viewer-gadget pref-dim* ( gadget -- dim )
     drop { 640 480 } ;
@@ -51,7 +60,7 @@ M: brick-viewer-gadget draw-gadget* ( gadget -- )
     GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT bitor glClear
     [ demo-gadget-set-matrices ]
     [
-        { trixel>> brick>> } get-slots trixel_draw_brick
+        { trixel>> brickn>> bricks>> } get-slots nth trixel_draw_brick
     ] bi
     (reset-opengl-state)
     glGetError drop ;
@@ -61,4 +70,4 @@ brick-viewer-gadget H{
 } set-gestures
 
 : brick-viewer-window ( path -- )
-    [ [ <brick-viewer-gadget> ] keep open-window ] with-ui ;
+    [ <brick-viewer-gadget> "Brick Viewer" open-window ] with-ui ;
