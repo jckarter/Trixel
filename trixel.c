@@ -15,6 +15,10 @@
 #define BRICK_MAGIC "Brik"
 #define NULL_COLOR ((unsigned char *)"\0\0\0\0")
 
+struct trixel_render_path {
+    
+};
+
 struct trixel_internal_state {
     char * resource_path;
     bool has_smooth_shading;
@@ -22,6 +26,7 @@ struct trixel_internal_state {
     struct voxel_program_uniforms {
         GLint voxmap, palette, normals, normal_translate, normal_scale, voxmap_size, voxmap_size_inv;
     } voxel_uniforms;
+    
 };
 
 static inline struct trixel_internal_state * STATE(trixel_state t) { return (struct trixel_internal_state *)t; }
@@ -384,7 +389,7 @@ struct brick_header {
 };
 
 trixel_brick *
-trixel_read_brick(const void * data, size_t data_length, bool prepare, char * * out_error_message)
+trixel_read_brick(const void * data, size_t data_length, char * * out_error_message)
 {
     const uint8_t * byte_data = (const uint8_t *)data;
 
@@ -455,9 +460,6 @@ trixel_read_brick(const void * data, size_t data_length, bool prepare, char * * 
     brick->voxmap_data = malloc(voxmap_length);
     memcpy(brick->voxmap_data, byte_data + voxmap_offset, voxmap_length);
 
-    if(prepare)
-        trixel_prepare_brick(brick);
-
     return brick;
 
 error:
@@ -465,7 +467,7 @@ error:
 }
 
 trixel_brick *
-_trixel_make_brick(int w, int h, int d, bool prepare, bool solid, char * * out_error_message)
+_trixel_make_brick(int w, int h, int d, bool solid, char * * out_error_message)
 {
     trixel_brick * brick = malloc(sizeof(trixel_brick));
     memset(brick, 0, sizeof(trixel_brick));
@@ -495,9 +497,6 @@ _trixel_make_brick(int w, int h, int d, bool prepare, bool solid, char * * out_e
     brick->voxmap_data = malloc(w * h * d);
     memset(brick->voxmap_data, fill, w * h * d);
     
-    if(prepare)
-        trixel_prepare_brick(brick);
-    
     return brick;
 
 error:
@@ -505,36 +504,33 @@ error:
 }
 
 trixel_brick *
-trixel_make_empty_brick(int w, int h, int d, bool prepare, char * * out_error_message)
+trixel_make_empty_brick(int w, int h, int d, char * * out_error_message)
 {
-    return _trixel_make_brick(w, h, d, prepare, false, out_error_message);
+    return _trixel_make_brick(w, h, d, false, out_error_message);
 }
 
 trixel_brick *
-trixel_make_solid_brick(int w, int h, int d, bool prepare, char * * out_error_message)
+trixel_make_solid_brick(int w, int h, int d, char * * out_error_message)
 {
-    return _trixel_make_brick(w, h, d, prepare, true, out_error_message);
+    return _trixel_make_brick(w, h, d, true, out_error_message);
 }
 
 trixel_brick *
-trixel_copy_brick(trixel_brick const * brick, bool prepare, char * * out_error_message)
+trixel_copy_brick(trixel_brick const * brick, char * * out_error_message)
 {
     trixel_brick * new_brick = trixel_make_empty_brick(
         brick->dimensions.x, brick->dimensions.y, brick->dimensions.z,
-        false,
         out_error_message
     );
     if(new_brick) {
         memcpy(new_brick->voxmap_data, brick->voxmap_data, trixel_brick_voxmap_size(brick));
         memcpy(new_brick->palette_data, brick->palette_data, 256 * 4);
-        if(prepare)
-            trixel_prepare_brick(new_brick);
     }
     return new_brick;
 }
 
 void
-trixel_prepare_brick(trixel_brick * brick)
+trixel_prepare_brick(trixel_brick * brick, trixel_state t)
 {
     glGenTextures(1, &brick->voxmap_texture);
     glActiveTexture(GL_TEXTURE0);
@@ -1013,7 +1009,7 @@ trixel_draw_brick(trixel_state t, trixel_brick * brick)
 }
 
 trixel_brick *
-trixel_read_brick_from_filename(char const * filename, bool prepare, char * * out_error_message)
+trixel_read_brick_from_filename(char const * filename, char * * out_error_message)
 {
     char *data;
     size_t data_length;
@@ -1023,7 +1019,7 @@ trixel_read_brick_from_filename(char const * filename, bool prepare, char * * ou
         goto error;
     }
 
-    trixel_brick *brick = trixel_read_brick(data, data_length, prepare, out_error_message);
+    trixel_brick *brick = trixel_read_brick(data, data_length, out_error_message);
     free(data);
     return brick;
 

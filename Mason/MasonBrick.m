@@ -143,7 +143,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
     self = [super init];
     if(self) {
         char * error_message;
-        trixelBrick = trixel_read_brick([data bytes], [data length], false, &error_message);
+        trixelBrick = trixel_read_brick([data bytes], [data length], &error_message);
         self = [self _commonInit:error_message :out_error];
     }
     return self;
@@ -155,7 +155,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
     self = [super init];
     if(self) {
         char * error_message;
-        trixelBrick = trixel_read_brick_from_filename([filename UTF8String], false, &error_message);
+        trixelBrick = trixel_read_brick_from_filename([filename UTF8String], &error_message);
         self = [self _commonInit:error_message :out_error];
     }
     return self;    
@@ -166,7 +166,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
     self = [super init];
     if(self) {
         char * error_message;
-        trixelBrick = trixel_make_solid_brick(width, height, depth, false, &error_message);
+        trixelBrick = trixel_make_solid_brick(width, height, depth, &error_message);
         self = [self _commonInit:error_message :out_error];
     }
     return self;    
@@ -177,7 +177,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
     self = [super init];
     if(self) {
         char * error_message;
-        trixelBrick = trixel_make_empty_brick(width, height, depth, false, &error_message);
+        trixelBrick = trixel_make_empty_brick(width, height, depth, &error_message);
         self = [self _commonInit:error_message :out_error];
     }
     return self;    
@@ -189,7 +189,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
     if(copy) {
         char * error_message;
         NSError * error;
-        copy->trixelBrick = trixel_copy_brick(self.trixelBrick, false, &error_message);
+        copy->trixelBrick = trixel_copy_brick(self.trixelBrick, &error_message);
         
         copy = [copy _commonInit:error_message :&error];
     }
@@ -217,9 +217,9 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
     return trixel_is_brick_prepared(trixelBrick);
 }
 
-- (void)prepare
+- (void)prepare:(trixel_state)t
 {
-    trixel_prepare_brick(trixelBrick);
+    trixel_prepare_brick(trixelBrick, t);
 }
 
 - (void)unprepare

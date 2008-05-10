@@ -255,7 +255,7 @@ slice_set_up_state(void)
 - (void)_prepareBrick
 {
     [self _prepareVertexBufferForBrick:o_document.brick];
-    [o_document.brick prepare];
+    [o_document.brick prepare:m_t];
     m_brickNeedsPreparing = NO;
 }
 

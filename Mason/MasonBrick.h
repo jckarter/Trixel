@@ -27,7 +27,7 @@
 - (NSData *)data;
 
 - (BOOL)isPrepared;
-- (void)prepare;
+- (void)prepare:(trixel_state)t;
 - (void)unprepare;
 - (void)updateTextures;
 
