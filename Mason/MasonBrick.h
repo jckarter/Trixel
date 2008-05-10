@@ -31,8 +31,8 @@
 - (void)unprepare;
 - (void)updateTextures;
 
-- (void)draw:(trixel_state)t;
-- (void)useForDrawing:(trixel_state)t;
+- (void)draw;
+- (void)useForDrawing;
 
 - (unsigned int)countOfPaletteColors;
 - (NSColor *)objectInPaletteColorsAtIndex:(unsigned int)index;

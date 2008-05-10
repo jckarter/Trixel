@@ -4,7 +4,7 @@ IN: trixel
 : trixel-resources "/Users/joe/Documents/Code/Trixel" ; inline
 
 "trixel" {
-    { [ os macosx? ] [ trixel-resources "libtrixel.dylib" append-path "cdecl" add-library ] }
+    { [ os macosx? ] [ trixel-resources "lib/libtrixel.dylib" append-path "cdecl" add-library ] }
     { [ t ] [ "FIXME: other platforms" throw ] }
 } cond
 

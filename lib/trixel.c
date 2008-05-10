@@ -1,4 +1,5 @@
 #include "trixel.h"
+#include "trixel_internal.h"
 
 #include <GL/glew.h>
 #include <math.h>
@@ -14,22 +15,6 @@
 
 #define BRICK_MAGIC "Brik"
 #define NULL_COLOR ((unsigned char *)"\0\0\0\0")
-
-struct trixel_render_path {
-    
-};
-
-struct trixel_internal_state {
-    char * resource_path;
-    bool has_smooth_shading;
-    GLuint voxel_program, voxel_vertex_shader, voxel_fragment_shader;
-    struct voxel_program_uniforms {
-        GLint voxmap, palette, normals, normal_translate, normal_scale, voxmap_size, voxmap_size_inv;
-    } voxel_uniforms;
-    
-};
-
-static inline struct trixel_internal_state * STATE(trixel_state t) { return (struct trixel_internal_state *)t; }
 
 static void
 _gl_print_matrix(GLenum what)
@@ -80,90 +65,6 @@ _gl_report_error(char const * tag)
     }
 }
 
-static char * *
-_make_shader_flag_sources(char const * flags[], char const * source, size_t *out_num_sources)
-{
-    if(!flags) {
-        char * * flag_sources = malloc(sizeof(char *));
-        *flag_sources = strdup(source);
-        *out_num_sources = 1;
-        return flag_sources;
-    }
-
-    size_t num_flags = 0;
-    char const * * fp = flags;
-    while(*fp++)
-        ++num_flags;
-
-    char * * flag_sources = malloc((num_flags + 1) * sizeof(char*));
-    for(size_t i = 0; i < num_flags; ++i)
-        if(flags[i][0] == 0)
-            asprintf(&flag_sources[i], "");
-        else
-            asprintf(&flag_sources[i], "#define %s 1\n", flags[i]);
-
-    flag_sources[num_flags] = strdup(source);
-    *out_num_sources = num_flags + 1;
-    return flag_sources;
-}
-
-static void
-_free_shader_flag_sources(char * flags[], size_t num_sources)
-{
-    for(size_t i = 0; i < num_sources; ++i)
-        free(flags[i]);
-    free(flags);
-}
-
-static GLuint
-glsl_shader_from_string(GLenum kind, char const * shader_flags[], char const * source, char * * out_error_message)
-{
-    size_t num_sources;
-    char * * shader_flag_sources = _make_shader_flag_sources(shader_flags, source, &num_sources);
-    GLuint shader = glCreateShader(kind);
-    glShaderSource(shader, num_sources, (const GLchar**)shader_flag_sources, NULL);
-    glCompileShader(shader);
-
-    _free_shader_flag_sources(shader_flag_sources, num_sources);
-
-    GLint status;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-    if(!status) {
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &status);
-        *out_error_message = malloc(status);
-        glGetShaderInfoLog(shader, status, &status, *out_error_message);
-        goto error;
-    }
-    return shader;
-
-error:
-    glDeleteShader(shader);
-    return 0;
-}
-
-static GLuint
-glsl_program_from_shaders(GLuint vertex, GLuint fragment, char * * out_error_message)
-{
-    GLuint program = glCreateProgram();
-    glAttachShader(program, vertex);
-    glAttachShader(program, fragment);
-    glLinkProgram(program);
-
-    GLint status;
-    glGetProgramiv(program, GL_LINK_STATUS, &status);
-    if(!status) {
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &status);
-        *out_error_message = malloc(status);
-        glGetProgramInfoLog(program, status, &status, *out_error_message);
-        goto error;
-    }
-    return program;
-
-error:
-    glDeleteShader(program);
-    return 0;
-}
-
 char *
 trixel_resource_filename(trixel_state t, char const * filename)
 {
@@ -203,30 +104,18 @@ error:
     return NULL;
 }
 
-static void
-unmake_voxel_program(trixel_state t)
+static struct trixel_render_path const *
+_find_render_path(trixel_state t)
 {
-    glDetachShader(STATE(t)->voxel_program, STATE(t)->voxel_vertex_shader);
-    glDetachShader(STATE(t)->voxel_program, STATE(t)->voxel_fragment_shader);
+    static struct trixel_render_path const * render_paths[] = {
+        &glsl_sm4_render_path,
+        NULL
+    };
 
-    glDeleteShader(STATE(t)->voxel_fragment_shader);
-    glDeleteShader(STATE(t)->voxel_vertex_shader);
-    glDeleteProgram(STATE(t)->voxel_program);
-
-    STATE(t)->voxel_fragment_shader = 0;
-    STATE(t)->voxel_vertex_shader = 0;
-    STATE(t)->voxel_program = 0;
-}
-
-static bool
-_has_flag(char const * flags[], char const * flag_to_find)
-{
-    while(*flags) {
-        if(strcmp(*flags, flag_to_find) == 0)
-            return true;
-        ++flags;
-    }
-    return false;
+    for(struct trixel_render_path const * * path = render_paths; path; ++path)
+        if((*path)->can_be_used(t))
+            return *path;
+    return NULL;
 }
 
 trixel_state
@@ -234,9 +123,18 @@ trixel_state_init(char const * resource_path, char * * out_error_message)
 {
     trixel_state t = malloc(sizeof(struct trixel_internal_state));
     memset(t, 0, sizeof(struct trixel_internal_state));
+    STATE(t)->render_path = _find_render_path(t);
+    if(!STATE(t)->render_path) {
+        *out_error_message = strdup("Your OpenGL implementation is not supported.");
+        goto error_after_malloc_t;
+    }
     STATE(t)->resource_path = strdup(resource_path);
 
     return t;
+
+error_after_malloc_t:
+    free(t);
+    return NULL;
 }
 
 bool
@@ -247,26 +145,18 @@ trixel_init_glew(char * * out_error_message)
         *out_error_message = strdup((char*)glewGetErrorString(glew_error));
         return false;
     }
-
-    if(!GLEW_VERSION_2_0
-        || !GLEW_EXT_framebuffer_object
-        || !GLEW_ARB_texture_float) {
-        *out_error_message = strdup("Your OpenGL implementation doesn't conform to OpenGL 2.0.");
-        return false;
-    }
-
     return true;
 }
 
 trixel_state
-trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message)
+trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char * shader_flags[], char * * out_error_message)
 {
+    if(!trixel_init_glew(out_error_message))
+        goto error;
+
     trixel_state t = trixel_state_init(resource_path, out_error_message);
     if(!t)
         goto error;
-
-    if(!trixel_init_glew(out_error_message))
-        goto error_after_state_init;
 
     glClearColor(0.2, 0.2, 0.2, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -313,66 +203,21 @@ trixel_reshape(trixel_state t, int viewport_width, int viewport_height)
 }
 
 int
-trixel_update_shaders(trixel_state t, char const *shader_flags[], char * * out_error_message)
+trixel_update_shaders(trixel_state t, char *shader_flags[], char * * out_error_message)
 {
-    char *vertex_source_path = trixel_resource_filename(t, "voxel.vertex.glsl");
-    char *fragment_source_path = trixel_resource_filename(t, "voxel.fragment.glsl");
-    char *vertex_source   = contents_from_filename(vertex_source_path, NULL);
-    char *fragment_source = contents_from_filename(fragment_source_path, NULL);
-    if(!vertex_source || !fragment_source) {
-        *out_error_message = strdup("Failed to load shader source for the voxmap renderer.");
+    void * new_shaders = STATE(t)->render_path->make_shaders(t, shader_flags, out_error_message);
+    
+    if(new_shaders) {
+        STATE(t)->render_path->delete_shaders(t);
+        STATE(t)->shaders = new_shaders;
     }
-
-    GLuint voxel_vertex_shader = glsl_shader_from_string(GL_VERTEX_SHADER, shader_flags, vertex_source, out_error_message);
-    if(!voxel_vertex_shader)
-        goto error;
-    GLuint voxel_fragment_shader = glsl_shader_from_string(GL_FRAGMENT_SHADER, shader_flags, fragment_source, out_error_message);
-    if(!voxel_fragment_shader)
-        goto error_after_vertex_shader;
-    GLuint voxel_program = glsl_program_from_shaders(voxel_vertex_shader, voxel_fragment_shader, out_error_message);
-    if(!voxel_program)
-        goto error_after_fragment_shader;
-
-    STATE(t)->has_smooth_shading = _has_flag(shader_flags, TRIXEL_SMOOTH_SHADING);
-
-    if(STATE(t)->voxel_program)
-        unmake_voxel_program(t);
-    STATE(t)->voxel_vertex_shader = voxel_vertex_shader;
-    STATE(t)->voxel_fragment_shader = voxel_fragment_shader;
-    STATE(t)->voxel_program = voxel_program;
-    STATE(t)->voxel_uniforms.voxmap = glGetUniformLocation(STATE(t)->voxel_program, "voxmap");
-    STATE(t)->voxel_uniforms.palette = glGetUniformLocation(STATE(t)->voxel_program, "palette");
-    STATE(t)->voxel_uniforms.voxmap_size = glGetUniformLocation(STATE(t)->voxel_program, "voxmap_size");
-    STATE(t)->voxel_uniforms.voxmap_size_inv = glGetUniformLocation(STATE(t)->voxel_program, "voxmap_size_inv");
-
-    if(STATE(t)->has_smooth_shading) {
-        STATE(t)->voxel_uniforms.normals = glGetUniformLocation(STATE(t)->voxel_program, "normals");
-        STATE(t)->voxel_uniforms.normal_scale = glGetUniformLocation(STATE(t)->voxel_program, "normal_scale");
-        STATE(t)->voxel_uniforms.normal_translate = glGetUniformLocation(STATE(t)->voxel_program, "normal_translate");
-    }
-
-    free(vertex_source);
-    free(fragment_source);
-    free(vertex_source_path);
-    free(fragment_source_path);
-    return 1;
-
-error_after_fragment_shader:
-    glDeleteShader(voxel_fragment_shader);
-error_after_vertex_shader:
-    glDeleteShader(voxel_vertex_shader);
-error:
-    free(vertex_source);
-    free(fragment_source);
-    free(vertex_source_path);
-    free(fragment_source_path);
-    return 0;
+    return !!new_shaders;
 }
 
 void
 trixel_finish(trixel_state t)
 {
-    unmake_voxel_program(t);
+    STATE(t)->render_path->delete_shaders(t);
     trixel_state_free(t);
 }
 
@@ -532,6 +377,8 @@ trixel_copy_brick(trixel_brick const * brick, char * * out_error_message)
 void
 trixel_prepare_brick(trixel_brick * brick, trixel_state t)
 {
+    brick->t = t;
+
     glGenTextures(1, &brick->voxmap_texture);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_3D, brick->voxmap_texture);
@@ -573,82 +420,6 @@ trixel_prepare_brick(trixel_brick * brick, trixel_state t)
     );
 
     trixel_update_brick_textures(brick);
-
-    GLshort width2  = (GLshort)brick->dimensions.x / 2,
-            height2 = (GLshort)brick->dimensions.y / 2,
-            depth2  = (GLshort)brick->dimensions.z / 2;
-    struct {
-        GLshort vertices[6*4*3];
-        GLbyte  normals [6*4*3];
-    } buffer = {
-        {
-            -width2, -height2, -depth2,
-            -width2,  height2, -depth2,
-             width2,  height2, -depth2,
-             width2, -height2, -depth2,
-         
-             width2, -height2, -depth2,
-             width2,  height2, -depth2,
-             width2,  height2,  depth2,
-             width2, -height2,  depth2,
-         
-             width2, -height2,  depth2,
-             width2,  height2,  depth2,
-            -width2,  height2,  depth2,
-            -width2, -height2,  depth2,
-        
-            -width2, -height2,  depth2,
-            -width2,  height2,  depth2,
-            -width2,  height2, -depth2,
-            -width2, -height2, -depth2,
-        
-             width2,  height2,  depth2,
-             width2,  height2, -depth2,
-            -width2,  height2, -depth2,
-            -width2,  height2,  depth2,
-
-            -width2, -height2,  depth2,
-            -width2, -height2, -depth2,
-             width2, -height2, -depth2,
-             width2, -height2,  depth2
-        },
-        {
-             0,  0, -128,
-             0,  0, -128,
-             0,  0, -128,
-             0,  0, -128,
-
-             127,  0,  0,
-             127,  0,  0,
-             127,  0,  0,
-             127,  0,  0,
-
-             0,  0,  127,
-             0,  0,  127,
-             0,  0,  127,
-             0,  0,  127,
-
-            -128,  0,  0,
-            -128,  0,  0,
-            -128,  0,  0,
-            -128,  0,  0,
-
-             0,  127,  0,
-             0,  127,  0,
-             0,  127,  0,
-             0,  127,  0,
-
-             0, -128,  0,
-             0, -128,  0,
-             0, -128,  0,
-             0, -128,  0
-        }
-    };
-
-    glGenBuffers(1, &brick->vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, brick->vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(buffer), &buffer, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 bool
@@ -682,6 +453,7 @@ trixel_unprepare_brick(trixel_brick * brick)
     brick->vertex_buffer = 0;
     brick->voxmap_texture = 0;
     brick->palette_texture = 0;
+    brick->t = NULL;
 }
 
 unsigned char
@@ -875,6 +647,8 @@ trixel_update_brick_textures(trixel_brick * brick)
     _gl_report_error("trixel_update_brick_textures palette");
 
     _generate_normal_texture(brick);
+    
+    STATE(brick->t)->render_path->make_vertex_buffer_for_brick(brick->t, brick);
 }
 
 void *
@@ -970,31 +744,15 @@ trixel_remove_brick_palette_color(trixel_brick * brick, int index)
 }
 
 void
-trixel_draw_from_brick(trixel_state t, trixel_brick * brick)
+trixel_draw_from_brick(trixel_brick * brick)
 {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_3D, brick->voxmap_texture);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_1D, brick->palette_texture);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_3D, brick->normal_texture);
-
-    glUseProgram(STATE(t)->voxel_program);
-    glUniform3fv(STATE(t)->voxel_uniforms.voxmap_size,     1, (GLfloat *)&brick->dimensions);
-    glUniform3fv(STATE(t)->voxel_uniforms.voxmap_size_inv, 1, (GLfloat *)&brick->dimensions_inv);
-    glUniform1i(STATE(t)->voxel_uniforms.voxmap,  0);
-    glUniform1i(STATE(t)->voxel_uniforms.palette, 1);
-    if(STATE(t)->has_smooth_shading) {
-        glUniform3fv(STATE(t)->voxel_uniforms.normal_scale, 1, (GLfloat *)&brick->normal_scale);
-        glUniform3fv(STATE(t)->voxel_uniforms.normal_translate, 1, (GLfloat *)&brick->normal_translate);
-        glUniform1i(STATE(t)->voxel_uniforms.normals, 2);
-    }
+    STATE(brick->t)->render_path->draw_from_brick(brick->t, brick);
 }
 
 void
-trixel_draw_brick(trixel_state t, trixel_brick * brick)
+trixel_draw_brick(trixel_brick * brick)
 {
-    trixel_draw_from_brick(t, brick);
+    trixel_draw_from_brick(brick);
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -1027,23 +785,8 @@ error:
     return NULL;
 }
 
-static GLint
-_light_param_location(trixel_state t, GLuint light, char const * param_name)
-{
-    size_t buflen = 9 + 11 + strlen(param_name) + 1; // length of "lights[].", -MAX_INT, param_name, and '\0'
-    char name[buflen];
-    snprintf(name, buflen, "lights[%u].%s", light, param_name);
-    GLint r = glGetUniformLocation(STATE(t)->voxel_program, name);
-    _gl_report_error("light param location");
-    return r;
-}
-
 void
 trixel_light_param(trixel_state t, GLuint light, char const * param_name, GLfloat * value)
 {
-    GLint uniform = _light_param_location(t, light, param_name);
-    glUseProgram(STATE(t)->voxel_program);
-    _gl_report_error("use program");
-    glUniform4fv(uniform, 1, value);
-    _gl_report_error("set light param");
+    STATE(t)->render_path->set_light_param(t, light, param_name, value);
 }

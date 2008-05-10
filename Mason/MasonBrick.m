@@ -233,14 +233,14 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
         trixel_update_brick_textures(trixelBrick);
 }
 
-- (void)draw:(trixel_state)t
+- (void)draw
 {
-    trixel_draw_brick(t, trixelBrick);
+    trixel_draw_brick(trixelBrick);
 }
 
-- (void)useForDrawing:(trixel_state)t
+- (void)useForDrawing
 {
-    trixel_draw_from_brick(t, trixelBrick);    
+    trixel_draw_from_brick(trixelBrick);    
 }
 
 - (unsigned int)countOfPaletteColors

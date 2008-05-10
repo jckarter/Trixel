@@ -62,7 +62,7 @@ M: brick-viewer-gadget draw-gadget* ( gadget -- )
     GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT bitor glClear
     [ demo-gadget-set-matrices ]
     [
-        { trixel>> brickn>> bricks>> } get-slots nth trixel_draw_brick
+        { brickn>> bricks>> } get-slots nth trixel_draw_brick
     ] bi
     (reset-opengl-state)
     glGetError drop ;

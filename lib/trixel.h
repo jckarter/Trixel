@@ -33,14 +33,15 @@ static inline bool in_point3(struct point3 bound, struct point3 p)
 static inline bool eq_point3(struct point3 a, struct point3 b)
     { return a.x == b.x && a.y == b.y && a.z == b.z; }
 
+typedef void * trixel_state;
+
 typedef struct tag_trixel_brick {
     struct point3 dimensions, dimensions_inv, normal_translate, normal_scale;
     unsigned char * palette_data;
     unsigned char * voxmap_data;
     GLuint palette_texture, voxmap_texture, normal_texture, vertex_buffer;
+    trixel_state t;
 } trixel_brick;
-
-typedef void * trixel_state;
 
 static inline unsigned char * trixel_brick_voxel(trixel_brick * b, int x, int y, int z)
     { return &b->voxmap_data[x + y * (int)b->dimensions.x + z * (int)b->dimensions.x * (int)b->dimensions.y]; }
@@ -51,9 +52,9 @@ static inline size_t trixel_brick_voxmap_size(trixel_brick const * b)
 
 trixel_state trixel_state_init(char const * resource_path, char * * out_error_message);
 bool trixel_init_glew(char * * out_error_message);
-trixel_state trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char const * shader_flags[], char * * out_error_message);
+trixel_state trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char * shader_flags[], char * * out_error_message);
 void trixel_reshape(trixel_state t, int viewport_width, int viewport_height);
-int trixel_update_shaders(trixel_state t, char const * shader_flags[], char * * out_error_message);
+int trixel_update_shaders(trixel_state t, char * shader_flags[], char * * out_error_message);
 
 void trixel_finish(trixel_state t);
 
@@ -74,8 +75,8 @@ void trixel_unprepare_brick(trixel_brick * brick);
 bool trixel_is_brick_prepared(trixel_brick * brick);
 void trixel_update_brick_textures(trixel_brick * brick);
 
-void trixel_draw_from_brick(trixel_state t, trixel_brick * brick);
-void trixel_draw_brick(trixel_state t, trixel_brick * brick);
+void trixel_draw_from_brick(trixel_brick * brick);
+void trixel_draw_brick(trixel_brick * brick);
 
 char * trixel_resource_filename(trixel_state t, char const * filename);
 

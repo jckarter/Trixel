@@ -58,8 +58,8 @@ FUNCTION: void trixel_unprepare_brick ( trixel_brick* brick ) ;
 FUNCTION: bool trixel_is_brick_prepared ( trixel_brick* brick ) ;
 FUNCTION: void trixel_update_brick_textures ( trixel_brick* brick ) ;
 
-FUNCTION: void trixel_draw_from_brick ( trixel_state t, trixel_brick* brick ) ;
-FUNCTION: void trixel_draw_brick ( trixel_state t, trixel_brick* brick ) ;
+FUNCTION: void trixel_draw_from_brick ( trixel_brick* brick ) ;
+FUNCTION: void trixel_draw_brick ( trixel_brick* brick ) ;
 
 FUNCTION: char* trixel_resource_filename ( trixel_state t, char* filename ) ;
 
