@@ -36,8 +36,10 @@ M: brick-viewer-gadget graft* ( gadget -- )
     [ trixel_init_glew drop ] with-trixel-error
     "/Users/joe/Documents/Code/Trixel" [ trixel_state_init ] with-trixel-error
     dup (update-shaders) >>trixel
-    dup brick-paths>>
-    [ t [ trixel_read_brick_from_filename ] with-trixel-error ] map >>bricks
+    dup { trixel>> brick-paths>> } get-slots [
+        [ trixel_read_brick_from_filename ] with-trixel-error
+        [ swap trixel_prepare_brick ] keep
+    ] with map >>bricks
     dup [ (next-frame) ] curry 1.0 frame-rate / seconds every >>tick
     drop ;
 
