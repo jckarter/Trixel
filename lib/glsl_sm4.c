@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 struct glsl_sm4_shaders {
-    bool has_smooth_shading;
+    int shader_flags;
     GLuint voxel_program, voxel_vertex_shader, voxel_fragment_shader;
     struct voxel_program_uniforms {
         GLint voxmap, palette, normals, normal_translate, normal_scale, voxmap_size, voxmap_size_inv;
@@ -24,19 +24,18 @@ GLSL_SM4(trixel_state t)
     return (struct glsl_sm4_shaders *)(STATE(t)->shaders);
 }
 
-static bool
-_has_flag(char * flags[], char const * flag_to_find)
+static int
+_bit_count(int x)
 {
-    while(*flags) {
-        if(strcmp(*flags, flag_to_find) == 0)
-            return true;
-        ++flags;
-    }
-    return false;
+    int c = 0;
+    for(int b = 1; b; b <<= 1)
+        if(x & b) ++c;
+    return c;
+
 }
 
 static char * *
-_make_shader_flag_sources(char * flags[], char const * source, size_t *out_num_sources)
+_make_shader_flag_sources(int flags, char const * source, size_t *out_num_sources)
 {
     if(!flags) {
         char * * flag_sources = malloc(sizeof(char *));
@@ -45,17 +44,25 @@ _make_shader_flag_sources(char * flags[], char const * source, size_t *out_num_s
         return flag_sources;
     }
 
-    size_t num_flags = 0;
-    char * * fp = flags;
-    while(*fp++)
-        ++num_flags;
+    static char const * flag_names[] = {
+        "TRIXEL_SAVE_COORDINATES",
+        "TRIXEL_SURFACE_ONLY",
+        "TRIXEL_LIGHTING",
+        "TRIXEL_SMOOTH_SHADING",
+        NULL
+    };
+
+    size_t num_flags = _bit_count(flags);
 
     char * * flag_sources = malloc((num_flags + 1) * sizeof(char*));
-    for(size_t i = 0; i < num_flags; ++i)
-        if(flags[i][0] == 0)
-            asprintf(&flag_sources[i], "");
-        else
-            asprintf(&flag_sources[i], "#define %s 1\n", flags[i]);
+
+    size_t flag_i, bit_i;
+    int b;
+    for(flag_i = 0, bit_i = 0, b = 1;
+        flag_names[bit_i];
+        ++bit_i, b <<= 1)
+        if(flags & b)
+            asprintf(&flag_sources[flag_i++], "#define %s 1\n", flags[bit_i]);
 
     flag_sources[num_flags] = strdup(source);
     *out_num_sources = num_flags + 1;
@@ -63,15 +70,15 @@ _make_shader_flag_sources(char * flags[], char const * source, size_t *out_num_s
 }
 
 static void
-_free_shader_flag_sources(char * flags[], size_t num_sources)
+_free_shader_flag_sources(char * sources[], size_t num_sources)
 {
     for(size_t i = 0; i < num_sources; ++i)
-        free(flags[i]);
-    free(flags);
+        free(sources[i]);
+    free(sources);
 }
 
 static GLuint
-_glsl_shader_from_string(GLenum kind, char * shader_flags[], char const * source, char * * out_error_message)
+_glsl_shader_from_string(GLenum kind, int shader_flags, char const * source, char * * out_error_message)
 {
     size_t num_sources;
     char * * shader_flag_sources = _make_shader_flag_sources(shader_flags, source, &num_sources);
@@ -241,12 +248,12 @@ glsl_sm4_draw_from_brick(trixel_state t, trixel_brick * brick)
 }
 
 static void *
-glsl_sm4_make_shaders(trixel_state t, char *shader_flags[], char * * out_error_message)
+glsl_sm4_make_shaders(trixel_state t, int shader_flags, char * * out_error_message)
 {
     struct glsl_sm4_shaders * shaders = malloc(sizeof(struct glsl_sm4_shaders));
     
-    char *vertex_source_path = trixel_resource_filename(t, "voxel.vertex.glsl");
-    char *fragment_source_path = trixel_resource_filename(t, "voxel.fragment.glsl");
+    char *vertex_source_path = trixel_resource_filename(t, "shaders/glsl_sm4/voxel.vertex.glsl");
+    char *fragment_source_path = trixel_resource_filename(t, "shaders/glsl_sm4/voxel.fragment.glsl");
     char *vertex_source   = contents_from_filename(vertex_source_path, NULL);
     char *fragment_source = contents_from_filename(fragment_source_path, NULL);
     if(!vertex_source || !fragment_source) {

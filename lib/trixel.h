@@ -5,10 +5,12 @@
 #include <stdbool.h>
 
 // Shader flags:
-#define TRIXEL_SAVE_COORDINATES "TRIXEL_SAVE_COORDINATES"
-#define TRIXEL_SURFACE_ONLY "TRIXEL_SURFACE_ONLY"
-#define TRIXEL_LIGHTING "TRIXEL_LIGHTING"
-#define TRIXEL_SMOOTH_SHADING "TRIXEL_SMOOTH_SHADING"
+enum trixel_shader_flags {
+    TRIXEL_SAVE_COORDINATES = 1,
+    TRIXEL_SURFACE_ONLY     = 2,
+    TRIXEL_LIGHTING         = 4,
+    TRIXEL_SMOOTH_SHADING   = 8
+};
 
 #define TRIXEL_LIGHT_PARAM_POSITION "position"
 #define TRIXEL_LIGHT_PARAM_AMBIENT  "ambient"
@@ -18,8 +20,8 @@ struct point3 {
     float x, y, z;
 };
 
-#define POINT3(x, y, z) ((struct point3){ (x), (y), (z) })
-
+static inline struct point3 POINT3(float x, float y, float z)
+    { return (struct point3){x, y, z}; }
 static inline struct point3 add_point3(struct point3 a, struct point3 b) 
     { return (struct point3){ a.x + b.x, a.y + b.y, a.z + b.z }; }
 static inline struct point3 sub_point3(struct point3 a, struct point3 b) 
@@ -52,9 +54,9 @@ static inline size_t trixel_brick_voxmap_size(trixel_brick const * b)
 
 trixel_state trixel_state_init(char const * resource_path, char * * out_error_message);
 bool trixel_init_glew(char * * out_error_message);
-trixel_state trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char * shader_flags[], char * * out_error_message);
+trixel_state trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, int shader_flags, char * * out_error_message);
 void trixel_reshape(trixel_state t, int viewport_width, int viewport_height);
-int trixel_update_shaders(trixel_state t, char * shader_flags[], char * * out_error_message);
+int trixel_update_shaders(trixel_state t, int shader_flags, char * * out_error_message);
 
 void trixel_finish(trixel_state t);
 

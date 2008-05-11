@@ -149,7 +149,7 @@ trixel_init_glew(char * * out_error_message)
 }
 
 trixel_state
-trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, char * shader_flags[], char * * out_error_message)
+trixel_init_opengl(char const * resource_path, int viewport_width, int viewport_height, int shader_flags, char * * out_error_message)
 {
     if(!trixel_init_glew(out_error_message))
         goto error;
@@ -203,7 +203,7 @@ trixel_reshape(trixel_state t, int viewport_width, int viewport_height)
 }
 
 int
-trixel_update_shaders(trixel_state t, char *shader_flags[], char * * out_error_message)
+trixel_update_shaders(trixel_state t, int shader_flags, char * * out_error_message)
 {
     void * new_shaders = STATE(t)->render_path->make_shaders(t, shader_flags, out_error_message);
     

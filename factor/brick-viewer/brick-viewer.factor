@@ -22,7 +22,7 @@ M: brick-viewer-gadget distance-step ( gadget -- dz )
 
 : (update-shaders) ( trixel -- )
     {
-        [ { "TRIXEL_SMOOTH_SHADING" "TRIXEL_LIGHTING" } trixel-update-shaders ]
+        [ { TRIXEL_SMOOTH_SHADING TRIXEL_LIGHTING } trixel-update-shaders ]
         [ 0 TRIXEL_LIGHT_PARAM_POSITION { 64.0 32.0 64.0 1.0 } trixel-light-param ]
         [ 0 TRIXEL_LIGHT_PARAM_AMBIENT  {  0.2  0.2  0.2 1.0 } trixel-light-param ]
         [ 0 TRIXEL_LIGHT_PARAM_DIFFUSE  {  0.8  0.8  0.8 1.0 } trixel-light-param ]
@@ -33,11 +33,11 @@ M: brick-viewer-gadget distance-step ( gadget -- dz )
     [ [ 1+ swap mod ] change-brickn relayout-1 ] bi ;
 
 M: brick-viewer-gadget graft* ( gadget -- )
-    [ trixel_init_glew drop ] with-trixel-error
-    "/Users/joe/Documents/Code/Trixel" [ trixel_state_init ] with-trixel-error
+    trixel-init-glew
+    trixel-resources trixel-state-init
     dup (update-shaders) >>trixel
     dup { trixel>> brick-paths>> } get-slots [
-        [ trixel_read_brick_from_filename ] with-trixel-error
+        trixel-read-brick-from-filename
         [ swap trixel_prepare_brick ] keep
     ] with map >>bricks
     dup [ (next-frame) ] curry 1.0 frame-rate / seconds every >>tick

@@ -25,10 +25,10 @@ C-STRUCT: trixel_brick
 
 TYPEDEF: void* trixel_state
 
-: TRIXEL_SAVE_COORDINATES "TRIXEL_SAVE_COORDINATES" ; inline
-: TRIXEL_SURFACE_ONLY "TRIXEL_SURFACE_ONLY" ; inline
-: TRIXEL_LIGHTING "TRIXEL_LIGHTING" ; inline
-: TRIXEL_SMOOTH_SHADING "TRIXEL_SMOOTH_SHADING" ; inline
+: TRIXEL_SAVE_COORDINATES 1 ; inline
+: TRIXEL_SURFACE_ONLY     2 ; inline
+: TRIXEL_LIGHTING         4 ; inline
+: TRIXEL_SMOOTH_SHADING   8 ; inline
 
 : TRIXEL_LIGHT_PARAM_POSITION "position" ; inline
 : TRIXEL_LIGHT_PARAM_AMBIENT  "ambient" ; inline
@@ -36,9 +36,9 @@ TYPEDEF: void* trixel_state
 
 FUNCTION: trixel_state trixel_state_init ( char* resource_path, char** out_error_message ) ;
 FUNCTION: bool trixel_init_glew ( char** out_error_message ) ;
-FUNCTION: trixel_state trixel_init_opengl ( char* resource_path, int viewport_width, int viewport_height, char** shader_flags, char** out_error_message ) ;
+FUNCTION: trixel_state trixel_init_opengl ( char* resource_path, int viewport_width, int viewport_height, int shader_flags, char** out_error_message ) ;
 FUNCTION: void trixel_reshape ( trixel_state t, int viewport_width, int viewport_height ) ;
-FUNCTION: int trixel_update_shaders ( trixel_state t, char** shader_flags, char** out_error_message ) ;
+FUNCTION: int trixel_update_shaders ( trixel_state t, int shader_flags, char** out_error_message ) ;
 
 FUNCTION: void trixel_finish ( trixel_state t ) ;
 
@@ -77,18 +77,16 @@ FUNCTION: void trixel_state_free ( trixel_state t ) ;
     [ utf8 alien>string throw ]
     when* ; inline
 
-: shader-flags ( strings -- alien )
-    [ utf8 string>alien dup length malloc [ byte-array>memory ] keep ] map
-    f suffix
-    >c-void*-array ;
+: shader-flags ( word-list -- flags )
+    0 [ execute bitor ] reduce
 
-: free-shader-flags ( flags -- )
-    dup length "void*" heap-size /
-    c-void*-array> [ free ] each ;
-
+: trixel-init-glew ( -- )
+    [ trixel-init-glew drop ] with-trixel-error ;
 : trixel-update-shaders ( t flags -- )
-    shader-flags [ [ trixel_update_shaders drop ] with-trixel-error ] keep
-    free-shader-flags ;
-
+    shader-flags [ trixel_update_shaders drop ] with-trixel-error ] ;
+: trixel-read-brick-from-filename ( filename -- brick )
+    [ trixel_read_brick_from_filename ] with-trixel-error ;
 : trixel-light-param ( t light param value -- )
     >c-float-array trixel_light_param ; inline
+: trixel-state-init ( resource-path -- t )
+    [ trixel_state_init ] with-trixel-error ;

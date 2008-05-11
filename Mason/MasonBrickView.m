@@ -13,8 +13,8 @@ static const size_t g_num_draw_buffers = 3;
 static const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_COLOR_ATTACHMENT2_EXT };
 static const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                  GL_NONE                  };
 
-static char * g_surface_flags[] = { TRIXEL_SMOOTH_SHADING, TRIXEL_LIGHTING, TRIXEL_SAVE_COORDINATES, NULL };
-static char * g_slice_flags[] = { "", "", TRIXEL_SAVE_COORDINATES, TRIXEL_SURFACE_ONLY, NULL };
+static const int g_surface_flags = TRIXEL_SMOOTH_SHADING | TRIXEL_LIGHTING | TRIXEL_SAVE_COORDINATES;
+static const int g_slice_flags = TRIXEL_SAVE_COORDINATES | TRIXEL_SURFACE_ONLY;
 static const GLshort g_surface_elements[] = {
     0, 1, 2, 3,
     0, 4, 5, 1,
@@ -47,7 +47,7 @@ slice_set_up_state(void)
 - (void)_prepareVertexBufferForBrick:(MasonBrick *)brick;
 - (void)_destroyFramebuffer;
 
-- (char * *)_trixelFlags;
+- (int)_trixelFlags;
 - (void)_updateLightParams;
 - (void)_updateShaders;
 
@@ -152,12 +152,16 @@ slice_set_up_state(void)
     [super finalize];
 }
 
-- (char * *)_trixelFlags
+- (int)_trixelFlags
 {
-    return m_slice_ops[ [o_document sliceAxis] ].trixel_flags
-        + ([NSApp toolboxController].showLighting ? (
-            [NSApp toolboxController].showSmoothShading ? 0 : 1
-        ) : 2);
+    int base_flags = m_slice_ops[ [o_document sliceAxis] ].trixel_flags;
+
+    if(![NSApp toolboxController].showLighting)
+        base_flags &= ~(TRIXEL_SMOOTH_SHADING | TRIXEL_LIGHTING);
+    if(![NSApp toolboxController].showSmoothShading)
+        base_flags &= ~(TRIXEL_SMOOTH_SHADING);
+
+    return base_flags;
 }
 
 - (void)_updateLightParams
@@ -400,7 +404,7 @@ slice_set_up_state(void)
     m_t = trixel_init_opengl(
         [[[NSBundle mainBundle] resourcePath] UTF8String],
         NSWidth(frame), NSHeight(frame),
-        (char * *)g_surface_flags,
+        g_surface_flags,
         &error_message
     );
     

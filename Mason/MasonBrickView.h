@@ -21,7 +21,7 @@
            m_hover_renderbuffer, m_normal_renderbuffer, m_depth_renderbuffer;
     GLsizei m_normals_offset;
     struct slice_ops {
-        char * * trixel_flags;
+        int trixel_flags;
         GLuint buffer_first, buffer_count;
         void (*set_up_state_func)(void);
     } m_slice_ops[4];
