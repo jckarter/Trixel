@@ -150,9 +150,9 @@ glsl_sm4_delete_shaders(trixel_state t)
 static void
 glsl_sm4_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
 {
-    GLshort width2  = (GLshort)brick->dimensions.x / 2,
-            height2 = (GLshort)brick->dimensions.y / 2,
-            depth2  = (GLshort)brick->dimensions.z / 2;
+    GLshort width2  = (GLshort)brick->v.dimensions.x / 2,
+            height2 = (GLshort)brick->v.dimensions.y / 2,
+            depth2  = (GLshort)brick->v.dimensions.z / 2;
     struct {
         GLshort vertices[6*4*3];
         GLbyte  normals [6*4*3];

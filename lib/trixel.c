@@ -239,6 +239,17 @@ struct brick_header {
     uint16_t colors, width, height, depth; // XXX little endian!
 };
 
+static void
+_set_brick_metrics(trixel_brick * brick)
+{
+    brick->dimensions = POINT3_OF_INT3(brick->v.dimensions);
+    brick->dimensions_inv = div_point3(POINT3(1.0,1.0,1.0), brick->dimensions);
+
+    struct point3 normal_dimensions = add_point3(brick->dimensions, POINT3(1.0,1.0,1.0));
+    brick->normal_translate = div_point3(POINT3(0.5,0.5,0.5), normal_dimensions);
+    brick->normal_scale = div_point3(brick->dimensions, normal_dimensions);
+}
+
 trixel_brick *
 trixel_read_brick(const void * data, size_t data_length, char * * out_error_message)
 {
@@ -289,25 +300,8 @@ trixel_read_brick(const void * data, size_t data_length, char * * out_error_mess
     trixel_brick * brick = malloc(sizeof(trixel_brick) + header->width * header->height * header->depth);
     memset(brick, 0, sizeof(trixel_brick));
 
-    brick->v.dimensions.x = header->width;
-    brick->v.dimensions.y = header->height;
-    brick->v.dimensions.z = header->depth;
-
-    brick->dimensions.x = (float)header->width;
-    brick->dimensions.y = (float)header->height;
-    brick->dimensions.z = (float)header->depth;
-
-    brick->dimensions_inv.x = 1.0 / brick->dimensions.x;
-    brick->dimensions_inv.y = 1.0 / brick->dimensions.y;
-    brick->dimensions_inv.z = 1.0 / brick->dimensions.z;
-
-    brick->normal_translate.x = 0.5 / (brick->dimensions.x + 1);
-    brick->normal_translate.y = 0.5 / (brick->dimensions.y + 1);
-    brick->normal_translate.z = 0.5 / (brick->dimensions.z + 1);
-
-    brick->normal_scale.x = brick->dimensions.x / (brick->dimensions.x + 1);
-    brick->normal_scale.y = brick->dimensions.y / (brick->dimensions.y + 1);
-    brick->normal_scale.z = brick->dimensions.z / (brick->dimensions.z + 1);
+    brick->v.dimensions = INT3(header->width, header->height, header->depth);
+    _set_brick_metrics(brick);
 
     memcpy(brick->palette_data + 4, byte_data + palette_offset, palette_length);
     memcpy(brick->v.data, byte_data + voxmap_offset, voxmap_length);
@@ -324,25 +318,8 @@ _trixel_make_brick(int w, int h, int d, bool solid, char * * out_error_message)
     trixel_brick * brick = malloc(sizeof(trixel_brick) + w*h*d);
     memset(brick, 0, sizeof(trixel_brick));
 
-    brick->v.dimensions.x = w;
-    brick->v.dimensions.y = h;
-    brick->v.dimensions.z = d;
-
-    brick->dimensions.x = (float)w;
-    brick->dimensions.y = (float)h;
-    brick->dimensions.z = (float)d;
-    
-    brick->dimensions_inv.x = 1.0 / brick->dimensions.x;
-    brick->dimensions_inv.y = 1.0 / brick->dimensions.y;
-    brick->dimensions_inv.z = 1.0 / brick->dimensions.z;
-
-    brick->normal_translate.x = 0.5 / (brick->dimensions.x + 1);
-    brick->normal_translate.y = 0.5 / (brick->dimensions.y + 1);
-    brick->normal_translate.z = 0.5 / (brick->dimensions.z + 1);
-
-    brick->normal_scale.x = brick->dimensions.x / (brick->dimensions.x + 1);
-    brick->normal_scale.y = brick->dimensions.y / (brick->dimensions.y + 1);
-    brick->normal_scale.z = brick->dimensions.z / (brick->dimensions.z + 1);
+    brick->v.dimensions = INT3(w, h, d);
+    _set_brick_metrics(brick);
 
     uint8_t fill = solid ? 1 : 0;
 
@@ -422,7 +399,7 @@ trixel_prepare_brick(trixel_brick * brick, trixel_state t)
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
     glTexImage3D(
         GL_TEXTURE_3D, 0, GL_RGB16F_ARB,
-        brick->v.dimensions.x + 1, brick->dimensions.y + 1, brick->dimensions.z + 1,
+        brick->v.dimensions.x + 1, brick->v.dimensions.y + 1, brick->v.dimensions.z + 1,
         0, GL_RGB, GL_FLOAT, NULL
     );
 
@@ -466,7 +443,7 @@ uint8_t
 _clipped_voxel(trixel_brick * brick, int x, int y, int z)
 {
     return x >= 0 && y >= 0 && z >= 0
-        && x < brick->dimensions.x && y < brick->dimensions.y && z < brick->dimensions.z
+        && x < brick->v.dimensions.x && y < brick->v.dimensions.y && z < brick->v.dimensions.z
             ? *trixel_brick_voxel(brick, x, y, z)
             : 0;
 }
@@ -676,9 +653,9 @@ trixel_write_brick(trixel_brick * brick, size_t * out_data_length)
            
     strncpy(header->magic, BRICK_MAGIC, 4);
     header->colors = colors;
-    header->width  = (uint16_t)brick->dimensions.x;
-    header->height = (uint16_t)brick->dimensions.y;
-    header->depth  = (uint16_t)brick->dimensions.z;
+    header->width  = (uint16_t)brick->v.dimensions.x;
+    header->height = (uint16_t)brick->v.dimensions.y;
+    header->depth  = (uint16_t)brick->v.dimensions.z;
     
     memcpy(data + palette_offset, brick->palette_data + 4, palette_length);
     memcpy(data + voxmap_offset,  brick->v.data, voxmap_length);

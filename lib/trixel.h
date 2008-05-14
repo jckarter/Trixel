@@ -40,6 +40,10 @@ static inline struct type add_##type(struct type a, struct type b) \
     { return (struct type){ a.x + b.x, a.y + b.y, a.z + b.z }; } \
 static inline struct type sub_##type(struct type a, struct type b) \
     { return (struct type){ a.x - b.x, a.y - b.y, a.z - b.z }; } \
+static inline struct type mul_##type(struct type a, struct type b) \
+    { return (struct type){ a.x * b.x, a.y * b.y, a.z * b.z }; } \
+static inline struct type div_##type(struct type a, struct type b) \
+    { return (struct type){ a.x / b.x, a.y / b.y, a.z / b.z }; } \
 static inline struct type min_##type(struct type a, struct type b) \
     { return (struct type){ \
         (a.x < b.x ? a.x : b.x), \
