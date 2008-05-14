@@ -12,11 +12,6 @@ OUTPUT voxmap_world_pt = result.texcoord[2];
 
 TEMP voxmap_pt_unbiased, voxmap_normal_bias;
 
-DP4 result.position.x, vertex.position, state.matrix.modelview[0];
-DP4 result.position.y, vertex.position, state.matrix.modelview[1];
-DP4 result.position.z, vertex.position, state.matrix.modelview[2];
-DP4 result.position.w, vertex.position, state.matrix.modelview[3];
-
 MAD voxmap_pt_unbiased, vertex.position, voxmap_size_inv, 0.5;
 
 MUL voxmap_normal_bias, -vertex.normal, voxmap_size_inv;

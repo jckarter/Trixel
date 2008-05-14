@@ -1,5 +1,6 @@
 USING: alien alien.syntax kernel opengl.gl system combinators sequences
-libc alien.c-types alien.strings math io.encodings.utf8 trixel.lib ;
+libc alien.c-types alien.strings math io.encodings.utf8 trixel.lib
+continuations words ;
 IN: trixel
 
 LIBRARY: trixel
@@ -8,14 +9,12 @@ C-STRUCT: point3
     { "float" "x" }
     { "float" "y" }
     { "float" "z" }
-    { "float" "__pad_0" }
     ;
 
 C-STRUCT: int3
     { "int" "x" }
     { "int" "y" }
     { "int" "z" }
-    { "int" "__pad_0" }
     ;
 
 TYPEDEF: void* trixel_state
@@ -75,7 +74,7 @@ FUNCTION: void trixel_update_brick_textures ( trixel_brick* brick ) ;
 
 FUNCTION: void trixel_draw_from_brick ( trixel_brick* brick ) ;
 FUNCTION: void trixel_draw_brick ( trixel_brick* brick ) ;
-FUNCTION: void trixel_finish_draw ( trixel_state t );
+FUNCTION: void trixel_finish_draw ( trixel_state t ) ;
 
 FUNCTION: char* trixel_resource_filename ( trixel_state t, char* filename ) ;
 
@@ -94,15 +93,12 @@ FUNCTION: void trixel_state_free ( trixel_state t ) ;
     when* ; inline
 
 : with-trixel-draw ( t quot -- )
-    [ dip ] [ trixel_finish_draw ] [ ] cleanup ;
-
-: shader-flags ( word-list -- flags )
-    0 [ execute bitor ] reduce
+    [ dip ] [ trixel_finish_draw ] [ ] cleanup ; inline
 
 : trixel-init-glew ( -- )
-    [ trixel-init-glew drop ] with-trixel-error ;
+    [ trixel_init_glew drop ] with-trixel-error ;
 : trixel-update-shaders ( t flags -- )
-    shader-flags [ trixel_update_shaders drop ] with-trixel-error ] ;
+    [ trixel_update_shaders drop ] with-trixel-error ;
 : trixel-read-brick-from-filename ( filename -- brick )
     [ trixel_read_brick_from_filename ] with-trixel-error ;
 : trixel-light-param ( t light param value -- )

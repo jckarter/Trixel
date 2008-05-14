@@ -109,9 +109,13 @@ static struct trixel_render_path const *
 _find_render_path(trixel_state t)
 {
     static struct trixel_render_path const * render_paths[] = {
+        &arbfvp_render_path,
         &glsl_sm4_render_path,
         NULL
     };
+    
+    if(!GLEW_ARB_texture_float)
+        return NULL;
 
     for(struct trixel_render_path const * * path = render_paths; path; ++path)
         if((*path)->can_be_used(t))
@@ -764,6 +768,7 @@ void
 trixel_finish_draw(trixel_state t)
 {
     STATE(t)->render_path->finish_draw(t);
+    _gl_report_error("finish draw");
 }
 
 void

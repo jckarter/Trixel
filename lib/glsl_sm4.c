@@ -128,7 +128,7 @@ error:
 static bool
 glsl_sm4_can_use_render_path(trixel_state t)
 {
-    return GLEW_VERSION_2_0 && GLEW_ARB_texture_float;
+    return GLEW_VERSION_2_0;
 }
 
 static void

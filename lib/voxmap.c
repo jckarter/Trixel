@@ -107,7 +107,7 @@ voxmap_sub(voxmap * to, voxmap const * from)
 int
 voxmap_count(voxmap * v)
 {
-    int n;
+    int n = 0;
     unsigned char *vp = v->data, *vend = vp + voxmap_size(v);
     for(; vp < vend; ++vp)
         if(*vp != 0) ++n;

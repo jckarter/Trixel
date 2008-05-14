@@ -22,7 +22,7 @@ M: brick-viewer-gadget distance-step ( gadget -- dz )
 
 : (update-shaders) ( trixel -- )
     {
-        [ { TRIXEL_SMOOTH_SHADING TRIXEL_LIGHTING } trixel-update-shaders ]
+        [ TRIXEL_SMOOTH_SHADING TRIXEL_LIGHTING bitor trixel-update-shaders ]
         [ 0 TRIXEL_LIGHT_PARAM_POSITION { 64.0 32.0 64.0 1.0 } trixel-light-param ]
         [ 0 TRIXEL_LIGHT_PARAM_AMBIENT  {  0.2  0.2  0.2 1.0 } trixel-light-param ]
         [ 0 TRIXEL_LIGHT_PARAM_DIFFUSE  {  0.8  0.8  0.8 1.0 } trixel-light-param ]
