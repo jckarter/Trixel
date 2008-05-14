@@ -8,31 +8,46 @@ C-STRUCT: point3
     { "float" "x" }
     { "float" "y" }
     { "float" "z" }
+    { "float" "__pad_0" }
     ;
 
-C-STRUCT: trixel_brick
-    { "point3" "dimensions" }
-    { "point3" "dimensions_inv" }
-    { "point3" "normal_translate" }
-    { "point3" "normal_scale" }
-    { "uchar*" "palette_data" }
-    { "uchar*" "voxmap_data" }
-    { "GLuint" "palette_texture" }
-    { "GLuint" "voxmap_texture" }
-    { "GLuint" "normal_texture" }
-    { "GLuint" "vertex_buffer" }
+C-STRUCT: int3
+    { "int" "x" }
+    { "int" "y" }
+    { "int" "z" }
+    { "int" "__pad_0" }
     ;
 
 TYPEDEF: void* trixel_state
+
+C-STRUCT: voxmap
+    { "int3"     "dimensions" }
+    { "uchar[1]" "data" }
+    ;
+
+C-STRUCT: trixel_brick
+    { "point3"       "dimensions" }
+    { "point3"       "dimensions_inv" }
+    { "point3"       "normal_translate" }
+    { "point3"       "normal_scale" }
+    { "GLuint"       "palette_texture" }
+    { "GLuint"       "voxmap_texture" }
+    { "GLuint"       "normal_texture" }
+    { "GLuint"       "vertex_buffer" }
+    { "GLuint"       "num_vertices" }
+    { "trixel_state" "t" }
+    { "uchar[1024]"  "palette_data" }
+    { "voxmap"       "v" }
+    ;
 
 : TRIXEL_SAVE_COORDINATES 1 ; inline
 : TRIXEL_SURFACE_ONLY     2 ; inline
 : TRIXEL_LIGHTING         4 ; inline
 : TRIXEL_SMOOTH_SHADING   8 ; inline
 
-: TRIXEL_LIGHT_PARAM_POSITION "position" ; inline
-: TRIXEL_LIGHT_PARAM_AMBIENT  "ambient" ; inline
-: TRIXEL_LIGHT_PARAM_DIFFUSE  "diffuse" ; inline
+: TRIXEL_LIGHT_PARAM_POSITION 0 ; inline
+: TRIXEL_LIGHT_PARAM_AMBIENT  1 ; inline
+: TRIXEL_LIGHT_PARAM_DIFFUSE  2 ; inline
 
 FUNCTION: trixel_state trixel_state_init ( char* resource_path, char** out_error_message ) ;
 FUNCTION: bool trixel_init_glew ( char** out_error_message ) ;
@@ -60,6 +75,7 @@ FUNCTION: void trixel_update_brick_textures ( trixel_brick* brick ) ;
 
 FUNCTION: void trixel_draw_from_brick ( trixel_brick* brick ) ;
 FUNCTION: void trixel_draw_brick ( trixel_brick* brick ) ;
+FUNCTION: void trixel_finish_draw ( trixel_state t );
 
 FUNCTION: char* trixel_resource_filename ( trixel_state t, char* filename ) ;
 
@@ -67,7 +83,7 @@ FUNCTION: char* contents_from_filename ( char* filename, size_t* out_length ) ;
 
 FUNCTION: trixel_brick* trixel_read_brick_from_filename ( char* filename, char** out_error_message ) ;
 
-FUNCTION: void trixel_light_param ( trixel_state t, GLuint light, char* param_name, GLfloat* param_value ) ;
+FUNCTION: void trixel_light_param ( trixel_state t, GLuint light, int param, GLfloat* param_value ) ;
 
 FUNCTION: void trixel_only_free_brick ( trixel_brick* brick ) ;
 FUNCTION: void trixel_state_free ( trixel_state t ) ;
@@ -76,6 +92,9 @@ FUNCTION: void trixel_state_free ( trixel_state t ) ;
     f <void*> swap keep *void*
     [ utf8 alien>string throw ]
     when* ; inline
+
+: with-trixel-draw ( t quot -- )
+    [ dip ] [ trixel_finish_draw ] [ ] cleanup ;
 
 : shader-flags ( word-list -- flags )
     0 [ execute bitor ] reduce

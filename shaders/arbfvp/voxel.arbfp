@@ -1,0 +1,29 @@
+!!ARBfp1.0
+
+PARAM light0_position = program.local[0];
+PARAM light0_ambient  = program.local[1];
+PARAM light0_diffuse  = program.local[2];
+
+ATTRIB voxmap_pt = fragment.texcoord[0];
+ATTRIB normap_pt = fragment.texcoord[1];
+ATTRIB voxmap_world_pt = fragment.texcoord[2];
+
+TEMP color, diffuse, ambient, normal, light_world_position;
+
+TEX color, voxmap_pt, texture[0], 3D;
+TEX color, color, texture[1], 1D;
+TEX normal, normap_pt, texture[2], 3D;
+DP3 normal.w, normal.xyz;
+RSQ normal.w, normal.w;
+MUL normal.xyz, normal.w;
+DP4 light_world_position.x, light0_position, state.matrix.modelview.inverse[0];
+DP4 light_world_position.y, light0_position, state.matrix.modelview.inverse[1];
+DP4 light_world_position.z, light0_position, state.matrix.modelview.inverse[2];
+DP4 light_world_position.w, light0_position, state.matrix.modelview.inverse[3];
+SUB light_world_position, light_world_position, voxmap_world_pt;
+DP3_SAT normal.w, normal.xyz, light_world_position.xyz;
+MUL diffuse, normal.w, light0_diffuse;
+MUL ambient, light0_ambient, color;
+MAD result.color, color, diffuse, ambient;
+
+END

@@ -3,6 +3,7 @@
 
 #include <GL/glew.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 // Shader flags:
 enum trixel_shader_flags {
@@ -12,45 +13,74 @@ enum trixel_shader_flags {
     TRIXEL_SMOOTH_SHADING   = 8
 };
 
-#define TRIXEL_LIGHT_PARAM_POSITION "position"
-#define TRIXEL_LIGHT_PARAM_AMBIENT  "ambient"
-#define TRIXEL_LIGHT_PARAM_DIFFUSE  "diffuse"
+enum trixel_light_params {
+    TRIXEL_LIGHT_PARAM_POSITION = 0,
+    TRIXEL_LIGHT_PARAM_AMBIENT  = 1,
+    TRIXEL_LIGHT_PARAM_DIFFUSE  = 2
+}
 
 struct point3 {
     float x, y, z;
+    float __pad_0;
+};
+struct int3 {
+    int x, y, z;
+    int __pad_0;
 };
 
 static inline struct point3 POINT3(float x, float y, float z)
     { return (struct point3){x, y, z}; }
-static inline struct point3 add_point3(struct point3 a, struct point3 b) 
-    { return (struct point3){ a.x + b.x, a.y + b.y, a.z + b.z }; }
-static inline struct point3 sub_point3(struct point3 a, struct point3 b) 
-    { return (struct point3){ a.x - b.x, a.y - b.y, a.z - b.z }; }
-static inline void add_to_point3(struct point3 * a, struct point3 b)
-    { a->x += b.x; a->y += b.y; a->z += b.z; }
-static inline void sub_from_point3(struct point3 * a, struct point3 b)
-    { a->x -= b.x; a->y -= b.y; a->z -= b.z; }
-static inline bool in_point3(struct point3 bound, struct point3 p) 
-    { return p.x >= 0 && p.y >= 0 && p.z >= 0 && p.x < bound.x && p.y < bound.y && p.z < bound.z; }
-static inline bool eq_point3(struct point3 a, struct point3 b)
+static inline struct int3 INT3(int x, int y, int z)
+    { return (struct int3){x, y, z}; }
+static inline struct int3 INT3_OF_POINT3(struct point3 p)
+    { return (struct int3){p.x, p.y, p.z}; }
+static inline struct int3 POINT3_OF_INT3(struct int3 p)
+    { return (struct point3){p.x, p.y, p.z}; }
+
+#define POINT_ARITHMETIC_FUNCTIONS(type) \
+static inline struct type add_##type(struct type a, struct type b) \
+    { return (struct type){ a.x + b.x, a.y + b.y, a.z + b.z }; } \
+static inline struct type sub_##type(struct type a, struct type b) \
+    { return (struct type){ a.x - b.x, a.y - b.y, a.z - b.z }; } \
+static inline struct type min_##type(struct type a, struct type b) \
+    { return (struct type){ \
+        (a.x < b.x ? a.x : b.x), \
+        (a.y < b.y ? a.y : b.y), \
+        (a.z < b.z ? a.z : b.z) \
+    }; } \
+static inline void add_to_##type(struct type * a, struct type b) \
+    { a->x += b.x; a->y += b.y; a->z += b.z; } \
+static inline void sub_from_##type(struct type * a, struct type b) \
+    { a->x -= b.x; a->y -= b.y; a->z -= b.z; } \
+static inline bool in_##type(struct type bound, struct type p) \
+    { return p.x >= 0 && p.y >= 0 && p.z >= 0 && p.x < bound.x && p.y < bound.y && p.z < bound.z; } \
+static inline bool eq_##type(struct type a, struct type b) \
     { return a.x == b.x && a.y == b.y && a.z == b.z; }
+
+POINT_ARITHMETIC_FUNCTIONS(point3)
+POINT_ARITHMETIC_FUNCTIONS(int3)
 
 typedef void * trixel_state;
 
-typedef struct tag_trixel_brick {
+typedef struct voxmap {
+    struct int3 dimensions;
+    uint8_t data[0];
+} voxmap;
+
+typedef struct trixel_brick {
     struct point3 dimensions, dimensions_inv, normal_translate, normal_scale;
-    unsigned char * palette_data;
-    unsigned char * voxmap_data;
-    GLuint palette_texture, voxmap_texture, normal_texture, vertex_buffer;
+    GLuint palette_texture, voxmap_texture, normal_texture, vertex_buffer, num_vertices;
     trixel_state t;
+    uint8_t palette_data[256*4];
+    voxmap v;
 } trixel_brick;
 
-static inline unsigned char * trixel_brick_voxel(trixel_brick * b, int x, int y, int z)
-    { return &b->voxmap_data[x + y * (int)b->dimensions.x + z * (int)b->dimensions.x * (int)b->dimensions.y]; }
-static inline unsigned char * trixel_brick_palette_color(trixel_brick * b, int color)
+static inline uint8_t * trixel_brick_voxel(trixel_brick * b, int x, int y, int z)
+    { return &b->v.data[x + y * b->v.dimensions.x + z * b->v.dimensions.x * b->v.dimensions.y]; }
+static inline uint8_t * trixel_brick_palette_color(trixel_brick * b, int color)
     { return &b->palette_data[color * 4]; }
 static inline size_t trixel_brick_voxmap_size(trixel_brick const * b)
-    { return (size_t)b->dimensions.x * (size_t)b->dimensions.y * (size_t)b->dimensions.z; }
+    { return b->v.dimensions.x * b->v.dimensions.y * b->v.dimensions.z; }
 
 trixel_state trixel_state_init(char const * resource_path, char * * out_error_message);
 bool trixel_init_glew(char * * out_error_message);
@@ -69,7 +99,7 @@ void * trixel_write_brick(trixel_brick * brick, size_t * out_data_length);
 
 // NB: these don't call trixel_update_brick_textures for you!
 unsigned trixel_optimize_brick_palette(trixel_brick * brick);
-unsigned char * trixel_insert_brick_palette_color(trixel_brick * brick, int color);
+uint8_t * trixel_insert_brick_palette_color(trixel_brick * brick, int color);
 void trixel_remove_brick_palette_color(trixel_brick * brick, int color);
 
 void trixel_prepare_brick(trixel_brick * brick, trixel_state t);
@@ -79,6 +109,7 @@ void trixel_update_brick_textures(trixel_brick * brick);
 
 void trixel_draw_from_brick(trixel_brick * brick);
 void trixel_draw_brick(trixel_brick * brick);
+void trixel_finish_draw(trixel_state t);
 
 char * trixel_resource_filename(trixel_state t, char const * filename);
 
@@ -86,7 +117,7 @@ char * contents_from_filename(char const * filename, size_t * out_length);
 
 trixel_brick * trixel_read_brick_from_filename(char const * filename, char * * out_error_message);
 
-void trixel_light_param(trixel_state t, GLuint light, char const * param_name, GLfloat * param_value);
+void trixel_light_param(trixel_state t, GLuint light, int param, GLfloat * param_value);
 
 // These only free the memory used by Trixel structures, without destroying OpenGL objects
 // Use in environments where the GL contexts are managed independent of your code (e.g. GC-enabled Cocoa)

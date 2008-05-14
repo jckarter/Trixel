@@ -11,7 +11,6 @@
 #include <stdio.h>
 
 struct glsl_sm4_shaders {
-    int shader_flags;
     GLuint voxel_program, voxel_vertex_shader, voxel_fragment_shader;
     struct voxel_program_uniforms {
         GLint voxmap, palette, normals, normal_translate, normal_scale, voxmap_size, voxmap_size_inv;
@@ -44,7 +43,7 @@ _make_shader_flag_sources(int flags, char const * source, size_t *out_num_source
         return flag_sources;
     }
 
-    static char const * flag_names[] = {
+    static char const * const flag_names[] = {
         "TRIXEL_SAVE_COORDINATES",
         "TRIXEL_SURFACE_ONLY",
         "TRIXEL_LIGHTING",
@@ -129,24 +128,22 @@ error:
 static bool
 glsl_sm4_can_use_render_path(trixel_state t)
 {
-    return GLEW_VERSION_2_0 && GLEW_EXT_framebuffer_object && GLEW_ARB_texture_float;
+    return GLEW_VERSION_2_0 && GLEW_ARB_texture_float;
 }
 
 static void
 glsl_sm4_delete_shaders(trixel_state t)
 {
-    if(GLSL_SM4(t)) {
-        glDetachShader(GLSL_SM4(t)->voxel_program, GLSL_SM4(t)->voxel_vertex_shader);
-        glDetachShader(GLSL_SM4(t)->voxel_program, GLSL_SM4(t)->voxel_fragment_shader);
+    struct glsl_sm4_shaders * shaders = GLSL_SM4(t);
+    if(shaders) {
+        glDetachShader(shaders->voxel_program, shaders->voxel_vertex_shader);
+        glDetachShader(shaders->voxel_program, shaders->voxel_fragment_shader);
 
-        glDeleteShader(GLSL_SM4(t)->voxel_fragment_shader);
-        glDeleteShader(GLSL_SM4(t)->voxel_vertex_shader);
-        glDeleteProgram(GLSL_SM4(t)->voxel_program);
+        glDeleteShader(shaders->voxel_fragment_shader);
+        glDeleteShader(shaders->voxel_vertex_shader);
+        glDeleteProgram(shaders->voxel_program);
     
-        GLSL_SM4(t)->voxel_fragment_shader = 0;
-        GLSL_SM4(t)->voxel_vertex_shader = 0;
-        GLSL_SM4(t)->voxel_program = 0;
-        free(GLSL_SM4(t));
+        free(shaders);
     }
 }
 
@@ -228,6 +225,8 @@ glsl_sm4_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
     glBindBuffer(GL_ARRAY_BUFFER, brick->vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(buffer), &buffer, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    brick->num_vertices = 24;
 }
 
 static void
@@ -240,11 +239,17 @@ glsl_sm4_draw_from_brick(trixel_state t, trixel_brick * brick)
     glUniform3fv(shaders->voxel_uniforms.voxmap_size_inv, 1, (GLfloat *)&brick->dimensions_inv);
     glUniform1i(shaders->voxel_uniforms.voxmap,  0);
     glUniform1i(shaders->voxel_uniforms.palette, 1);
-    if(shaders->has_smooth_shading) {
+    if(STATE(t)->shader_flags & TRIXEL_SMOOTH_SHADING) {
         glUniform3fv(shaders->voxel_uniforms.normal_scale, 1, (GLfloat *)&brick->normal_scale);
         glUniform3fv(shaders->voxel_uniforms.normal_translate, 1, (GLfloat *)&brick->normal_translate);
         glUniform1i(shaders->voxel_uniforms.normals, 2);
     }
+}
+
+static void
+glsl_sm4_finish_draw(trixel_state t)
+{
+    glUseProgram(0);
 }
 
 static void *
@@ -271,8 +276,6 @@ glsl_sm4_make_shaders(trixel_state t, int shader_flags, char * * out_error_messa
     if(!voxel_program)
         goto error_after_fragment_shader;
 
-    shaders->has_smooth_shading = _has_flag(shader_flags, TRIXEL_SMOOTH_SHADING);
-
     shaders->voxel_vertex_shader = voxel_vertex_shader;
     shaders->voxel_fragment_shader = voxel_fragment_shader;
     shaders->voxel_program = voxel_program;
@@ -281,7 +284,7 @@ glsl_sm4_make_shaders(trixel_state t, int shader_flags, char * * out_error_messa
     shaders->voxel_uniforms.voxmap_size = glGetUniformLocation(shaders->voxel_program, "voxmap_size");
     shaders->voxel_uniforms.voxmap_size_inv = glGetUniformLocation(shaders->voxel_program, "voxmap_size_inv");
 
-    if(shaders->has_smooth_shading) {
+    if(shader_flags & TRIXEL_SMOOTH_SHADING) {
         shaders->voxel_uniforms.normals = glGetUniformLocation(shaders->voxel_program, "normals");
         shaders->voxel_uniforms.normal_scale = glGetUniformLocation(shaders->voxel_program, "normal_scale");
         shaders->voxel_uniforms.normal_translate = glGetUniformLocation(shaders->voxel_program, "normal_translate");
@@ -298,8 +301,8 @@ error_after_fragment_shader:
 error_after_vertex_shader:
     glDeleteShader(voxel_vertex_shader);
 error:
-    free(vertex_source);
-    free(fragment_source);
+    if(vertex_source) free(vertex_source);
+    if(fragment_source) free(fragment_source);
     free(vertex_source_path);
     free(fragment_source_path);
     free(shaders);
@@ -316,20 +319,29 @@ _light_param_location(trixel_state t, GLuint light, char const * param_name)
     return r;
 }
 
+
 static void
-glsl_sm4_set_light_param(trixel_state t, GLuint light, char const * param_name, GLfloat * value)
+glsl_sm4_set_light_param(trixel_state t, GLuint light, int param, GLfloat * value)
 {
-    GLint uniform = _light_param_location(t, light, param_name);
+    static char const * const param_names[] = {
+        "position",
+        "ambient",
+        "diffuse"
+    };
+    GLint uniform = _light_param_location(t, light, param_names[param]);
     glUseProgram(GLSL_SM4(t)->voxel_program);
     glUniform4fv(uniform, 1, value);
+    glUseProgram(0);
 }
 
 const struct trixel_render_path glsl_sm4_render_path = {
+    "GLSL Shader Model 4",
     glsl_sm4_can_use_render_path,
     glsl_sm4_make_shaders,
     glsl_sm4_delete_shaders,
     glsl_sm4_set_light_param,
     glsl_sm4_make_vertex_buffer_for_brick,
-    glsl_sm4_draw_from_brick
+    glsl_sm4_draw_from_brick,
+    glsl_sm4_finish_draw
 };
 

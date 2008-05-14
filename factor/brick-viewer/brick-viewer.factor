@@ -51,10 +51,6 @@ M: brick-viewer-gadget ungraft* ( gadget -- )
 M: brick-viewer-gadget pref-dim* ( gadget -- dim )
     drop { 640 480 } ;
     
-: (reset-opengl-state) ( -- )
-    0 glUseProgram
-    GL_TEXTURE0 glActiveTexture ;
-
 M: brick-viewer-gadget draw-gadget* ( gadget -- )
     GL_STENCIL_TEST glDisable
     GL_DEPTH_TEST glEnable
@@ -62,9 +58,10 @@ M: brick-viewer-gadget draw-gadget* ( gadget -- )
     GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT bitor glClear
     [ demo-gadget-set-matrices ]
     [
-        { brickn>> bricks>> } get-slots nth trixel_draw_brick
+        dup trixel>> [
+            { brickn>> bricks>> } get-slots nth trixel_draw_brick
+        ] with-trixel-draw
     ] bi
-    (reset-opengl-state)
     glGetError drop ;
 
 brick-viewer-gadget H{
