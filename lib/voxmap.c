@@ -1,12 +1,13 @@
 #include "voxmap.h"
 #include <stdlib.h>
-#include <stdint.h>
+#include <string.h>
 
 voxmap *
 voxmap_make(struct int3 dim)
 {
     voxmap * v = malloc(sizeof(voxmap) + dim.x*dim.y*dim.z);
     v->dimensions = dim;
+    return v;
 }
 
 void
@@ -24,7 +25,7 @@ voxmap_dup(voxmap const * v, struct int3 low, struct int3 high)
     for(int z = low.z; z < high.z; ++z)
         for(int y = low.y; y < high.y; ++y)
             for(int x = low.x; x < high.x; ++x)
-                *voxmap_voxel(new, x - low.x, y - low.y, z - low.z) = *voxmap_voxel(v, x, y, z);
+                *voxmap_voxel(new, x - low.x, y - low.y, z - low.z) = *voxmap_voxel((voxmap*)v, x, y, z);
     return new;
 }
 
@@ -32,7 +33,7 @@ voxmap *
 voxmap_dup_all(voxmap const * v)
 {
     voxmap * new = voxmap_make(v->dimensions);
-    memcpy(new->data, old->data, voxmap_size(v));
+    memcpy(new->data, v->data, voxmap_size(v));
     return new;
 }
 
@@ -44,7 +45,7 @@ voxmap_copy(voxmap * to, struct int3 to_low, voxmap const * from)
     for(int z = to_low.z; z < to_high.z; ++z)
         for(int y = to_low.y; y < to_high.y; ++y)
             for(int x = to_low.x; x < to_high.x; ++x)
-                 *voxmap_voxel(to, x, y, z) = *voxmap_voxel(from, x - to_low.x, y - to_low.y, z - to_low.z);
+                 *voxmap_voxel(to, x, y, z) = *voxmap_voxel((voxmap*)from, x - to_low.x, y - to_low.y, z - to_low.z);
 }
 
 

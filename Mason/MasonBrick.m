@@ -91,8 +91,8 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
         vcount = brick->dimensions.y;
     }
     
-    unsigned char * from = brick->voxmap_data + wpitch * sliceNumber,
-                  * to   = brick->voxmap_data + wpitch * destSliceNumber;
+    unsigned char * from = brick->v.data + wpitch * sliceNumber,
+                  * to   = brick->v.data + wpitch * destSliceNumber;
     for(int v = 0; v < vcount; ++v)
         for(int u = 0; u < ucount; ++u)
             to[u * upitch + v * vpitch] = from[u * upitch + v * vpitch];
@@ -327,7 +327,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
 
 - (NSData *)voxmap
 {
-    return [NSData dataWithBytesNoCopy:trixelBrick->voxmap_data
+    return [NSData dataWithBytesNoCopy:trixelBrick->v.data
                                 length:trixel_brick_voxmap_size(trixelBrick)
                           freeWhenDone:NO];
 }

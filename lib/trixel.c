@@ -1,5 +1,6 @@
 #include "trixel.h"
 #include "trixel_internal.h"
+#include "voxmap.h"
 
 #include <GL/glew.h>
 #include <math.h>
@@ -391,7 +392,7 @@ trixel_prepare_brick(trixel_brick * brick, trixel_state t)
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
     glTexImage3D(
         GL_TEXTURE_3D, 0, GL_LUMINANCE8,
-        (GLsizei)brick->dimensions.x, (GLsizei)brick->dimensions.y, (GLsizei)brick->dimensions.z,
+        brick->v.dimensions.x, brick->v.dimensions.y, brick->v.dimensions.z,
         0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL
     );
 
@@ -417,7 +418,7 @@ trixel_prepare_brick(trixel_brick * brick, trixel_state t)
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
     glTexImage3D(
         GL_TEXTURE_3D, 0, GL_RGB16F_ARB,
-        (GLsizei)brick->dimensions.x + 1, (GLsizei)brick->dimensions.y + 1, (GLsizei)brick->dimensions.z + 1,
+        brick->v.dimensions.x + 1, brick->dimensions.y + 1, brick->dimensions.z + 1,
         0, GL_RGB, GL_FLOAT, NULL
     );
 
@@ -604,10 +605,10 @@ _generate_normal_texture(trixel_brick * brick)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z-1][y][x]);
             }
 
-    //_log_normal_data(
-    //    normals_w, normals_h, normals_d,
-    //    raw_normal_texture_data, raw_neighbors, normal_texture_data
-    //);
+    // _log_normal_data(
+    //     normals_w, normals_h, normals_d,
+    //     raw_normal_texture_data, raw_neighbors, normal_texture_data
+    // );
 
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_3D, brick->normal_texture);

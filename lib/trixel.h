@@ -17,15 +17,13 @@ enum trixel_light_params {
     TRIXEL_LIGHT_PARAM_POSITION = 0,
     TRIXEL_LIGHT_PARAM_AMBIENT  = 1,
     TRIXEL_LIGHT_PARAM_DIFFUSE  = 2
-}
+};
 
 struct point3 {
     float x, y, z;
-    float __pad_0;
 };
 struct int3 {
     int x, y, z;
-    int __pad_0;
 };
 
 static inline struct point3 POINT3(float x, float y, float z)
@@ -34,7 +32,7 @@ static inline struct int3 INT3(int x, int y, int z)
     { return (struct int3){x, y, z}; }
 static inline struct int3 INT3_OF_POINT3(struct point3 p)
     { return (struct int3){p.x, p.y, p.z}; }
-static inline struct int3 POINT3_OF_INT3(struct int3 p)
+static inline struct point3 POINT3_OF_INT3(struct int3 p)
     { return (struct point3){p.x, p.y, p.z}; }
 
 #define POINT_ARITHMETIC_FUNCTIONS(type) \

@@ -61,7 +61,7 @@ _make_shader_flag_sources(int flags, char const * source, size_t *out_num_source
         flag_names[bit_i];
         ++bit_i, b <<= 1)
         if(flags & b)
-            asprintf(&flag_sources[flag_i++], "#define %s 1\n", flags[bit_i]);
+            asprintf(&flag_sources[flag_i++], "#define %s 1\n", flag_names[bit_i]);
 
     flag_sources[num_flags] = strdup(source);
     *out_num_sources = num_flags + 1;

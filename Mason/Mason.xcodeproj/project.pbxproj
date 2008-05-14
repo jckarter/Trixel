@@ -20,8 +20,6 @@
 		D80648160C8B7DB200B731DD /* MasonColorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D80648150C8B7DB200B731DD /* MasonColorCell.m */; };
 		D84AFD670C813D5E008A8770 /* BrickDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD660C813D5E008A8770 /* BrickDocument.icns */; };
 		D84AFD700C823856008A8770 /* trixel.c in Sources */ = {isa = PBXBuildFile; fileRef = D84AFD6E0C823856008A8770 /* trixel.c */; };
-		D84AFD750C82387D008A8770 /* voxel.fragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD730C82387D008A8770 /* voxel.fragment.glsl */; };
-		D84AFD760C82387D008A8770 /* voxel.vertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD740C82387D008A8770 /* voxel.vertex.glsl */; };
 		D84AFD9A0C826E12008A8770 /* default.brick in Resources */ = {isa = PBXBuildFile; fileRef = D84AFD990C826E12008A8770 /* default.brick */; };
 		D84E44C60CE8264A008064EE /* light.png in Resources */ = {isa = PBXBuildFile; fileRef = D84E44C50CE8264A008064EE /* light.png */; };
 		D84E44EF0CE82F7C008064EE /* MasonRotateLightTool.m in Sources */ = {isa = PBXBuildFile; fileRef = D84E44EE0CE82F7C008064EE /* MasonRotateLightTool.m */; };
@@ -42,6 +40,8 @@
 		D8D7E1B50CE69AAE00FDE860 /* ResizeBrick.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E1B40CE69AAE00FDE860 /* ResizeBrick.xib */; };
 		D8D7E1B80CE69AD000FDE860 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D7E1B60CE69AD000FDE860 /* MainMenu.xib */; };
 		D8DC6C440DD6465C0069D879 /* glsl_sm4.c in Sources */ = {isa = PBXBuildFile; fileRef = D8DC6C430DD6465C0069D879 /* glsl_sm4.c */; };
+		D8DC6C800DDA960D0069D879 /* shaders in Resources */ = {isa = PBXBuildFile; fileRef = D8DC6C760DDA960D0069D879 /* shaders */; };
+		D8DC6C8C0DDA96410069D879 /* voxmap.c in Sources */ = {isa = PBXBuildFile; fileRef = D8DC6C8B0DDA96410069D879 /* voxmap.c */; };
 		D8DEF4280CFAA12300F84502 /* MasonScriptingPaletteColor.m in Sources */ = {isa = PBXBuildFile; fileRef = D8DEF4270CFAA12300F84502 /* MasonScriptingPaletteColor.m */; };
 		D8DEFE9B0CF9292C00E48FCB /* MasonGetVoxelCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = D8DEFE9A0CF9292C00E48FCB /* MasonGetVoxelCommand.m */; };
 		D8DEFEAD0CF92AF000E48FCB /* Mason.sdef in Resources */ = {isa = PBXBuildFile; fileRef = D8DEFEAC0CF92AF000E48FCB /* Mason.sdef */; };
@@ -89,8 +89,6 @@
 		D84AFD660C813D5E008A8770 /* BrickDocument.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = BrickDocument.icns; sourceTree = "<group>"; };
 		D84AFD6E0C823856008A8770 /* trixel.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = trixel.c; path = ../lib/trixel.c; sourceTree = SOURCE_ROOT; };
 		D84AFD6F0C823856008A8770 /* trixel.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = trixel.h; path = ../lib/trixel.h; sourceTree = SOURCE_ROOT; };
-		D84AFD730C82387D008A8770 /* voxel.fragment.glsl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = voxel.fragment.glsl; path = ../voxel.fragment.glsl; sourceTree = SOURCE_ROOT; };
-		D84AFD740C82387D008A8770 /* voxel.vertex.glsl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = voxel.vertex.glsl; path = ../voxel.vertex.glsl; sourceTree = SOURCE_ROOT; };
 		D84AFD990C826E12008A8770 /* default.brick */ = {isa = PBXFileReference; lastKnownFileType = file; path = default.brick; sourceTree = "<group>"; };
 		D84E44C50CE8264A008064EE /* light.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = light.png; sourceTree = "<group>"; };
 		D84E44ED0CE82F7C008064EE /* MasonRotateLightTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonRotateLightTool.h; sourceTree = "<group>"; };
@@ -121,6 +119,9 @@
 		D8D7E1B70CE69AD000FDE860 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		D8DC6C430DD6465C0069D879 /* glsl_sm4.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = glsl_sm4.c; path = ../lib/glsl_sm4.c; sourceTree = SOURCE_ROOT; };
 		D8DC6C550DD646E50069D879 /* trixel_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = trixel_internal.h; path = ../lib/trixel_internal.h; sourceTree = SOURCE_ROOT; };
+		D8DC6C760DDA960D0069D879 /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shaders; path = ../shaders; sourceTree = SOURCE_ROOT; };
+		D8DC6C8B0DDA96410069D879 /* voxmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = voxmap.c; path = ../lib/voxmap.c; sourceTree = SOURCE_ROOT; };
+		D8DC6C8D0DDA96490069D879 /* voxmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = voxmap.h; path = ../lib/voxmap.h; sourceTree = SOURCE_ROOT; };
 		D8DEF4260CFAA12300F84502 /* MasonScriptingPaletteColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonScriptingPaletteColor.h; sourceTree = "<group>"; };
 		D8DEF4270CFAA12300F84502 /* MasonScriptingPaletteColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MasonScriptingPaletteColor.m; sourceTree = "<group>"; };
 		D8DEFE990CF9292C00E48FCB /* MasonGetVoxelCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MasonGetVoxelCommand.h; sourceTree = "<group>"; };
@@ -257,6 +258,8 @@
 				D8DC6C550DD646E50069D879 /* trixel_internal.h */,
 				D84AFD6E0C823856008A8770 /* trixel.c */,
 				D84AFD6F0C823856008A8770 /* trixel.h */,
+				D8DC6C8B0DDA96410069D879 /* voxmap.c */,
+				D8DC6C8D0DDA96490069D879 /* voxmap.h */,
 				D8DC6C430DD6465C0069D879 /* glsl_sm4.c */,
 				32DBCF750370BD2300C91783 /* Mason_Prefix.pch */,
 				2A37F4B0FDCFA73011CA2CEA /* main.m */,
@@ -267,6 +270,7 @@
 		2A37F4B8FDCFA73011CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D8DC6C760DDA960D0069D879 /* shaders */,
 				D8DEFEAC0CF92AF000E48FCB /* Mason.sdef */,
 				D8D7E1B60CE69AD000FDE860 /* MainMenu.xib */,
 				D8D7E1B00CE69A7500FDE860 /* MasonDocument.xib */,
@@ -278,8 +282,6 @@
 				D8EF23CC0C88CA1A00457237 /* hand.png */,
 				D84E44C50CE8264A008064EE /* light.png */,
 				D84AFD990C826E12008A8770 /* default.brick */,
-				D84AFD730C82387D008A8770 /* voxel.fragment.glsl */,
-				D84AFD740C82387D008A8770 /* voxel.vertex.glsl */,
 				D84AFD660C813D5E008A8770 /* BrickDocument.icns */,
 				D8EDAF3D0C7E94FB00D0DE3F /* Mason.icns */,
 				D8BC59F40DC9811E00FB1978 /* lowselect.png */,
@@ -356,8 +358,6 @@
 				D8EDAF230C7E670F00D0DE3F /* zslice.png in Resources */,
 				D8EDAF3E0C7E94FB00D0DE3F /* Mason.icns in Resources */,
 				D84AFD670C813D5E008A8770 /* BrickDocument.icns in Resources */,
-				D84AFD750C82387D008A8770 /* voxel.fragment.glsl in Resources */,
-				D84AFD760C82387D008A8770 /* voxel.vertex.glsl in Resources */,
 				D84AFD9A0C826E12008A8770 /* default.brick in Resources */,
 				D8EF23CD0C88CA1A00457237 /* draw.png in Resources */,
 				D8EF23CE0C88CA1A00457237 /* erase.png in Resources */,
@@ -372,6 +372,7 @@
 				D8DEFEAD0CF92AF000E48FCB /* Mason.sdef in Resources */,
 				D8BC59F60DC9811E00FB1978 /* lowselect.png in Resources */,
 				D8BC59F70DC9811E00FB1978 /* highselect.png in Resources */,
+				D8DC6C800DDA960D0069D879 /* shaders in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,6 +408,7 @@
 				D8BC59FC0DC9845400FB1978 /* MasonLowSelectionTool.m in Sources */,
 				D8BC59FF0DC9859E00FB1978 /* MasonHighSelectionTool.m in Sources */,
 				D8DC6C440DD6465C0069D879 /* glsl_sm4.c in Sources */,
+				D8DC6C8C0DDA96410069D879 /* voxmap.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
