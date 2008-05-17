@@ -109,8 +109,8 @@ static struct trixel_render_path const *
 _find_render_path(trixel_state t)
 {
     static struct trixel_render_path const * render_paths[] = {
-        &arbfvp_render_path,
         &glsl_sm4_render_path,
+        &arbfvp_render_path,
         NULL
     };
     
