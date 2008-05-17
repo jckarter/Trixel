@@ -1,7 +1,7 @@
 USING: alien alien.syntax kernel opengl.gl system combinators sequences
-libc alien.c-types alien.strings math io.encodings.utf8 trixel.lib
+libc alien.c-types alien.strings math io.encodings.utf8 trixel.core.lib
 continuations words ;
-IN: trixel
+IN: trixel.core
 
 LIBRARY: trixel
 
@@ -103,5 +103,5 @@ FUNCTION: void trixel_state_free ( trixel_state t ) ;
     [ trixel_read_brick_from_filename ] with-trixel-error ;
 : trixel-light-param ( t light param value -- )
     >c-float-array trixel_light_param ; inline
-: trixel-state-init ( resource-path -- t )
-    [ trixel_state_init ] with-trixel-error ;
+: trixel-state-init ( -- t )
+    [ trixel-resource-path trixel_state_init ] with-trixel-error ;

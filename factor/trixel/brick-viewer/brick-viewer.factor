@@ -1,6 +1,6 @@
-USING: opengl.demo-support opengl.gl trixel accessors kernel ui.gadgets ui.render
+USING: opengl.demo-support opengl.gl trixel.core accessors kernel ui.gadgets ui.render
 sequences ui math combinators ui.gestures alarms calendar ;
-IN: brick-viewer
+IN: trixel.brick-viewer
 
 TUPLE: brick-viewer-gadget brick-paths trixel bricks brickn tick ;
 
@@ -33,8 +33,7 @@ M: brick-viewer-gadget distance-step ( gadget -- dz )
     [ [ 1+ swap mod ] change-brickn relayout-1 ] bi ;
 
 M: brick-viewer-gadget graft* ( gadget -- )
-    trixel-init-glew
-    trixel-resources trixel-state-init
+    trixel-init-glew trixel-state-init
     dup (update-shaders) >>trixel
     dup { trixel>> brick-paths>> } get-slots [
         trixel-read-brick-from-filename
