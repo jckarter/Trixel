@@ -26,14 +26,6 @@ set_video_mode(int width, int height, char * * out_error_message)
     if(!t)
         goto error;
 
-    GLfloat ambient[4] = { 0.2, 0.2, 0.2, 1.0 };
-    GLfloat diffuse[4] = { 0.8, 0.8, 0.8, 1.0 };
-    GLfloat position[4] = { 64.0, 32.0, 64.0, 1.0 };
-
-    trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_AMBIENT, ambient);
-    trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_DIFFUSE, diffuse);
-    trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_POSITION, position);
-
     return t;
 
 error_from_sdl:
@@ -47,6 +39,14 @@ draw(trixel_state t, float eye[], float yaw, float pitch)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+    GLfloat ambient[4] = { 0.2, 0.2, 0.2, 1.0 };
+    GLfloat diffuse[4] = { 0.8, 0.8, 0.8, 1.0 };
+    GLfloat position[4] = { 64.0, 32.0, 64.0, 1.0 };
+
+    trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_AMBIENT, ambient);
+    trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_DIFFUSE, diffuse);
+    trixel_light_param(t, 0, TRIXEL_LIGHT_PARAM_POSITION, position);
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     

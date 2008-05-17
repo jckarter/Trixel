@@ -140,6 +140,8 @@ arbfvp_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
 
     xa = voxmap_make(xdim);
     xface = voxmap_make(xdim);
+    voxmap_fill_all(xa,    0);
+    voxmap_fill_all(xface, 0);
     voxmap_copy(xa,    INT3(0,0,0), mask);
     voxmap_copy(xface, INT3(1,0,0), mask);
     voxmap_sub (xface, xa);
@@ -147,6 +149,8 @@ arbfvp_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
  
     ya = voxmap_make(ydim);
     yface = voxmap_make(ydim);
+    voxmap_fill_all(ya,    0);
+    voxmap_fill_all(yface, 0);
     voxmap_copy(ya,    INT3(0,0,0), mask);
     voxmap_copy(yface, INT3(0,1,0), mask);
     voxmap_sub (yface, ya);
@@ -154,6 +158,8 @@ arbfvp_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
  
     za = voxmap_make(zdim);
     zface = voxmap_make(zdim);
+    voxmap_fill_all(za,    0);
+    voxmap_fill_all(zface, 0);
     voxmap_copy(za,    INT3(0,0,0), mask);
     voxmap_copy(zface, INT3(0,0,1), mask);
     voxmap_sub (zface, za);
@@ -165,11 +171,11 @@ arbfvp_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
         buffer_size = 3 * num_vertices * (sizeof(GLshort)+sizeof(GLbyte));
     void * buffer = malloc(buffer_size);
     GLshort * vertices = buffer;
-    GLbyte  * normals  = (GLbyte*)(buffer + num_vertices);
+    GLbyte  * normals  = (GLbyte*)(vertices + num_vertices*3);
 
     for(int z = 0; z < xdim.z; ++z)
         for(int y = 0; y < xdim.y; ++y)
-            for(int x = 0; x < xdim.x; ++x) {
+            for(int x = 0; x < xdim.x; ++x)
                 if(*voxmap_voxel(xface, x, y, z) == 1) {
                     vertices[ 0] = x  -width2; vertices[ 1] = y+1-height2; vertices[ 2] = z  -depth2;
                     vertices[ 3] = x  -width2; vertices[ 4] = y+1-height2; vertices[ 5] = z+1-depth2;
@@ -197,11 +203,14 @@ arbfvp_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
                     normals += 12;
                 }
 
-                if(*voxmap_voxel(yface, z, x, y) == 1) {
-                    vertices[ 0] = z  -width2; vertices[ 1] = x  -height2; vertices[ 2] = y+1-depth2;
-                    vertices[ 3] = z+1-width2; vertices[ 4] = x  -height2; vertices[ 5] = y+1-depth2;
-                    vertices[ 6] = z+1-width2; vertices[ 7] = x  -height2; vertices[ 8] = y  -depth2;
-                    vertices[ 9] = z  -width2; vertices[10] = x  -height2; vertices[11] = y  -depth2;
+    for(int z = 0; z < ydim.z; ++z)
+        for(int y = 0; y < ydim.y; ++y)
+            for(int x = 0; x < ydim.x; ++x)
+                if(*voxmap_voxel(yface, x, y, z) == 1) {
+                    vertices[ 0] = x  -width2; vertices[ 1] = y  -height2; vertices[ 2] = z+1-depth2;
+                    vertices[ 3] = x+1-width2; vertices[ 4] = y  -height2; vertices[ 5] = z+1-depth2;
+                    vertices[ 6] = x+1-width2; vertices[ 7] = y  -height2; vertices[ 8] = z  -depth2;
+                    vertices[ 9] = x  -width2; vertices[10] = y  -height2; vertices[11] = z  -depth2;
                     vertices += 12;
 
                     normals[ 0] = 0; normals[ 1] = 127; normals[ 2] = 0;
@@ -210,11 +219,11 @@ arbfvp_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
                     normals[ 9] = 0; normals[10] = 127; normals[11] = 0;
                     normals += 12;
                 }
-                else if(*voxmap_voxel(yface, z, x, y) == (uint8_t)-1) {
-                    vertices[ 0] = z  -width2; vertices[ 1] = x  -height2; vertices[ 2] = y  -depth2;
-                    vertices[ 3] = z+1-width2; vertices[ 4] = x  -height2; vertices[ 5] = y  -depth2;
-                    vertices[ 6] = z+1-width2; vertices[ 7] = x  -height2; vertices[ 8] = y+1-depth2;
-                    vertices[ 9] = z  -width2; vertices[10] = x  -height2; vertices[11] = y+1-depth2;
+                else if(*voxmap_voxel(yface, x, y, z) == (uint8_t)-1) {
+                    vertices[ 0] = x  -width2; vertices[ 1] = y  -height2; vertices[ 2] = z  -depth2;
+                    vertices[ 3] = x+1-width2; vertices[ 4] = y  -height2; vertices[ 5] = z  -depth2;
+                    vertices[ 6] = x+1-width2; vertices[ 7] = y  -height2; vertices[ 8] = z+1-depth2;
+                    vertices[ 9] = x  -width2; vertices[10] = y  -height2; vertices[11] = z+1-depth2;
                     vertices += 12;
 
                     normals[ 0] = 0; normals[ 1] = -128; normals[ 2] = 0;
@@ -224,11 +233,14 @@ arbfvp_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
                     normals += 12;
                 }
 
-                if(*voxmap_voxel(zface, y, z, x) == 1) {
-                    vertices[ 0] = y+1-width2; vertices[ 1] = z  -height2; vertices[ 2] = x  -depth2;
-                    vertices[ 3] = y+1-width2; vertices[ 4] = z+1-height2; vertices[ 5] = x  -depth2;
-                    vertices[ 6] = y  -width2; vertices[ 7] = z+1-height2; vertices[ 8] = x  -depth2;
-                    vertices[ 9] = y  -width2; vertices[10] = z  -height2; vertices[11] = x  -depth2;
+    for(int z = 0; z < zdim.z; ++z)
+        for(int y = 0; y < zdim.y; ++y)
+            for(int x = 0; x < zdim.x; ++x)
+                if(*voxmap_voxel(zface, x, y, z) == 1) {
+                    vertices[ 0] = x+1-width2; vertices[ 1] = y  -height2; vertices[ 2] = z  -depth2;
+                    vertices[ 3] = x+1-width2; vertices[ 4] = y+1-height2; vertices[ 5] = z  -depth2;
+                    vertices[ 6] = x  -width2; vertices[ 7] = y+1-height2; vertices[ 8] = z  -depth2;
+                    vertices[ 9] = x  -width2; vertices[10] = y  -height2; vertices[11] = z  -depth2;
                     vertices += 12;
 
                     normals[ 0] = 0; normals[ 1] = 0; normals[ 2] = 127;
@@ -237,11 +249,11 @@ arbfvp_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
                     normals[ 9] = 0; normals[10] = 0; normals[11] = 127;
                     normals += 12;
                 }
-                else if(*voxmap_voxel(zface, y, z, x) == (uint8_t)-1) {
-                    vertices[ 0] = y  -width2; vertices[ 1] = z  -height2; vertices[ 2] = x  -depth2;
-                    vertices[ 3] = y  -width2; vertices[ 4] = z+1-height2; vertices[ 5] = x  -depth2;
-                    vertices[ 6] = y+1-width2; vertices[ 7] = z+1-height2; vertices[ 8] = x  -depth2;
-                    vertices[ 9] = y+1-width2; vertices[10] = z  -height2; vertices[11] = x  -depth2;
+                else if(*voxmap_voxel(zface, x, y, z) == (uint8_t)-1) {
+                    vertices[ 0] = x  -width2; vertices[ 1] = y  -height2; vertices[ 2] = z  -depth2;
+                    vertices[ 3] = x  -width2; vertices[ 4] = y+1-height2; vertices[ 5] = z  -depth2;
+                    vertices[ 6] = x+1-width2; vertices[ 7] = y+1-height2; vertices[ 8] = z  -depth2;
+                    vertices[ 9] = x+1-width2; vertices[10] = y  -height2; vertices[11] = z  -depth2;
                     vertices += 12;
 
                     normals[ 0] = 0; normals[ 1] = 0; normals[ 2] = -128;
@@ -250,7 +262,7 @@ arbfvp_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
                     normals[ 9] = 0; normals[10] = 0; normals[11] = -128;
                     normals += 12;
                 }
-            }
+
     voxmap_free(xface);
     voxmap_free(yface);
     voxmap_free(zface);
@@ -269,11 +281,14 @@ arbfvp_draw_from_brick(trixel_state t, trixel_brick * brick)
 {
     struct arbfvp_shaders * shaders = ARBFVP(t);
     
-    //glBindProgramARB(GL_VERTEX_PROGRAM_ARB, shaders->vertex_program);
-    //glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, shaders->fragment_program);
-
-    //glProgramLocalParameter4fvARB(GL_VERTEX_PROGRAM_ARB, ARBFVP_VERTEX_NORMAL_SCALE,     (GLfloat*)&brick->normal_scale);
-    //glProgramLocalParameter4fvARB(GL_VERTEX_PROGRAM_ARB, ARBFVP_VERTEX_NORMAL_TRANSLATE, (GLfloat*)&brick->normal_translate);
+    glEnable(GL_VERTEX_PROGRAM_ARB);
+    glEnable(GL_FRAGMENT_PROGRAM_ARB);
+    glBindProgramARB(GL_VERTEX_PROGRAM_ARB, shaders->vertex_program);
+    glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, shaders->fragment_program);
+    
+    glProgramLocalParameter4fvARB(GL_VERTEX_PROGRAM_ARB, ARBFVP_VERTEX_VOXMAP_SIZE_INV,  (GLfloat*)&brick->dimensions_inv);
+    glProgramLocalParameter4fvARB(GL_VERTEX_PROGRAM_ARB, ARBFVP_VERTEX_NORMAL_SCALE,     (GLfloat*)&brick->normal_scale);
+    glProgramLocalParameter4fvARB(GL_VERTEX_PROGRAM_ARB, ARBFVP_VERTEX_NORMAL_TRANSLATE, (GLfloat*)&brick->normal_translate);
 }
 
 static void
@@ -281,6 +296,8 @@ arbfvp_finish_draw(trixel_state t)
 {
     glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
     glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
+    glDisable(GL_VERTEX_PROGRAM_ARB);
+    glDisable(GL_FRAGMENT_PROGRAM_ARB);
 }
 
 struct trixel_render_path const arbfvp_render_path = {
