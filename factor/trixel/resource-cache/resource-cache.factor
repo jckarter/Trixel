@@ -1,14 +1,17 @@
-USING: accessors assocs continuations hashtables kernel sequences ;
+USING: accessors assocs destructors hashtables kernel namespaces sequences trixel.core.lib ;
 IN: trixel.resource-cache
 
-TUPLE: resource-not-found-exception kind name ;
-C: <resource-not-found-exception> resource-not-found-exception
+GENERIC# load-resource 1 ( resource filename -- resource )
 
-TUPLE: resource-cache load-quot loaded-resources ;
+: (path-to-resource) ( name directory ext -- path )
+    swap
+    [ trixel-resource-path % "/" % % "/" % % "." % % ] "" make ;
 
-: <resource-cache> ( load-quot -- resource-cache )
+TUPLE: resource-cache resource-class loaded-resources ;
+
+: <resource-cache> ( resource-class -- resource-cache )
     resource-cache new 
-    swap >>load-quot 
+    swap >>resource-class
     1000 <hashtable> >>loaded-resources ;
 
 : (find-resource-in-cache) ( resource-cache name -- resource/f )
@@ -16,7 +19,7 @@ TUPLE: resource-cache load-quot loaded-resources ;
 
 : (load-resource-into-cache) ( resource-cache name -- resource )
     swap
-    [ load-quot>> call dup ]
+    [ resource-class>> new swap load-resource dup ]
     [ loaded-resources>> set-at ] 2bi ;
 
 : find-resource ( resource-cache name -- resource )

@@ -74,12 +74,12 @@ static void
 benchmark(trixel_state t, float eye[], float yaw, float pitch)
 {
     double start = timeofday();
-    for(int i = 0; i < 20; ++i) {
+    for(int i = 0; i < 200; ++i) {
         draw(t, eye, yaw, pitch);
         putchar('.'); fflush(stdout);
     }
     double bench = timeofday() - start;
-    printf("\r%f seconds to draw 20 frames (%f fps)\n", bench, 20.0/bench);
+    printf("\r%f seconds to draw 200 frames (%f fps)\n", bench, 200.0/bench);
 }
 
 static void

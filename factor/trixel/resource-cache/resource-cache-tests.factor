@@ -1,14 +1,6 @@
-USING: combinators continuations kernel sorting tools.test trixel.resource-cache ;
+USING: accessors combinators continuations kernel sorting tools.test
+trixel.resource-cache trixel.resource-cache.mock ;
 IN: trixel.resource-cache.tests
-
-TUPLE: fake-resource name ;
-C: <fake-resource> fake-resource
-
-: load-fake-resource ( name -- resource )
-    <fake-resource> ;
-    
-M: fake-resource dispose ( resource -- )
-    drop ;
 
 {
     t
@@ -16,7 +8,7 @@ M: fake-resource dispose ( resource -- )
     { "bar" "bas" }
     { }
 } [
-    [ load-fake-resource ] <resource-cache>
+    mock-resource <resource-cache>
     {
         [ "foo" find-resource ]
         [ "foo" find-resource eq? ]
