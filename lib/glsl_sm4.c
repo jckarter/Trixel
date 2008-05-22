@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-static const int NUM_FRAGMENT_SHADERS = 5;
+#define NUM_FRAGMENT_SHADERS 6
 
 struct glsl_sm4_shaders {
     GLuint voxel_program, voxel_vertex_shader, voxel_fragment_shaders[NUM_FRAGMENT_SHADERS];
@@ -36,10 +36,10 @@ _bit_count(int x)
 }
 
 static GLuint
-_glsl_shader_from_string(GLenum kind, int shader_flags, char const * source, char * * out_error_message)
+_glsl_shader_from_string(GLenum kind, char const * source, char * * out_error_message)
 {
     GLuint shader = glCreateShader(kind);
-    glShaderSource(shader, 1, &shader_flag_sources, NULL);
+    glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
 
     GLint status;
@@ -93,10 +93,11 @@ glsl_sm4_delete_shaders(trixel_state t)
     struct glsl_sm4_shaders * shaders = GLSL_SM4(t);
     if(shaders) {
         glDetachShader(shaders->voxel_program, shaders->voxel_vertex_shader);
-        glDetachShader(shaders->voxel_program, shaders->voxel_fragment_shader);
-
-        glDeleteShader(shaders->voxel_fragment_shader);
         glDeleteShader(shaders->voxel_vertex_shader);
+        for(int i = 0; i < NUM_FRAGMENT_SHADERS; ++i) {
+            glDetachShader(shaders->voxel_program, shaders->voxel_fragment_shaders[i]);
+            glDeleteShader(shaders->voxel_fragment_shaders[i]);
+        }
         glDeleteProgram(shaders->voxel_program);
     
         free(shaders);
@@ -211,38 +212,73 @@ glsl_sm4_finish_draw(trixel_state t)
 static void *
 glsl_sm4_make_shaders(trixel_state t, int shader_flags, char * * out_error_message)
 {
-    struct glsl_sm4_shaders * shaders = malloc(sizeof(struct glsl_sm4_shaders));
+    GLuint voxel_vertex_shader;
     
     char *vertex_source_path = trixel_resource_filename(t, "shaders/glsl_sm4/voxel.vertex.glsl");
     char *vertex_source   = contents_from_filename(vertex_source_path, NULL);
-    char *fragment_source = contents_from_filename(fragment_source_path, NULL);
-    if(!vertex_source || !fragment_source) {
-        *out_error_message = strdup("Failed to load shader source for the voxmap renderer.");
+    free(vertex_source_path);
+    if(!vertex_source) {
+        *out_error_message = strdup("Failed to load vertex shader source.");
         goto error;
     }
+    voxel_vertex_shader = _glsl_shader_from_string(GL_VERTEX_SHADER, vertex_source, out_error_message);
+    free(vertex_source);
+    if(!voxel_vertex_shader)
+        goto error;
 
     static char const * fragment_source_names[NUM_FRAGMENT_SHADERS] = {
-        "voxel",
+        NULL,
         "save-coordinates",
         "surface-only",
         "lighting",
-        "smooth-shading"
+        "smooth-shading",
+        "exact-depth"
     };
-
-    char *fragment_source_path = trixel_resource_filename(t, "shaders/glsl_sm4/voxel.fragment.glsl");
-
-    GLuint voxel_vertex_shader = _glsl_shader_from_string(GL_VERTEX_SHADER, shader_flags, vertex_source, out_error_message);
-    if(!voxel_vertex_shader)
-        goto error;
-    GLuint voxel_fragment_shader = _glsl_shader_from_string(GL_FRAGMENT_SHADER, shader_flags, fragment_source, out_error_message);
-    if(!voxel_fragment_shader)
+    GLuint voxel_fragment_shader[NUM_FRAGMENT_SHADERS];
+    
+    memset(voxel_fragment_shader, 0, sizeof(voxel_fragment_shader));
+    
+    char *fragment_source0_path = trixel_resource_filename(t, "shaders/glsl_sm4/voxel.fragment.glsl");
+    char *fragment_source0 = contents_from_filename(fragment_source0_path, NULL);
+    free(fragment_source0_path);
+    if(!fragment_source0) {
+        *out_error_message = strdup("Failed to load fragment shader source.");
         goto error_after_vertex_shader;
+    }
+    voxel_fragment_shader[0] = _glsl_shader_from_string(GL_FRAGMENT_SHADER, fragment_source0, out_error_message);
+    free(fragment_source0);
+    if(!voxel_fragment_shader[0])
+        goto error_after_vertex_shader;
+
+    for(int i = 1, flags_mask = 1; i < NUM_FRAGMENT_SHADERS; ++i, flags_mask <<= 1) {
+        char *fragment_source_filename;
+        asprintf(&fragment_source_filename, "shaders/glsl_sm4/%s%s.fragment.glsl",
+            (shader_flags & flags_mask ? "" : "no-"),
+            fragment_source_names[i]
+        );
+        fprintf(stderr, "%s\n", fragment_source_filename);
+        char *fragment_source_path = trixel_resource_filename(t, fragment_source_filename);
+        free(fragment_source_filename);
+        char *fragment_source = contents_from_filename(fragment_source_path, NULL);
+        free(fragment_source_path);
+        if(!fragment_source) {
+            *out_error_message = strdup("Failed to load fragment shader source.");
+            goto error_after_fragment_shader;
+        }
+        voxel_fragment_shader[i] = _glsl_shader_from_string(GL_FRAGMENT_SHADER, fragment_source, out_error_message);
+        free(fragment_source);
+        if(!voxel_fragment_shader[i])
+            goto error_after_fragment_shader;
+    }
+    
     GLuint voxel_program = _glsl_program_from_shaders(voxel_vertex_shader, voxel_fragment_shader, out_error_message);
     if(!voxel_program)
         goto error_after_fragment_shader;
 
+    struct glsl_sm4_shaders * shaders = malloc(sizeof(struct glsl_sm4_shaders));
+
     shaders->voxel_vertex_shader = voxel_vertex_shader;
-    shaders->voxel_fragment_shader = voxel_fragment_shader;
+    memcpy(shaders->voxel_fragment_shaders, voxel_fragment_shader, sizeof(voxel_fragment_shader));
     shaders->voxel_program = voxel_program;
     shaders->voxel_uniforms.voxmap = glGetUniformLocation(shaders->voxel_program, "voxmap");
     shaders->voxel_uniforms.palette = glGetUniformLocation(shaders->voxel_program, "palette");
@@ -255,22 +291,15 @@ glsl_sm4_make_shaders(trixel_state t, int shader_flags, char * * out_error_messa
         shaders->voxel_uniforms.normal_translate = glGetUniformLocation(shaders->voxel_program, "normal_translate");
     }
 
-    free(vertex_source);
-    free(fragment_source);
-    free(vertex_source_path);
-    free(fragment_source_path);
     return shaders;
 
 error_after_fragment_shader:
-    glDeleteShader(voxel_fragment_shader);
+    for(int i = 0; i < NUM_FRAGMENT_SHADERS; ++i)
+        if(voxel_fragment_shader[i])
+            glDeleteShader(voxel_fragment_shader[i]);
 error_after_vertex_shader:
     glDeleteShader(voxel_vertex_shader);
 error:
-    if(vertex_source) free(vertex_source);
-    if(fragment_source) free(fragment_source);
-    free(vertex_source_path);
-    free(fragment_source_path);
-    free(shaders);
     return NULL;
 }
 

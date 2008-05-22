@@ -8,6 +8,8 @@ struct light_struct {
 const int num_lights = 1;
 uniform light_struct lights[num_lights];
 
+vec3 normal();
+
 vec4
 light(vec4 color)
 {

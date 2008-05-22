@@ -6,7 +6,7 @@
 
 static trixel_brick * g_brick;
 
-static const int g_flags = TRIXEL_LIGHTING | TRIXEL_SMOOTH_SHADING;
+static int g_flags = TRIXEL_LIGHTING | TRIXEL_SMOOTH_SHADING;
 
 static trixel_state
 set_video_mode(int width, int height, char * * out_error_message)
@@ -83,6 +83,18 @@ benchmark(trixel_state t, float eye[], float yaw, float pitch)
 }
 
 static void
+remake_shaders(trixel_state t)
+{
+    char * error;
+    if(trixel_update_shaders(t, g_flags, &error)) {
+        printf("Remade voxel program\n");
+    } else {
+        printf("Error trying to remake voxel program:\n%s\n", error);
+        free(error);
+    }
+}
+
+static void
 main_loop(trixel_state t)
 {
     const float rotate_incr = 2.0, eye_incr = 2.0;
@@ -129,18 +141,25 @@ main_loop(trixel_state t)
             case SDLK_q:
                 return;
             case SDLK_r:
-                {
-                    char * error;
-                    if(trixel_update_shaders(t, g_flags, &error)) {
-                        printf("Remade voxel program\n");
-                    } else {
-                        printf("Error trying to remake voxel program:\n%s\n", error);
-                        free(error);
-                    }
-                }
+                remake_shaders(t);
                 break;
             case SDLK_b:
                 benchmark(t, eye, yaw, pitch);
+                break;
+            case SDLK_3:
+                printf("Toggling lighting\n");
+                g_flags ^= TRIXEL_LIGHTING;
+                remake_shaders(t);
+                break;
+            case SDLK_4:
+                printf("Toggling smooth shading\n");
+                g_flags ^= TRIXEL_SMOOTH_SHADING;
+                remake_shaders(t);
+                break;
+            case SDLK_5:
+                printf("Toggling exact depth\n");
+                g_flags ^= TRIXEL_EXACT_DEPTH;
+                remake_shaders(t);
                 break;
             case SDLK_SPACE:
                 eye[0] = 0.0; eye[1] = 0.0; eye[2] = 128.0;

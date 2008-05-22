@@ -1,5 +1,5 @@
 vec4
-light(vec4 color)
+light(vec4 c)
 {
-    return color;
+    return c;
 }

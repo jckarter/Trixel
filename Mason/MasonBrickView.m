@@ -13,7 +13,7 @@ static const size_t g_num_draw_buffers = 3;
 static const GLenum g_tool_inactive_draw_buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_COLOR_ATTACHMENT2_EXT };
 static const GLenum g_tool_active_draw_buffers[]   = { GL_COLOR_ATTACHMENT0_EXT, GL_NONE,                  GL_NONE                  };
 
-static const int g_surface_flags = TRIXEL_SMOOTH_SHADING | TRIXEL_LIGHTING | TRIXEL_SAVE_COORDINATES;
+static const int g_surface_flags = TRIXEL_SMOOTH_SHADING | TRIXEL_LIGHTING | TRIXEL_SAVE_COORDINATES | TRIXEL_EXACT_DEPTH;
 static const int g_slice_flags = TRIXEL_SAVE_COORDINATES | TRIXEL_SURFACE_ONLY;
 static const GLshort g_surface_elements[] = {
     0, 1, 2, 3,

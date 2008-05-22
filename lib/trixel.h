@@ -10,6 +10,7 @@ enum trixel_shader_flags {
     TRIXEL_SURFACE_ONLY     =  2,
     TRIXEL_LIGHTING         =  4,
     TRIXEL_SMOOTH_SHADING   =  8,
+    TRIXEL_EXACT_DEPTH      = 16,
 };
 
 enum trixel_light_params {

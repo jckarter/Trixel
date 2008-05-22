@@ -20,7 +20,7 @@ TUPLE: sprite animations ;
     (make-animations) >>animations ;
 
 M: sprite load-resource ( sprite name -- sprite )
-    (path-to-resource) utf8 file-contents json>
+    (path-to-sprite) utf8 file-contents json>
     (sprite-from-hash) ;
 
 : <sprite> ( hash -- sprite )

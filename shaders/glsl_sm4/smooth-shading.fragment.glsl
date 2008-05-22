@@ -1,6 +1,8 @@
 uniform sampler3D normals;
 uniform vec3 normal_translate, normal_scale;
 
+vec3 cast_pt;
+
 vec3
 normal()
 {

@@ -1,4 +1,4 @@
-USING: accessors combinators continuations kernel sorting tools.test
+USING: accessors combinators destructors kernel sorting tools.test
 trixel.resource-cache trixel.resource-cache.mock ;
 IN: trixel.resource-cache.tests
 

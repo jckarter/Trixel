@@ -2,7 +2,7 @@ USING: accessors combinators destructors kernel namespaces
 trixel.core trixel.resource-cache ;
 IN: trixel.engine
 
-TUPLE: trixel-engine trixel brick-cache sprite-cache ;
+TUPLE: trixel-engine trixel brick-cache sprite-cache root ;
 
 SYMBOL: +engine+
 
@@ -13,6 +13,7 @@ M: trixel-engine dispose ( engine -- )
         [ sprite-cache>> dispose ]
         [ brick-cache>> dispose ]
         [ trixel>> [ trixel_finish ] when* ]
+        [ root>> [ dispose ] when* ]
     } cleave ;
 
 : find-brick ( name -- brick )
