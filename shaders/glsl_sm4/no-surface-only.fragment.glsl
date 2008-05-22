@@ -8,7 +8,7 @@ vec3 cast_pt, world_cast_pt, cast_normal;
 float cast_index;
 
 float minelt(vec3 v) { return min(v.x, min(v.y, v.z)); }
-vec3 unbias(vec3 v) { return v * vec3(2) - vec3(1); }
+vec3 unbias(vec3 v) { return v * vec3(2.0) - vec3(1.0); }
 
 float voxel(vec3 pt);
 
