@@ -1,0 +1,4 @@
+void
+save_fragdepth()
+{
+}

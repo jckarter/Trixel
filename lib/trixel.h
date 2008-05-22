@@ -5,12 +5,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-// Shader flags:
 enum trixel_shader_flags {
-    TRIXEL_SAVE_COORDINATES = 1,
-    TRIXEL_SURFACE_ONLY     = 2,
-    TRIXEL_LIGHTING         = 4,
-    TRIXEL_SMOOTH_SHADING   = 8
+    TRIXEL_SAVE_COORDINATES =  1,
+    TRIXEL_SURFACE_ONLY     =  2,
+    TRIXEL_LIGHTING         =  4,
+    TRIXEL_SMOOTH_SHADING   =  8,
 };
 
 enum trixel_light_params {
