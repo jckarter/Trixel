@@ -113,3 +113,17 @@ voxmap_count(voxmap * v)
         if(*vp != 0) ++n;
     return n;
 }
+
+void
+voxmap_spans(voxmap const * v, struct int3 * out_min, struct int3 * out_max)
+{
+    struct int3 i;
+    for(i.z = 0; i.z < v->dimensions.z; ++i.z)
+        for(i.y = 0; i.y < v->dimensions.y; ++i.y)
+            for(i.x = 0; i.x < v->dimensions.x; ++i.x)
+                if(*voxmap_voxel((voxmap*)v, i.x, i.y, i.z) != 0) {
+                    *out_min = min_int3(*out_min, i);
+                    *out_max = max_int3(*out_max, i);
+                }
+    add_to_int3(out_max, INT3(1,1,1));
+}

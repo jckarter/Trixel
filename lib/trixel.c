@@ -758,8 +758,8 @@ trixel_draw_brick(trixel_brick * brick)
 
     glBindBuffer(GL_ARRAY_BUFFER, brick->vertex_buffer);
 
-    glVertexPointer(3, GL_SHORT, 0, 0);
-    glNormalPointer(GL_BYTE, 0, (void*)(brick->num_vertices*3*sizeof(GLshort)));
+    glVertexPointer(3, GL_FLOAT, 0, 0);
+    glNormalPointer(GL_FLOAT, 0, (void*)(brick->num_vertices*3*sizeof(GLfloat)));
     glDrawArrays(GL_QUADS, 0, brick->num_vertices);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);

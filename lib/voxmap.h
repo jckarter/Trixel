@@ -17,6 +17,8 @@ voxmap * voxmap_normify(voxmap * v, uint8_t mask_fill[4]);
 void voxmap_add(voxmap * to, voxmap const * from);
 void voxmap_sub(voxmap * to, voxmap const * from);
 
+void voxmap_spans(voxmap const * v, struct int3 * out_min, struct int3 * out_max);
+
 int voxmap_count(voxmap * v);
 
 static inline uint8_t * voxmap_voxel(voxmap * v, int x, int y, int z)

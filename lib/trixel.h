@@ -50,6 +50,12 @@ static inline struct type min_##type(struct type a, struct type b) \
         (a.y < b.y ? a.y : b.y), \
         (a.z < b.z ? a.z : b.z) \
     }; } \
+static inline struct type max_##type(struct type a, struct type b) \
+    { return (struct type){ \
+        (a.x > b.x ? a.x : b.x), \
+        (a.y > b.y ? a.y : b.y), \
+        (a.z > b.z ? a.z : b.z) \
+    }; } \
 static inline void add_to_##type(struct type * a, struct type b) \
     { a->x += b.x; a->y += b.y; a->z += b.z; } \
 static inline void sub_from_##type(struct type * a, struct type b) \

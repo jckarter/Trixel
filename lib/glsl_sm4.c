@@ -2,6 +2,7 @@
 
 #include "trixel.h"
 #include "trixel_internal.h"
+#include "voxmap.h"
 #include <GL/glew.h>
 #include <math.h>
 #include <string.h>
@@ -107,74 +108,78 @@ glsl_sm4_delete_shaders(trixel_state t)
 static void
 glsl_sm4_make_vertex_buffer_for_brick(trixel_state t, trixel_brick * brick)
 {
-    GLshort width2  = (GLshort)brick->v.dimensions.x / 2,
-            height2 = (GLshort)brick->v.dimensions.y / 2,
-            depth2  = (GLshort)brick->v.dimensions.z / 2;
+    struct point3 dims2 = mul_point3(brick->dimensions, POINT3(0.5, 0.5, 0.5)), min, max;
+    struct int3 imin, imax;
+    
+    voxmap_spans(&brick->v, &imin, &imax);
+    min = sub_point3(POINT3_OF_INT3(imin), dims2);
+    max = sub_point3(POINT3_OF_INT3(imax), dims2);
+
     struct {
-        GLshort vertices[6*4*3];
-        GLbyte  normals [6*4*3];
+        GLfloat vertices[6*4*3];
+        GLfloat normals [6*4*3];
     } buffer = {
         {
-            -width2, -height2, -depth2,
-            -width2,  height2, -depth2,
-             width2,  height2, -depth2,
-             width2, -height2, -depth2,
+            min.x, min.y, min.z,
+            min.x, max.y, min.z,
+            max.x, max.y, min.z,
+            max.x, min.y, min.z,
          
-             width2, -height2, -depth2,
-             width2,  height2, -depth2,
-             width2,  height2,  depth2,
-             width2, -height2,  depth2,
+            max.x, min.y, min.z,
+            max.x, max.y, min.z,
+            max.x, max.y, max.z,
+            max.x, min.y, max.z,
          
-             width2, -height2,  depth2,
-             width2,  height2,  depth2,
-            -width2,  height2,  depth2,
-            -width2, -height2,  depth2,
+            max.x, min.y, max.z,
+            max.x, max.y, max.z,
+            min.x, max.y, max.z,
+            min.x, min.y, max.z,
         
-            -width2, -height2,  depth2,
-            -width2,  height2,  depth2,
-            -width2,  height2, -depth2,
-            -width2, -height2, -depth2,
+            min.x, min.y, max.z,
+            min.x, max.y, max.z,
+            min.x, max.y, min.z,
+            min.x, min.y, min.z,
         
-             width2,  height2,  depth2,
-             width2,  height2, -depth2,
-            -width2,  height2, -depth2,
-            -width2,  height2,  depth2,
+            max.x, max.y, max.z,
+            max.x, max.y, min.z,
+            min.x, max.y, min.z,
+            min.x, max.y, max.z,
 
-            -width2, -height2,  depth2,
-            -width2, -height2, -depth2,
-             width2, -height2, -depth2,
-             width2, -height2,  depth2
+            min.x, min.y, max.z,
+            min.x, min.y, min.z,
+            max.x, min.y, min.z,
+            max.x, min.y, max.z
         },
         {
-             0,  0, -128,
-             0,  0, -128,
-             0,  0, -128,
-             0,  0, -128,
+             0,  0, -1,
+             0,  0, -1,
+             0,  0, -1,
+             0,  0, -1,
 
-             127,  0,  0,
-             127,  0,  0,
-             127,  0,  0,
-             127,  0,  0,
+             1,  0,  0,
+             1,  0,  0,
+             1,  0,  0,
+             1,  0,  0,
 
-             0,  0,  127,
-             0,  0,  127,
-             0,  0,  127,
-             0,  0,  127,
+             0,  0,  1,
+             0,  0,  1,
+             0,  0,  1,
+             0,  0,  1,
 
-            -128,  0,  0,
-            -128,  0,  0,
-            -128,  0,  0,
-            -128,  0,  0,
+            -1,  0,  0,
+            -1,  0,  0,
+            -1,  0,  0,
+            -1,  0,  0,
 
-             0,  127,  0,
-             0,  127,  0,
-             0,  127,  0,
-             0,  127,  0,
+             0,  1,  0,
+             0,  1,  0,
+             0,  1,  0,
+             0,  1,  0,
 
-             0, -128,  0,
-             0, -128,  0,
-             0, -128,  0,
-             0, -128,  0
+             0, -1,  0,
+             0, -1,  0,
+             0, -1,  0,
+             0, -1,  0
         }
     };
 
