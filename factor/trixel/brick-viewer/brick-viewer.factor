@@ -1,71 +1,87 @@
-USING: opengl.demo-support opengl.gl trixel.core accessors kernel ui.gadgets ui.render
-sequences ui math combinators ui.gestures alarms calendar ;
+USING: accessors destructors kernel math math.order math.vectors multi-methods
+opengl.gl trixel.core trixel.engine ui.gadgets sequences namespaces ui.gestures 
+combinators ;
 IN: trixel.brick-viewer
 
-TUPLE: brick-viewer-gadget brick-paths trixel bricks brickn tick ;
+TUPLE: brick-viewer brick yaw pitch distance ;
 
-: frame-rate 30.0 4.0 / ; inline
+METHOD: init-root { object brick-viewer }
+    swap find-brick >>brick
+    0.0 >>yaw
+    0.0 >>pitch
+    30.0 >>distance
+    engine trixel>>
+    [ 0 TRIXEL_LIGHT_PARAM_POSITION { 64.0 32.0 64.0 1.0 } trixel-light-param ]
+    [ 0 TRIXEL_LIGHT_PARAM_AMBIENT  {  0.2  0.2  0.2 1.0 } trixel-light-param ]
+    [ 0 TRIXEL_LIGHT_PARAM_DIFFUSE  {  0.8  0.8  0.8 1.0 } trixel-light-param ]
+    tri ;
 
-M: brick-viewer-gadget near-plane ( gadget -- z )
-    drop 4.0 ;
-M: brick-viewer-gadget far-plane ( gadget -- z )
-    drop 1024.0 ;
-M: brick-viewer-gadget distance-step ( gadget -- dz )
-    drop 2.0 ;
+<PRIVATE
 
-: <brick-viewer-gadget> ( brick-path -- brick-viewer-gadget )
-    0.0 0.0 40.0 <demo-gadget> {
-        (>>brick-paths)
-        set-delegate
-    } brick-viewer-gadget construct
-    0 >>brickn ;
+: NEAR-PLANE 4.0 ; inline
+: FAR-PLANE 1024.0 ; inline
+: MOUSE-MOTION-SCALE 0.5 ; inline
+: KEY-ROTATE-STEP 1.0 ; inline
+: DISTANCE-STEP 2.0 ; inline
 
-: (update-shaders) ( trixel -- )
-    {
-        [ TRIXEL_SMOOTH_SHADING TRIXEL_LIGHTING bitor trixel-update-shaders ]
-        [ 0 TRIXEL_LIGHT_PARAM_POSITION { 64.0 32.0 64.0 1.0 } trixel-light-param ]
-        [ 0 TRIXEL_LIGHT_PARAM_AMBIENT  {  0.2  0.2  0.2 1.0 } trixel-light-param ]
-        [ 0 TRIXEL_LIGHT_PARAM_DIFFUSE  {  0.8  0.8  0.8 1.0 } trixel-light-param ]
-    } cleave ;
+: (fov-ratio) ( -- fov ) engine gadget>> dim>> dup first2 min v/n ;
 
-: (next-frame) ( gadget -- )
-    [ bricks>> length ]
-    [ [ 1+ swap mod ] change-brickn relayout-1 ] bi ;
+: -+ ( x -- -x x )
+    dup neg swap ;
 
-M: brick-viewer-gadget graft* ( gadget -- )
-    trixel-init-glew trixel-state-init
-    dup (update-shaders) >>trixel
-    dup { trixel>> brick-paths>> } get-slots [
-        trixel-read-brick-from-filename
-        [ swap trixel_prepare_brick ] keep
-    ] with map >>bricks
-    dup [ (next-frame) ] curry 1.0 frame-rate / seconds every >>tick
+: (frustum) ( -- -x x -y y near far )
+    (fov-ratio) NEAR-PLANE v*n first2 [ -+ ] bi@ NEAR-PLANE FAR-PLANE ;    
+
+: (set-matrices) ( brick-viewer -- )
+    GL_PROJECTION glMatrixMode
+    glLoadIdentity
+    (frustum) glFrustum
+    GL_MODELVIEW glMatrixMode
+    glLoadIdentity
+    [ >r 0.0 0.0 r> distance>> neg glTranslatef ]
+    [ pitch>> 1.0 0.0 0.0 glRotatef ]
+    [ yaw>>   0.0 1.0 0.0 glRotatef ]
+    tri ;
+
+: (yaw) ( brick-viewer ∆yaw -- )
+    swap [ + ] change-yaw drop ;
+: (pitch) ( brick-viewer ∆pitch -- )
+    swap [ + -90 max 90 min ] change-pitch drop ;
+: (zoom) ( brick-viewer ∆distance -- )
+    swap [ + 0 max ] change-distance drop ;
+
+SYMBOL: +drag-loc+
+: reset-drag-loc ( -- )
+    { 0 0 } +drag-loc+ set-global ;
+: rel-drag-loc ( -- loc )
+    drag-loc
+    [ +drag-loc+ get v- ]
+    [ +drag-loc+ set-global ] bi ;
+
+PRIVATE>
+
+METHOD: draw { brick-viewer }
+    [ (set-matrices) ]
+    [ brick>> draw ] bi ;
+
+METHOD: gesture { key-down brick-viewer }
+    swap sym>> {
+        { "LEFT"  [ KEY-ROTATE-STEP neg (yaw)   ] }
+        { "RIGHT" [ KEY-ROTATE-STEP     (yaw)   ] }
+        { "DOWN"  [ KEY-ROTATE-STEP neg (pitch) ] }
+        { "UP"    [ KEY-ROTATE-STEP     (pitch) ] }
+        { "="     [ DISTANCE-STEP   neg (zoom)  ] }
+        { "-"     [ DISTANCE-STEP   neg (zoom)  ] }
+        [ 2drop ]
+    } case ;
+METHOD: gesture { button-down brick-viewer }
+    2drop reset-drag-loc ;
+METHOD: gesture { drag brick-viewer }
+    nip rel-drag-loc MOUSE-MOTION-SCALE v*n first2
+    [ dupd (yaw) ] [ (pitch) ] bi* ;
+METHOD: gesture { mouse-scroll brick-viewer }
+    nip scroll-direction get second DISTANCE-STEP * (zoom) ;
+
+(M): brick-viewer dispose
     drop ;
 
-M: brick-viewer-gadget ungraft* ( gadget -- )
-    [ bricks>> [ [ trixel_free_brick ] each ] when* ]
-    [ trixel>> [ trixel_state_free ] when* ] 
-    [ tick>> [ cancel-alarm ] when* ] tri ;
-    
-M: brick-viewer-gadget pref-dim* ( gadget -- dim )
-    drop { 640 480 } ;
-    
-M: brick-viewer-gadget draw-gadget* ( gadget -- )
-    GL_STENCIL_TEST glDisable
-    GL_DEPTH_TEST glEnable
-    0.2 0.2 0.2 1.0 glClearColor
-    GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT bitor glClear
-    [ demo-gadget-set-matrices ]
-    [
-        dup trixel>> [
-            { brickn>> bricks>> } get-slots nth trixel_draw_brick
-        ] with-trixel-draw
-    ] bi
-    glGetError drop ;
-
-brick-viewer-gadget H{
-    { T{ key-down f f "r" } [ trixel>> (update-shaders) ] }
-} set-gestures
-
-: brick-viewer-window ( path -- )
-    [ <brick-viewer-gadget> "Brick Viewer" open-window ] with-ui ;

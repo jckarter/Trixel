@@ -7,8 +7,10 @@ IN: trixel.engine.mock
     f >>trixel
     mock-resource <resource-cache> >>brick-cache
     mock-resource <resource-cache> >>sprite-cache
-    +engine+ set-global ;
+    +engine+ set ;
 
 : with-mock-engine ( quot -- )
-    init-mock-engine
-    [ finish-engine ] [ ] cleanup ;
+    [
+        init-mock-engine
+        [ finish-engine ] [ ] cleanup
+    ] with-scope ;

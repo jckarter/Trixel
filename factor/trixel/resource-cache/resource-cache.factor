@@ -42,5 +42,8 @@ TUPLE: resource-cache resource-class loaded-resources ;
 : loaded-resource-names ( resource-cache -- names )
     loaded-resources>> keys ;
 
+: loaded-resources ( resource-cache -- resources )
+    loaded-resources>> values ;
+
 M: resource-cache dispose ( resource-cache -- )
     dup loaded-resource-names [ unload-resource ] with each ;

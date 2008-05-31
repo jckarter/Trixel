@@ -1,6 +1,6 @@
-USING: alien alien.syntax kernel opengl.gl system combinators sequences
+USING: alien alien.syntax macros kernel opengl.gl system combinators sequences
 libc alien.c-types alien.strings math io.encodings.utf8 trixel.core.lib
-continuations words ;
+continuations words quotations ;
 IN: trixel.core
 
 LIBRARY: trixel
@@ -97,11 +97,19 @@ FUNCTION: void trixel_state_free ( trixel_state t ) ;
 
 : trixel-init-glew ( -- )
     [ trixel_init_glew drop ] with-trixel-error ;
-: trixel-update-shaders ( t flags -- )
-    [ trixel_update_shaders drop ] with-trixel-error ;
 : trixel-read-brick-from-filename ( filename -- brick )
     [ trixel_read_brick_from_filename ] with-trixel-error ;
 : trixel-light-param ( t light param value -- )
     >c-float-array trixel_light_param ; inline
 : trixel-state-init ( -- t )
-    [ trixel-resource-path trixel_state_init ] with-trixel-error ;
+    trixel-resource-path [ trixel_state_init ] with-trixel-error ;
+
+MACRO: (flags) ( flag-words -- int )
+    0 [ execute bitor ] reduce 1quotation ;
+
+: trixel-update-shaders ( t flags -- )
+    (flags) [ trixel_update_shaders drop ] with-trixel-error ;
+
+: trixel-init ( flags -- t )
+    trixel-init-glew trixel-state-init
+    [ swap trixel-update-shaders ] keep ;
