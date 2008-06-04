@@ -19,6 +19,7 @@ TUPLE: engine-gadget root-class param ;
 M: engine-gadget graft* ( gadget -- )
     init-engine
     start-engine-display
+    start-engine
     (open-log-window)
     engine
     over >>gadget
@@ -27,6 +28,7 @@ M: engine-gadget graft* ( gadget -- )
 
 M: engine-gadget ungraft* ( gadget -- )
     drop
+    stop-engine
     stop-engine-display
     finish-engine ;
 
@@ -52,5 +54,5 @@ M: engine-gadget handle-gesture* ( gadget gesture delegate -- pass? )
 M: engine-gadget pref-dim* ( gadget -- dim )
     drop { 1024 768 } ;
 
-: engine-window ( root-class -- )
+: engine-window ( root-class param -- )
     [ <engine-gadget> "trixel" open-window ] with-ui ;

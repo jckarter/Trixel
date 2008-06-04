@@ -56,19 +56,21 @@ METHOD: tick { object }
     drop ;
 
 : stop-engine ( -- )
-    engine tick>> [ cancel-alarm ] when* ;
-
+    engine
+    [ tick>> [ cancel-alarm ] when* ]
+    [ f >>tick drop ] bi ;
 
 syntax:M: trixel-engine dispose ( engine -- )
+    stop-engine
     {
         [ sprite-cache>> dispose ]
         [ brick-cache>> dispose ]
         [ trixel>> [ trixel_finish ] when* ]
         [ root>> [ dispose ] when* ]
-        [ tick>> [ cancel-alarm ] when* ]
     } cleave ;
 
 : find-brick ( name -- brick )
     engine brick-cache>> swap find-resource ;
 : find-sprite ( name -- sprite )
     engine sprite-cache>> swap find-resource ;
+
