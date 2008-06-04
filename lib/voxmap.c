@@ -118,6 +118,8 @@ void
 voxmap_spans(voxmap const * v, struct int3 * out_min, struct int3 * out_max)
 {
     struct int3 i;
+    *out_min = v->dimensions;
+    *out_max = INT3(-1, -1, -1);
     for(i.z = 0; i.z < v->dimensions.z; ++i.z)
         for(i.y = 0; i.y < v->dimensions.y; ++i.y)
             for(i.x = 0; i.x < v->dimensions.x; ++i.x)
