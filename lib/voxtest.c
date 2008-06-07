@@ -138,9 +138,41 @@ main_loop(trixel_state t)
             case SDLK_u:
                 eye[2] += eye_incr;
                 break;
+
+            case SDLK_c:
+                printf("Toggling -X neighbor flag\n");
+                g_brick->neighbor_flags ^= TRIXEL_NEIGHBOR_NEGX_FLAG;
+                trixel_update_brick_textures(g_brick);
+                break;
+            case SDLK_r:
+                printf("Toggling -Y neighbor flag\n");
+                g_brick->neighbor_flags ^= TRIXEL_NEIGHBOR_NEGY_FLAG;
+                trixel_update_brick_textures(g_brick);
+                break;
+            case SDLK_l:
+                printf("Toggling -Z neighbor flag\n");
+                g_brick->neighbor_flags ^= TRIXEL_NEIGHBOR_NEGZ_FLAG;
+                trixel_update_brick_textures(g_brick);
+                break;
+            case SDLK_t:
+                printf("Toggling +X neighbor flag\n");
+                g_brick->neighbor_flags ^= TRIXEL_NEIGHBOR_POSX_FLAG;
+                trixel_update_brick_textures(g_brick);
+                break;
+            case SDLK_n:
+                printf("Toggling +Y neighbor flag\n");
+                g_brick->neighbor_flags ^= TRIXEL_NEIGHBOR_POSY_FLAG;
+                trixel_update_brick_textures(g_brick);
+                break;
+            case SDLK_s:
+                printf("Toggling +Z neighbor flag\n");
+                g_brick->neighbor_flags ^= TRIXEL_NEIGHBOR_POSZ_FLAG;
+                trixel_update_brick_textures(g_brick);
+                break;
+
             case SDLK_q:
                 return;
-            case SDLK_r:
+            case SDLK_z:
                 remake_shaders(t);
                 break;
             case SDLK_b:

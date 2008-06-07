@@ -1,5 +1,5 @@
 USING: accessors destructors kernel multi-methods opengl.gl math
-trixel.engine sequences namespaces trixel.viewer-base ;
+trixel.core trixel.engine sequences namespaces trixel.viewer-base ;
 IN: trixel.grid-viewer
 
 TUPLE: grid-viewer < viewer-base
@@ -16,8 +16,18 @@ TUPLE: grid-viewer < viewer-base
     { "WallCorner" "WallFront" "WallFront" "WallFront" "WallFront" "WallFront" "WallFront" "WallCorner" }
 } ; inline
 
+: (set-brick-neighbor-flags) ( brick -- brick )
+    [
+        trixel-brick>> [
+            {
+                TRIXEL_NEIGHBOR_POSX_FLAG TRIXEL_NEIGHBOR_POSZ_FLAG
+                TRIXEL_NEIGHBOR_NEGX_FLAG TRIXEL_NEIGHBOR_NEGZ_FLAG
+            } (flags) swap set-trixel_brick-neighbor_flags
+        ] [ trixel_update_brick_textures ] bi
+    ] keep ;
+
 : make-grid-bricks ( -- bricks )
-    (grid-bricks) [ [ find-brick ] map ] map ;
+    (grid-bricks) [ [ find-brick (set-brick-neighbor-flags) ] map ] map ;
 
 METHOD: init-root { object grid-viewer }
     nip make-grid-bricks >>grid-bricks

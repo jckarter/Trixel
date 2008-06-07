@@ -19,6 +19,24 @@ enum trixel_light_params {
     TRIXEL_LIGHT_PARAM_DIFFUSE  = 2
 };
 
+enum trixel_neighbors {
+    TRIXEL_NEIGHBOR_POSX = 0,
+    TRIXEL_NEIGHBOR_POSY,
+    TRIXEL_NEIGHBOR_POSZ,
+    TRIXEL_NEIGHBOR_NEGX,
+    TRIXEL_NEIGHBOR_NEGY,
+    TRIXEL_NEIGHBOR_NEGZ
+};
+
+enum trixel_neighbor_flags {
+    TRIXEL_NEIGHBOR_POSX_FLAG = 1 << TRIXEL_NEIGHBOR_POSX,
+    TRIXEL_NEIGHBOR_POSY_FLAG = 1 << TRIXEL_NEIGHBOR_POSY,
+    TRIXEL_NEIGHBOR_POSZ_FLAG = 1 << TRIXEL_NEIGHBOR_POSZ,
+    TRIXEL_NEIGHBOR_NEGX_FLAG = 1 << TRIXEL_NEIGHBOR_NEGX,
+    TRIXEL_NEIGHBOR_NEGY_FLAG = 1 << TRIXEL_NEIGHBOR_NEGY,
+    TRIXEL_NEIGHBOR_NEGZ_FLAG = 1 << TRIXEL_NEIGHBOR_NEGZ
+};
+
 struct point3 {
     float x, y, z;
 };
@@ -78,6 +96,7 @@ typedef struct voxmap {
 typedef struct trixel_brick {
     struct point3 dimensions, dimensions_inv, normal_translate, normal_scale;
     GLuint palette_texture, voxmap_texture, normal_texture, vertex_buffer, num_vertices;
+    int neighbor_flags;
     trixel_state t;
     uint8_t palette_data[256*4];
     voxmap v;

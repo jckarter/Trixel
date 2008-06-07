@@ -33,6 +33,7 @@ M: engine-gadget ungraft* ( gadget -- )
     finish-engine ;
 
 : (set-up-opengl-state) ( -- )
+    GL_CULL_FACE glEnable
     GL_STENCIL_TEST glDisable
     GL_DEPTH_TEST glEnable
     GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT bitor glClear ;

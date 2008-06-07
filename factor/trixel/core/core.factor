@@ -34,6 +34,7 @@ C-STRUCT: trixel_brick
     { "GLuint"       "normal_texture" }
     { "GLuint"       "vertex_buffer" }
     { "GLuint"       "num_vertices" }
+    { "int"          "neighbor_flags" }
     { "trixel_state" "t" }
     { "uchar[1024]"  "palette_data" }
     { "voxmap"       "v" }
@@ -47,6 +48,20 @@ C-STRUCT: trixel_brick
 : TRIXEL_LIGHT_PARAM_POSITION 0 ; inline
 : TRIXEL_LIGHT_PARAM_AMBIENT  1 ; inline
 : TRIXEL_LIGHT_PARAM_DIFFUSE  2 ; inline
+
+: TRIXEL_NEIGHBOR_POSX 0 ; inline
+: TRIXEL_NEIGHBOR_POSY 1 ; inline
+: TRIXEL_NEIGHBOR_POSZ 2 ; inline
+: TRIXEL_NEIGHBOR_NEGX 3 ; inline
+: TRIXEL_NEIGHBOR_NEGY 4 ; inline
+: TRIXEL_NEIGHBOR_NEGZ 5 ; inline
+
+: TRIXEL_NEIGHBOR_POSX_FLAG  1 ; inline
+: TRIXEL_NEIGHBOR_POSY_FLAG  2 ; inline
+: TRIXEL_NEIGHBOR_POSZ_FLAG  4 ; inline
+: TRIXEL_NEIGHBOR_NEGX_FLAG  8 ; inline
+: TRIXEL_NEIGHBOR_NEGY_FLAG 16 ; inline
+: TRIXEL_NEIGHBOR_NEGZ_FLAG 32 ; inline
 
 FUNCTION: trixel_state trixel_state_init ( char* resource_path, char** out_error_message ) ;
 FUNCTION: bool trixel_init_glew ( char** out_error_message ) ;

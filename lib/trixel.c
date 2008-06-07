@@ -439,17 +439,36 @@ trixel_unprepare_brick(trixel_brick * brick)
     brick->t = NULL;
 }
 
-uint8_t
+static inline void
+_clamp_neighbors(trixel_brick * brick, int * x, int * y, int * z)
+{
+    int neighbor_flags = brick->neighbor_flags;
+    if (neighbor_flags == 0) return;
+
+    if ((neighbor_flags & TRIXEL_NEIGHBOR_NEGX_FLAG) && (*x < 0))
+        *x = 0;
+    if ((neighbor_flags & TRIXEL_NEIGHBOR_NEGY_FLAG) && (*y < 0))
+        *y = 0;
+    if ((neighbor_flags & TRIXEL_NEIGHBOR_NEGZ_FLAG) && (*z < 0))
+        *z = 0;
+
+    if ((neighbor_flags & TRIXEL_NEIGHBOR_POSX_FLAG) && (*x >= brick->v.dimensions.x))
+        *x = brick->v.dimensions.x - 1;
+    if ((neighbor_flags & TRIXEL_NEIGHBOR_POSY_FLAG) && (*y >= brick->v.dimensions.y))
+        *y = brick->v.dimensions.y - 1;
+    if ((neighbor_flags & TRIXEL_NEIGHBOR_POSZ_FLAG) && (*z >= brick->v.dimensions.z))
+        *z = brick->v.dimensions.z - 1;
+}
+
+static inline uint8_t
 _clipped_voxel(trixel_brick * brick, int x, int y, int z)
 {
+    _clamp_neighbors(brick, &x, &y, &z);
     return x >= 0 && y >= 0 && z >= 0
         && x < brick->v.dimensions.x && y < brick->v.dimensions.y && z < brick->v.dimensions.z
             ? *trixel_brick_voxel(brick, x, y, z)
             : 0;
 }
-
-enum { _NEIGHBOR_POSX = 0, _NEIGHBOR_POSY, _NEIGHBOR_POSZ,
-       _NEIGHBOR_NEGX,     _NEIGHBOR_NEGY, _NEIGHBOR_NEGZ };
 
 void
 _calculate_normal(trixel_brick * brick, int x, int y, int z, struct point3 * out_normal, uint8_t * out_neighbors)
@@ -464,7 +483,7 @@ _calculate_normal(trixel_brick * brick, int x, int y, int z, struct point3 * out
         {  1,  1, -1 },
         {  1,  1,  1 }
     };
-    static const struct { int x, y, z; } offsets[8] = {
+    static const struct int3 offsets[8] = {
         { -1, -1, -1 },
         { -1, -1,  0 },
         { -1,  0, -1 },
@@ -475,14 +494,14 @@ _calculate_normal(trixel_brick * brick, int x, int y, int z, struct point3 * out
         {  0,  0,  0 }        
     };
     static const struct { uint8_t x, y, z; } neighbors[8] = {
-        { _NEIGHBOR_NEGX, _NEIGHBOR_NEGY, _NEIGHBOR_NEGZ },
-        { _NEIGHBOR_NEGX, _NEIGHBOR_NEGY, _NEIGHBOR_POSZ },
-        { _NEIGHBOR_NEGX, _NEIGHBOR_POSY, _NEIGHBOR_NEGZ },
-        { _NEIGHBOR_NEGX, _NEIGHBOR_POSY, _NEIGHBOR_POSZ },
-        { _NEIGHBOR_POSX, _NEIGHBOR_NEGY, _NEIGHBOR_NEGZ },
-        { _NEIGHBOR_POSX, _NEIGHBOR_NEGY, _NEIGHBOR_POSZ },
-        { _NEIGHBOR_POSX, _NEIGHBOR_POSY, _NEIGHBOR_NEGZ },
-        { _NEIGHBOR_POSX, _NEIGHBOR_POSY, _NEIGHBOR_POSZ }
+        { TRIXEL_NEIGHBOR_NEGX, TRIXEL_NEIGHBOR_NEGY, TRIXEL_NEIGHBOR_NEGZ },
+        { TRIXEL_NEIGHBOR_NEGX, TRIXEL_NEIGHBOR_NEGY, TRIXEL_NEIGHBOR_POSZ },
+        { TRIXEL_NEIGHBOR_NEGX, TRIXEL_NEIGHBOR_POSY, TRIXEL_NEIGHBOR_NEGZ },
+        { TRIXEL_NEIGHBOR_NEGX, TRIXEL_NEIGHBOR_POSY, TRIXEL_NEIGHBOR_POSZ },
+        { TRIXEL_NEIGHBOR_POSX, TRIXEL_NEIGHBOR_NEGY, TRIXEL_NEIGHBOR_NEGZ },
+        { TRIXEL_NEIGHBOR_POSX, TRIXEL_NEIGHBOR_NEGY, TRIXEL_NEIGHBOR_POSZ },
+        { TRIXEL_NEIGHBOR_POSX, TRIXEL_NEIGHBOR_POSY, TRIXEL_NEIGHBOR_NEGZ },
+        { TRIXEL_NEIGHBOR_POSX, TRIXEL_NEIGHBOR_POSY, TRIXEL_NEIGHBOR_POSZ }
     };
     
     for(int i = 0; i < 8; ++i)
@@ -572,24 +591,24 @@ _generate_normal_texture(trixel_brick * brick)
     for(int z = 0; z < normals_d; ++z)
         for(int y = 0; y < normals_h; ++y)
             for(int x = 0; x < normals_w; ++x) {
-                if(raw_neighbors[z][y][x][_NEIGHBOR_POSX] % 4)
+                if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_POSX] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y][x+1]);
-                if(raw_neighbors[z][y][x][_NEIGHBOR_POSY] % 4)
+                if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_POSY] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y+1][x]);
-                if(raw_neighbors[z][y][x][_NEIGHBOR_POSZ] % 4)
+                if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_POSZ] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z+1][y][x]);
-                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGX] % 4)
+                if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_NEGX] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y][x-1]);
-                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGY] % 4)
+                if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_NEGY] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y-1][x]);
-                if(raw_neighbors[z][y][x][_NEIGHBOR_NEGZ] % 4)
+                if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_NEGZ] % 4)
                     add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z-1][y][x]);
             }
 
-    // _log_normal_data(
-    //     normals_w, normals_h, normals_d,
-    //     raw_normal_texture_data, raw_neighbors, normal_texture_data
-    // );
+    //_log_normal_data(
+    //    normals_w, normals_h, normals_d,
+    //    raw_normal_texture_data, raw_neighbors, normal_texture_data
+    //);
 
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_3D, brick->normal_texture);
