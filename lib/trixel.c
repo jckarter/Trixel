@@ -592,17 +592,17 @@ _generate_normal_texture(trixel_brick * brick)
         for(int y = 0; y < normals_h; ++y)
             for(int x = 0; x < normals_w; ++x) {
                 if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_POSX] % 4)
-                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y][x+1]);
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y][x+1 > normals_w ? normals_w : x+1]);
                 if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_POSY] % 4)
-                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y+1][x]);
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y+1 > normals_h ? normals_h : y+1][x]);
                 if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_POSZ] % 4)
-                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z+1][y][x]);
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z+1 > normals_d ? normals_d : z+1][y][x]);
                 if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_NEGX] % 4)
-                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y][x-1]);
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y][x-1 < 0 ? 0 : x-1]);
                 if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_NEGY] % 4)
-                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y-1][x]);
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z][y-1 < 0 ? 0 : y-1][x]);
                 if(raw_neighbors[z][y][x][TRIXEL_NEIGHBOR_NEGZ] % 4)
-                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z-1][y][x]);
+                    add_to_point3(&normal_texture_data[z][y][x], raw_normal_texture_data[z-1 < 0 ? 0 : z-1][y][x]);
             }
 
     //_log_normal_data(
