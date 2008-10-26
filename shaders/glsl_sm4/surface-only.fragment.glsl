@@ -1,3 +1,4 @@
+varying vec3 p0scaled, voxmap_size, surface_normal;
 vec3 cast_pt, world_cast_pt, cast_normal;
 float cast_index;
 

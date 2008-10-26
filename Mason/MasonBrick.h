@@ -4,7 +4,7 @@
 
 @class MasonCubeSelection;
 
-@interface MasonBrick : NSObject
+@interface MasonBrick : NSObject <NSCopying>
 {
     trixel_brick * trixelBrick;
     

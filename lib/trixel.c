@@ -353,7 +353,7 @@ trixel_copy_brick(trixel_brick const * brick, char * * out_error_message)
         out_error_message
     );
     if(new_brick) {
-        memcpy(&new_brick, &brick, sizeof(brick) + voxmap_size(&brick->v));
+        memcpy(new_brick, brick, sizeof(brick) + voxmap_size(&brick->v));
     }
     return new_brick;
 }

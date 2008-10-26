@@ -400,7 +400,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
 {
     MasonBrick * selectedArea = [self selectedArea:selection];
     
-    MasonCubeSelection * oldSelection = [selection copy];
+    MasonCubeSelection * oldSelection = [selection copyWithZone:nil];
     selection.minx += distance.x;
     selection.miny += distance.y;
     selection.minz += distance.z;
@@ -415,7 +415,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
 
 - (MasonBrick *)flippingSelectedArea:(MasonCubeSelection *)selection acrossAxis:(struct point3)axis
 {
-    MasonBrick * newBrick = [self copy];
+    MasonBrick * newBrick = [self copyWithZone:nil];
     
     if(newBrick) {
         unsigned char * to = trixel_brick_voxel(
@@ -443,7 +443,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
 
 - (MasonBrick *)mirroringSelectedArea:(MasonCubeSelection *)selection acrossAxis:(struct point3)axis
 {
-    MasonBrick * newBrick = [self copy];
+    MasonBrick * newBrick = [self copyWithZone:nil];
     
     if(newBrick) {
         unsigned from_x = (axis.x > 0 ? selection.maxx-1 : selection.minx),
@@ -509,10 +509,10 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
 
 - (MasonBrick *)replacingSelectedArea:(MasonCubeSelection *)selection withBrick:(MasonBrick *)subbrick
 {
-    MasonCubeSelection * clippedSelection = [selection copy];
+    MasonCubeSelection * clippedSelection = [selection copyWithZone:nil];
     [clippedSelection clipToX:self.width y:self.height z:self.depth];
     
-    MasonBrick * newBrick = [self copy];
+    MasonBrick * newBrick = [self copyWithZone:nil];
     
     for(unsigned z = clippedSelection.minz; z < clippedSelection.maxz; ++z)
         for(unsigned y = clippedSelection.miny; y < clippedSelection.maxy; ++y)
@@ -528,7 +528,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
 
 - (MasonBrick *)clearingSelectedArea:(MasonCubeSelection *)selection
 {
-    MasonBrick * newBrick = [self copy];
+    MasonBrick * newBrick = [self copyWithZone:nil];
 
     for(unsigned z = selection.minz; z < selection.maxz; ++z)
         for(unsigned y = selection.miny; y < selection.maxy; ++y)
@@ -541,7 +541,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
                 sliceNumber:(NSInteger)sliceNumber
                 copiedToSliceNumber:(NSInteger)destSliceNumber
 {
-    MasonBrick * newBrick = [self copy];
+    MasonBrick * newBrick = [self copyWithZone:nil];
     
     _copy_brick_slice(newBrick.trixelBrick, sliceAxis, sliceNumber, destSliceNumber);
     
@@ -551,7 +551,7 @@ _copy_brick_slice(trixel_brick * brick, int sliceAxis, int sliceNumber, int dest
 - (MasonBrick *)brickWithSliceAxis:(NSInteger)sliceAxis
                 sliceNumberProjected:(NSInteger)sliceNumber
 {
-    MasonBrick * newBrick = [self copy];
+    MasonBrick * newBrick = [self copyWithZone:nil];
     int sliceCount = (sliceAxis == SLICE_AXIS_XAXIS
         ? [self width]  : sliceAxis == SLICE_AXIS_YAXIS
         ? [self height]
