@@ -1,1 +1,1 @@
-Load Mason/Mason.xcodeproj into XCode and build it.
+Load Mason/Mason.xcodeproj into XCode and build it. You'll need GLEW from http://glew.sf.net/ .
